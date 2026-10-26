@@ -46,8 +46,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     35 — Monitoring / Logging / Observability
                     36 — Kill Switches / Safety Controls
                     37 — Advanced Order Tactics
+                    38 — Queue Position / Limit Order Subtleties
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 38 — Queue Position / Limit Order Subtleties
+Next Segment: 39 — Smart Routing / Direct Routing
 Source of Truth: GitHub main
 ```
 
@@ -168,9 +169,10 @@ Baseline
 | `35-MONITORING-LOGGING-AND-OBSERVABILITY.md` | `35-MONITORING-LOGGING-OBSERVABILITY.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `36-KILL-SWITCHES-AND-SAFETY-CONTROLS.md` | `36-KILL-SWITCHES-SAFETY-CONTROLS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `37-ADVANCED-ORDER-TACTICS.md` | `37-ADVANCED-ORDER-TACTICS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `38-QUEUE-POSITION-AND-LIMIT-ORDER-SUBTLETIES.md` | `38-QUEUE-POSITION-LIMIT-ORDER-SUBTLETIES.md` | TBD | `NOT STARTED` |
+| `38-QUEUE-POSITION-AND-LIMIT-ORDER-SUBTLETIES.md` | `38-QUEUE-POSITION-LIMIT-ORDER-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `39-SMART-ROUTING-VS-DIRECT-ROUTING.md` | `39-SMART-ROUTING-DIRECT-ROUTING.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 39–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 40–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
