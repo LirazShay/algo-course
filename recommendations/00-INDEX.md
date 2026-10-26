@@ -11,7 +11,7 @@ Regular Course: COMPLETE
 Recommendation Playbook: IN PROGRESS
 Completed Segments: 01 — Foundations / Personal Algo System
 Next Segment: 02 — US Market Structure
-Source of Truth: GitHub main + this feature branch until merged
+Source of Truth: GitHub main
 ```
 
 ‏מסמכי החובה לפתיחת הפרויקט:
