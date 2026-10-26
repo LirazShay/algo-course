@@ -10,8 +10,9 @@
 Regular Course: COMPLETE
 Recommendation Playbook: IN PROGRESS
 Completed Segments: 01 — Foundations / Personal Algo System
-Next Segment: 02 — US Market Structure
-Source of Truth: GitHub main
+                    02 — US Market Structure
+Next Segment: 03 — Bid / Ask / Last / Spread / Order Book
+Source of Truth: GitHub main after merge
 ```
 
 ‏מסמכי החובה לפתיחת הפרויקט:
@@ -94,7 +95,7 @@ Baseline
 | מקור | Recommendation Sheet | Priority מרכזי | Status |
 |---|---|---:|---|
 | `01-FOUNDATIONS-PERSONAL-ALGO-SYSTEM.md` | `01-PERSONAL-ALGO-SYSTEM.md` | `P0/P1` | `COMPLETED` |
-| `02-HOW-US-STOCK-MARKET-WORKS.md` | `02-US-MARKET-STRUCTURE.md` | TBD | `NOT STARTED` |
+| `02-HOW-US-STOCK-MARKET-WORKS.md` | `02-US-MARKET-STRUCTURE.md` | `P0/P1` | `COMPLETED` |
 | `03-BID-ASK-LAST-SPREAD-ORDER-BOOK.md` | `03-BID-ASK-SPREAD-ORDER-BOOK.md` | TBD | `NOT STARTED` |
 | `04-ORDER-TYPES-FOR-PERSONAL-ALGO.md` | `04-ORDER-TYPES.md` | TBD | `NOT STARTED` |
 | `05-MARKET-DATA-FOR-PERSONAL-ALGO.md` | `05-MARKET-DATA.md` | TBD | `NOT STARTED` |
