@@ -22,8 +22,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     11 — Liquidity / Executability
                     12 — Filters Before Ranking
                     13 — Feature Engineering
+                    14 — Score / Market Ranking
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 14 — Score / Market Ranking
+Next Segment: 15 — Top Candidate / Trade No Trade
 Source of Truth: GitHub main
 ```
 
@@ -120,9 +121,10 @@ Baseline
 | `11-LIQUIDITY-AND-EXECUTABILITY.md` | `11-LIQUIDITY-EXECUTABILITY.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `12-FILTERS-BEFORE-RANKING.md` | `12-FILTERS-BEFORE-RANKING.md` | `P0/P1/P2` | `COMPLETED` |
 | `13-FEATURE-ENGINEERING-FOR-MARKET-SCANNER.md` | `13-FEATURE-ENGINEERING.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `14-SCORE-AND-MARKET-RANKING.md` | `14-SCORE-MARKET-RANKING.md` | TBD | `NOT STARTED` |
+| `14-SCORE-AND-MARKET-RANKING.md` | `14-SCORE-MARKET-RANKING.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `15-TOP-CANDIDATE-TRADE-NO-TRADE.md` | `15-TOP-CANDIDATE-TRADE-NO-TRADE.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 15–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 16–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
