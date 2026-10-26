@@ -51,8 +51,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     40 — Hidden / Reserve / Midpoint / Pegged / ATS
                     41 — Advanced Broker Algos
                     42 — Opening/Closing Auctions / Auction Order Types
+                    43 — Halts / LULD / Fast Markets
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 43 — Halts / LULD / Fast Markets
+Next Segment: 44 — Advanced Order Flow
 Source of Truth: GitHub main
 ```
 
@@ -178,9 +179,10 @@ Baseline
 | `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-AND-ATS.md` | `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-ATS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `41-ADVANCED-BROKER-ALGOS.md` | `41-ADVANCED-BROKER-ALGOS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `42-OPENING-CLOSING-AUCTIONS-AND-AUCTION-ORDER-TYPES.md` | `42-OPENING-CLOSING-AUCTIONS-AUCTION-ORDER-TYPES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `43-HALTS-LULD-AND-FAST-MARKETS.md` | `43-HALTS-LULD-FAST-MARKETS.md` | TBD | `NOT STARTED` |
+| `43-HALTS-LULD-AND-FAST-MARKETS.md` | `43-HALTS-LULD-FAST-MARKETS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `44-ADVANCED-ORDER-FLOW.md` | `44-ADVANCED-ORDER-FLOW.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 44–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 45–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
