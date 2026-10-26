@@ -49,8 +49,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     38 — Queue Position / Limit Order Subtleties
                     39 — Smart Routing / Direct Routing
                     40 — Hidden / Reserve / Midpoint / Pegged / ATS
+                    41 — Advanced Broker Algos
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 41 — Advanced Broker Algos
+Next Segment: 42 — Opening/Closing Auctions / Auction Order Types
 Source of Truth: GitHub main
 ```
 
@@ -174,9 +175,10 @@ Baseline
 | `38-QUEUE-POSITION-AND-LIMIT-ORDER-SUBTLETIES.md` | `38-QUEUE-POSITION-LIMIT-ORDER-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `39-SMART-ROUTING-VS-DIRECT-ROUTING.md` | `39-SMART-ROUTING-DIRECT-ROUTING.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-AND-ATS.md` | `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-ATS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `41-ADVANCED-BROKER-ALGOS.md` | `41-ADVANCED-BROKER-ALGOS.md` | TBD | `NOT STARTED` |
+| `41-ADVANCED-BROKER-ALGOS.md` | `41-ADVANCED-BROKER-ALGOS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `42-OPENING-CLOSING-AUCTIONS-AND-AUCTION-ORDER-TYPES.md` | `42-OPENING-CLOSING-AUCTIONS-AUCTION-ORDER-TYPES.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 42–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 43–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
