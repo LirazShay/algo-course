@@ -16,8 +16,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     05 — Market Data
                     06 — Time / Sampling / Latency
                     07 — Trading Universe
+                    08 — Short-Term Momentum
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 08 — Short-Term Momentum
+Next Segment: 09 — Velocity / Acceleration / Momentum Shape
 Source of Truth: GitHub main after merge
 ```
 
@@ -108,9 +109,10 @@ Baseline
 | `05-MARKET-DATA-FOR-PERSONAL-ALGO.md` | `05-MARKET-DATA.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `06-TIME-SAMPLING-LATENCY.md` | `06-TIME-SAMPLING-LATENCY.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `07-BUILDING-THE-TRADING-UNIVERSE.md` | `07-TRADING-UNIVERSE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `08-SHORT-TERM-MOMENTUM.md` | `08-SHORT-TERM-MOMENTUM.md` | TBD | `NOT STARTED` |
+| `08-SHORT-TERM-MOMENTUM.md` | `08-SHORT-TERM-MOMENTUM.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `09-VELOCITY-ACCELERATION-MOMENTUM-SHAPE.md` | `09-VELOCITY-ACCELERATION-MOMENTUM-SHAPE.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 09–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 10–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
