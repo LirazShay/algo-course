@@ -24,8 +24,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     13 — Feature Engineering
                     14 — Score / Market Ranking
                     15 — Top Candidate / Trade No Trade
+                    16 — Trade Entry / Execution
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 16 — Trade Entry / Execution
+Next Segment: 17 — Trade Exit Logic
 Source of Truth: GitHub main
 ```
 
@@ -124,9 +125,10 @@ Baseline
 | `13-FEATURE-ENGINEERING-FOR-MARKET-SCANNER.md` | `13-FEATURE-ENGINEERING.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `14-SCORE-AND-MARKET-RANKING.md` | `14-SCORE-MARKET-RANKING.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `15-TOP-CANDIDATE-TRADE-NO-TRADE.md` | `15-TOP-CANDIDATE-TRADE-NO-TRADE.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `16-TRADE-ENTRY-EXECUTION.md` | `16-TRADE-ENTRY-EXECUTION.md` | TBD | `NOT STARTED` |
+| `16-TRADE-ENTRY-EXECUTION.md` | `16-TRADE-ENTRY-EXECUTION.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `17-TRADE-EXIT-LOGIC.md` | `17-TRADE-EXIT-LOGIC.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 17–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 18–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
