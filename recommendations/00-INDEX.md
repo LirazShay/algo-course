@@ -29,7 +29,7 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     18 — True Trading Costs / Net Edge
                     19 — Position Sizing / Risk Management
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 20 — Backtest Fundamentals
+Next Segment: 20 — Backtest Fundamentals / Timeline Integrity
 Source of Truth: GitHub main
 ```
 
@@ -132,7 +132,7 @@ Baseline
 | `17-TRADE-EXIT-LOGIC.md` | `17-TRADE-EXIT-LOGIC.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `18-TRUE-TRADING-COSTS-AND-NET-EDGE.md` | `18-TRUE-TRADING-COSTS-NET-EDGE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `19-POSITION-SIZING-AND-RISK-MANAGEMENT.md` | `19-POSITION-SIZING-RISK-MANAGEMENT.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `20-BACKTEST-FUNDAMENTALS.md` | `20-BACKTEST-FUNDAMENTALS.md` | TBD | `NOT STARTED` |
+| `20-BACKTEST-FUNDAMENTALS-AND-TIMELINE-INTEGRITY.md` | `20-BACKTEST-FUNDAMENTALS.md` | TBD | `NOT STARTED` |
 
 ‏שאר שיעורי 21–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
