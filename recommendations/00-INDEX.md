@@ -30,8 +30,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     19 — Position Sizing / Risk Management
                     20 — Backtest Fundamentals / Timeline Integrity
                     21 — Realistic Seconds Execution Backtest
+                    22 — Scanner Predictive Validation
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 22 — Scanner Predictive Validation
+Next Segment: 23 — Overfitting / Data Leakage / Validation
 Source of Truth: GitHub main
 ```
 
@@ -136,9 +137,10 @@ Baseline
 | `19-POSITION-SIZING-AND-RISK-MANAGEMENT.md` | `19-POSITION-SIZING-RISK-MANAGEMENT.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `20-BACKTEST-FUNDAMENTALS-AND-TIMELINE-INTEGRITY.md` | `20-BACKTEST-FUNDAMENTALS.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `21-REALISTIC-SECONDS-EXECUTION-BACKTEST.md` | `21-REALISTIC-SECONDS-EXECUTION-BACKTEST.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `22-SCANNER-PREDICTIVE-VALIDATION.md` | `22-SCANNER-PREDICTIVE-VALIDATION.md` | TBD | `NOT STARTED` |
+| `22-SCANNER-PREDICTIVE-VALIDATION.md` | `22-SCANNER-PREDICTIVE-VALIDATION.md` | `P0/P1/P2` | `COMPLETED` |
+| `23-OVERFITTING-DATA-LEAKAGE-AND-VALIDATION.md` | `23-OVERFITTING-DATA-LEAKAGE-VALIDATION.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 23–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 24–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
