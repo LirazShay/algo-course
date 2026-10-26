@@ -34,8 +34,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     23 — Overfitting / Data Leakage / Validation
                     24 — Controlled Experiments / Score Improvement
                     25 — Market Regime Analysis
+                    26 — RCA for Failed Top-Ranked Candidates
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 26 — RCA for Failed Top-Ranked Candidates
+Next Segment: 27 — Deterministic Market Replay
 Source of Truth: GitHub main
 ```
 
@@ -144,9 +145,10 @@ Baseline
 | `23-OVERFITTING-DATA-LEAKAGE-AND-VALIDATION.md` | `23-OVERFITTING-DATA-LEAKAGE-VALIDATION.md` | `P0/P1/P2` | `COMPLETED` |
 | `24-CONTROLLED-EXPERIMENTS-AND-SCORE-IMPROVEMENT.md` | `24-CONTROLLED-EXPERIMENTS-SCORE-IMPROVEMENT.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `25-MARKET-REGIME-ANALYSIS.md` | `25-MARKET-REGIME-ANALYSIS.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `26-RCA-FOR-FAILED-TOP-RANKED-CANDIDATES.md` | `26-RCA-FAILED-TOP-RANKED-CANDIDATES.md` | TBD | `NOT STARTED` |
+| `26-RCA-FOR-FAILED-TOP-RANKED-CANDIDATES.md` | `26-RCA-FAILED-TOP-RANKED-CANDIDATES.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `27-DETERMINISTIC-MARKET-REPLAY.md` | `27-DETERMINISTIC-MARKET-REPLAY.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 27–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 28–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
