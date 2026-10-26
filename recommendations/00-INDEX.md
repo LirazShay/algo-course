@@ -53,8 +53,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     42 — Opening/Closing Auctions / Auction Order Types
                     43 — Halts / LULD / Fast Markets
                     44 — Advanced Order Flow
+                    45 — Book Imbalance / Microprice
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 45 — Book Imbalance / Microprice
+Next Segment: 46 — Adverse Selection Deep Dive
 Source of Truth: GitHub main
 ```
 
@@ -182,9 +183,10 @@ Baseline
 | `42-OPENING-CLOSING-AUCTIONS-AND-AUCTION-ORDER-TYPES.md` | `42-OPENING-CLOSING-AUCTIONS-AUCTION-ORDER-TYPES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `43-HALTS-LULD-AND-FAST-MARKETS.md` | `43-HALTS-LULD-FAST-MARKETS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `44-ADVANCED-ORDER-FLOW.md` | `44-ADVANCED-ORDER-FLOW.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `45-BOOK-IMBALANCE-AND-MICROPRICE.md` | `45-BOOK-IMBALANCE-MICROPRICE.md` | TBD | `NOT STARTED` |
+| `45-BOOK-IMBALANCE-AND-MICROPRICE.md` | `45-BOOK-IMBALANCE-MICROPRICE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `46-ADVERSE-SELECTION-DEEP-DIVE.md` | `46-ADVERSE-SELECTION-DEEP-DIVE.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 46–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 47–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
