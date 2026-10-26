@@ -32,8 +32,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     21 — Realistic Seconds Execution Backtest
                     22 — Scanner Predictive Validation
                     23 — Overfitting / Data Leakage / Validation
+                    24 — Controlled Experiments / Score Improvement
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 24 — Controlled Experiments / Score Improvement
+Next Segment: 25 — Market Regime Analysis
 Source of Truth: GitHub main
 ```
 
@@ -140,9 +141,10 @@ Baseline
 | `21-REALISTIC-SECONDS-EXECUTION-BACKTEST.md` | `21-REALISTIC-SECONDS-EXECUTION-BACKTEST.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `22-SCANNER-PREDICTIVE-VALIDATION.md` | `22-SCANNER-PREDICTIVE-VALIDATION.md` | `P0/P1/P2` | `COMPLETED` |
 | `23-OVERFITTING-DATA-LEAKAGE-AND-VALIDATION.md` | `23-OVERFITTING-DATA-LEAKAGE-VALIDATION.md` | `P0/P1/P2` | `COMPLETED` |
-| `24-CONTROLLED-EXPERIMENTS-AND-SCORE-IMPROVEMENT.md` | `24-CONTROLLED-EXPERIMENTS-SCORE-IMPROVEMENT.md` | TBD | `NOT STARTED` |
+| `24-CONTROLLED-EXPERIMENTS-AND-SCORE-IMPROVEMENT.md` | `24-CONTROLLED-EXPERIMENTS-SCORE-IMPROVEMENT.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `25-MARKET-REGIME-ANALYSIS.md` | `25-MARKET-REGIME-ANALYSIS.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 25–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 26–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
