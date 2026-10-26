@@ -54,8 +54,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     43 — Halts / LULD / Fast Markets
                     44 — Advanced Order Flow
                     45 — Book Imbalance / Microprice
+                    46 — Adverse Selection Deep Dive
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 46 — Adverse Selection Deep Dive
+Next Segment: 47 — Price Impact / Capacity
 Source of Truth: GitHub main
 ```
 
@@ -184,9 +185,10 @@ Baseline
 | `43-HALTS-LULD-AND-FAST-MARKETS.md` | `43-HALTS-LULD-FAST-MARKETS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `44-ADVANCED-ORDER-FLOW.md` | `44-ADVANCED-ORDER-FLOW.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `45-BOOK-IMBALANCE-AND-MICROPRICE.md` | `45-BOOK-IMBALANCE-MICROPRICE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `46-ADVERSE-SELECTION-DEEP-DIVE.md` | `46-ADVERSE-SELECTION-DEEP-DIVE.md` | TBD | `NOT STARTED` |
+| `46-ADVERSE-SELECTION-DEEP-DIVE.md` | `46-ADVERSE-SELECTION-DEEP-DIVE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `47-PRICE-IMPACT-AND-CAPACITY.md` | `47-PRICE-IMPACT-CAPACITY.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 47–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 48–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
