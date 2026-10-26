@@ -14,8 +14,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     03 — Bid / Ask / Last / Spread / Order Book
                     04 — Order Types and Execution Tactics
                     05 — Market Data
+                    06 — Time / Sampling / Latency
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 06 — Time / Sampling / Latency
+Next Segment: 07 — Trading Universe
 Source of Truth: GitHub main after merge
 ```
 
@@ -104,7 +105,7 @@ Baseline
 | `03-BID-ASK-LAST-SPREAD-ORDER-BOOK.md` | `03-BID-ASK-SPREAD-ORDER-BOOK.md` | `P0/P1` | `COMPLETED` |
 | `04-ORDER-TYPES-FOR-PERSONAL-ALGO.md` | `04-ORDER-TYPES.md` | `P0/P1/P2` | `COMPLETED` |
 | `05-MARKET-DATA-FOR-PERSONAL-ALGO.md` | `05-MARKET-DATA.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `06-TIME-SAMPLING-LATENCY.md` | `06-TIME-SAMPLING-LATENCY.md` | TBD | `NOT STARTED` |
+| `06-TIME-SAMPLING-LATENCY.md` | `06-TIME-SAMPLING-LATENCY.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `07-BUILDING-THE-TRADING-UNIVERSE.md` | `07-TRADING-UNIVERSE.md` | TBD | `NOT STARTED` |
 
 ‏שאר שיעורי 08–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
