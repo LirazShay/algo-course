@@ -36,8 +36,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     25 — Market Regime Analysis
                     26 — RCA for Failed Top-Ranked Candidates
                     27 — Deterministic Market Replay
+                    28 — Paper Trading / Shadow Mode
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 28 — Paper Trading / Shadow Mode
+Next Segment: 29 — Broker API Architecture
 Source of Truth: GitHub main
 ```
 
@@ -148,9 +149,10 @@ Baseline
 | `25-MARKET-REGIME-ANALYSIS.md` | `25-MARKET-REGIME-ANALYSIS.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `26-RCA-FOR-FAILED-TOP-RANKED-CANDIDATES.md` | `26-RCA-FAILED-TOP-RANKED-CANDIDATES.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `27-DETERMINISTIC-MARKET-REPLAY.md` | `27-DETERMINISTIC-MARKET-REPLAY.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `28-PAPER-TRADING-AND-SHADOW-MODE.md` | `28-PAPER-TRADING-SHADOW-MODE.md` | TBD | `NOT STARTED` |
+| `28-PAPER-TRADING-AND-SHADOW-MODE.md` | `28-PAPER-TRADING-SHADOW-MODE.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `29-BROKER-API-ARCHITECTURE.md` | `29-BROKER-API-ARCHITECTURE.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 29–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 30–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
