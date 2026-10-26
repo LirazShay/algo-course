@@ -40,8 +40,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     29 — Broker API Architecture
                     30 — IBKR / IBKR Israel Deep Dive
                     31 — Market Data Providers / Alternatives
+                    32 — Separating Market Data from Execution
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 32 — Separating Market Data from Execution
+Next Segment: 33 — Production State Machine
 Source of Truth: GitHub main
 ```
 
@@ -156,9 +157,10 @@ Baseline
 | `29-BROKER-API-ARCHITECTURE.md` | `29-BROKER-API-ARCHITECTURE.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `30-IBKR-AND-IBKR-ISRAEL-DEEP-DIVE.md` | `30-IBKR-IBKR-ISRAEL-DEEP-DIVE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `31-MARKET-DATA-PROVIDERS-AND-ALTERNATIVES.md` | `31-MARKET-DATA-PROVIDERS-ALTERNATIVES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `32-SEPARATING-MARKET-DATA-FROM-EXECUTION.md` | `32-SEPARATING-MARKET-DATA-FROM-EXECUTION.md` | TBD | `NOT STARTED` |
+| `32-SEPARATING-MARKET-DATA-FROM-EXECUTION.md` | `32-SEPARATING-MARKET-DATA-FROM-EXECUTION.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `33-PRODUCTION-STATE-MACHINE.md` | `33-PRODUCTION-STATE-MACHINE.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 33–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 34–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
