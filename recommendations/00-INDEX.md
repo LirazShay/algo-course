@@ -45,8 +45,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     34 — Failure Recovery / Safe Resume
                     35 — Monitoring / Logging / Observability
                     36 — Kill Switches / Safety Controls
+                    37 — Advanced Order Tactics
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 37 — Advanced Order Tactics
+Next Segment: 38 — Queue Position / Limit Order Subtleties
 Source of Truth: GitHub main
 ```
 
@@ -166,9 +167,10 @@ Baseline
 | `34-FAILURE-RECOVERY-AND-SAFE-RESUME.md` | `34-FAILURE-RECOVERY-SAFE-RESUME.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `35-MONITORING-LOGGING-AND-OBSERVABILITY.md` | `35-MONITORING-LOGGING-OBSERVABILITY.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `36-KILL-SWITCHES-AND-SAFETY-CONTROLS.md` | `36-KILL-SWITCHES-SAFETY-CONTROLS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `37-ADVANCED-ORDER-TACTICS.md` | `37-ADVANCED-ORDER-TACTICS.md` | TBD | `NOT STARTED` |
+| `37-ADVANCED-ORDER-TACTICS.md` | `37-ADVANCED-ORDER-TACTICS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `38-QUEUE-POSITION-AND-LIMIT-ORDER-SUBTLETIES.md` | `38-QUEUE-POSITION-LIMIT-ORDER-SUBTLETIES.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 38–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 39–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
