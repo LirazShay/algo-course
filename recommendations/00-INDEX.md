@@ -13,8 +13,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     02 — US Market Structure
                     03 — Bid / Ask / Last / Spread / Order Book
                     04 — Order Types and Execution Tactics
+                    05 — Market Data
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 05 — Market Data
+Next Segment: 06 — Time / Sampling / Latency
 Source of Truth: GitHub main after merge
 ```
 
@@ -102,7 +103,7 @@ Baseline
 | Time-sensitive correction to 02 | `02A-REG-NMS-TIME-SENSITIVE-CORRECTION.md` | `P0` | `CURRENT OVERRIDE` |
 | `03-BID-ASK-LAST-SPREAD-ORDER-BOOK.md` | `03-BID-ASK-SPREAD-ORDER-BOOK.md` | `P0/P1` | `COMPLETED` |
 | `04-ORDER-TYPES-FOR-PERSONAL-ALGO.md` | `04-ORDER-TYPES.md` | `P0/P1/P2` | `COMPLETED` |
-| `05-MARKET-DATA-FOR-PERSONAL-ALGO.md` | `05-MARKET-DATA.md` | TBD | `NOT STARTED` |
+| `05-MARKET-DATA-FOR-PERSONAL-ALGO.md` | `05-MARKET-DATA.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `06-TIME-SAMPLING-LATENCY.md` | `06-TIME-SAMPLING-LATENCY.md` | TBD | `NOT STARTED` |
 | `07-BUILDING-THE-TRADING-UNIVERSE.md` | `07-TRADING-UNIVERSE.md` | TBD | `NOT STARTED` |
 
