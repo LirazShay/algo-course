@@ -55,8 +55,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     44 — Advanced Order Flow
                     45 — Book Imbalance / Microprice
                     46 — Adverse Selection Deep Dive
+                    47 — Price Impact / Capacity
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 47 — Price Impact / Capacity
+Next Segment: 48 — Latency Edge without pretending to be HFT
 Source of Truth: GitHub main
 ```
 
@@ -186,9 +187,10 @@ Baseline
 | `44-ADVANCED-ORDER-FLOW.md` | `44-ADVANCED-ORDER-FLOW.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `45-BOOK-IMBALANCE-AND-MICROPRICE.md` | `45-BOOK-IMBALANCE-MICROPRICE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `46-ADVERSE-SELECTION-DEEP-DIVE.md` | `46-ADVERSE-SELECTION-DEEP-DIVE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `47-PRICE-IMPACT-AND-CAPACITY.md` | `47-PRICE-IMPACT-CAPACITY.md` | TBD | `NOT STARTED` |
+| `47-PRICE-IMPACT-AND-CAPACITY.md` | `47-PRICE-IMPACT-CAPACITY.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `48-LATENCY-EDGE-WITHOUT-PRETENDING-TO-BE-HFT.md` | `48-LATENCY-EDGE-WITHOUT-PRETENDING-TO-BE-HFT.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 48–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 49–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
