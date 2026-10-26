@@ -37,8 +37,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     26 — RCA for Failed Top-Ranked Candidates
                     27 — Deterministic Market Replay
                     28 — Paper Trading / Shadow Mode
+                    29 — Broker API Architecture
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 29 — Broker API Architecture
+Next Segment: 30 — IBKR / IBKR Israel Deep Dive
 Source of Truth: GitHub main
 ```
 
@@ -150,9 +151,10 @@ Baseline
 | `26-RCA-FOR-FAILED-TOP-RANKED-CANDIDATES.md` | `26-RCA-FAILED-TOP-RANKED-CANDIDATES.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `27-DETERMINISTIC-MARKET-REPLAY.md` | `27-DETERMINISTIC-MARKET-REPLAY.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `28-PAPER-TRADING-AND-SHADOW-MODE.md` | `28-PAPER-TRADING-SHADOW-MODE.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `29-BROKER-API-ARCHITECTURE.md` | `29-BROKER-API-ARCHITECTURE.md` | TBD | `NOT STARTED` |
+| `29-BROKER-API-ARCHITECTURE.md` | `29-BROKER-API-ARCHITECTURE.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `30-IBKR-AND-IBKR-ISRAEL-DEEP-DIVE.md` | `30-IBKR-IBKR-ISRAEL-DEEP-DIVE.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 30–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 31–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
