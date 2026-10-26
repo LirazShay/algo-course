@@ -18,11 +18,11 @@ COMPLETED
 
 ## ‏60A — `Negative Evidence, Veto and Disqualification Engine`
 
-**Status:** `PLANNED`
+**Status:** `COMPLETED`
 
 ‏נוסף בעקבות ההבנה ש־Ranking חיובי לבדו אינו מספיק להחלטת מסחר.
 
-‏המנגנון צריך לפעול במקביל ל־Score/Ranking ולרכז Evidence שלילי שיכול:
+‏המנגנון פועל במקביל ל־Score/Ranking ומרכז Evidence שלילי שיכול:
 
 - ‏לפסול Candidate לחלוטין (`Hard Veto`).
 - ‏להפחית אטרקטיביות (`Soft Penalty`).
@@ -50,4 +50,6 @@ Decision Aggregator
 → TRADE / NO TRADE
 ```
 
-‏הפרק יילמד **אחרי שלב 60 ולפני שלב 61**, ואז הקורס יחזור לסדר המקורי.
+‏הפרק הושלם ב־`60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md`.
+
+‏הקורס חוזר כעת למסלול המקורי עם שלב 61.
