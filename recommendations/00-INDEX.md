@@ -48,8 +48,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     37 — Advanced Order Tactics
                     38 — Queue Position / Limit Order Subtleties
                     39 — Smart Routing / Direct Routing
+                    40 — Hidden / Reserve / Midpoint / Pegged / ATS
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 40 — Hidden / Reserve / Midpoint / Pegged / ATS
+Next Segment: 41 — Advanced Broker Algos
 Source of Truth: GitHub main
 ```
 
@@ -172,9 +173,10 @@ Baseline
 | `37-ADVANCED-ORDER-TACTICS.md` | `37-ADVANCED-ORDER-TACTICS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `38-QUEUE-POSITION-AND-LIMIT-ORDER-SUBTLETIES.md` | `38-QUEUE-POSITION-LIMIT-ORDER-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `39-SMART-ROUTING-VS-DIRECT-ROUTING.md` | `39-SMART-ROUTING-DIRECT-ROUTING.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-AND-ATS.md` | `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-ATS.md` | TBD | `NOT STARTED` |
+| `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-AND-ATS.md` | `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-ATS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `41-ADVANCED-BROKER-ALGOS.md` | `41-ADVANCED-BROKER-ALGOS.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 41–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 42–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
