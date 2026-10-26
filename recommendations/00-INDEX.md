@@ -42,8 +42,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     31 — Market Data Providers / Alternatives
                     32 — Separating Market Data from Execution
                     33 — Production State Machine
+                    34 — Failure Recovery / Safe Resume
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 34 — Failure Recovery / Safe Resume
+Next Segment: 35 — Monitoring / Logging / Observability
 Source of Truth: GitHub main
 ```
 
@@ -160,9 +161,10 @@ Baseline
 | `31-MARKET-DATA-PROVIDERS-AND-ALTERNATIVES.md` | `31-MARKET-DATA-PROVIDERS-ALTERNATIVES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `32-SEPARATING-MARKET-DATA-FROM-EXECUTION.md` | `32-SEPARATING-MARKET-DATA-FROM-EXECUTION.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `33-PRODUCTION-STATE-MACHINE.md` | `33-PRODUCTION-STATE-MACHINE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `34-FAILURE-RECOVERY-AND-SAFE-RESUME.md` | `34-FAILURE-RECOVERY-AND-SAFE-RESUME.md` | TBD | `NOT STARTED` |
+| `34-FAILURE-RECOVERY-AND-SAFE-RESUME.md` | `34-FAILURE-RECOVERY-SAFE-RESUME.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `35-MONITORING-LOGGING-AND-OBSERVABILITY.md` | `35-MONITORING-LOGGING-OBSERVABILITY.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 35–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 36–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
