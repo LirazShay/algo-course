@@ -56,39 +56,40 @@ Decision Aggregator
 
 ## ‏85A — `Market Conduct, Manipulation Prevention, Self-Trade Controls and Automated-Trading Compliance`
 
-**Status:** `PLANNED`
+**Status:** `COMPLETED`
 
-**Completion Blocking:** `YES`
+**Completion Blocking:** `RESOLVED`
 
 ‏נוסף בעקבות `Final Course Gap Review` לאחר השלמת שלבים 1–85.
 
-‏הביקורת מצאה שהקורס מכסה היטב Market Microstructure, Orders, Execution, Risk, Account Regulations ו־Operational Safety, ואף מסביר `Spoofing-like` patterns מנקודת מבט של קריאת השוק — אבל חסרה שכבה עצמאית שעוסקת בהתנהגות שהרובוט עצמו מייצר וב־Market Conduct controls.
+‏הביקורת מצאה שהקורס כיסה היטב Market Microstructure, Orders, Execution, Risk, Account Regulations ו־Operational Safety, אך חסרה שכבה עצמאית שעוסקת בהתנהגות שהרובוט עצמו מייצר וב־Market Conduct controls.
 
-‏הפרק החדש חייב לעסוק ב־Prevention, Governance, Detection ו־Auditability — לא בהוראות לביצוע מניפולציה.
+‏הפרק הושלם ב־`85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` ומתמקד ב־Prevention, Governance, Detection ו־Auditability — לא בהוראות לביצוע מניפולציה.
 
-‏נושאי חובה:
+‏הכיסוי כולל:
 
-- ‏legitimate order management מול deceptive order behavior.
-- ‏`Spoofing` / `Layering` ברמת איסור, זיהוי ומניעה.
-- ‏`Wash Trading` / non-bona-fide trading ברמת compliance.
+- ‏`Bona Fide Order Intent` ו־economic purpose.
+- ‏`Spoofing` / `Layering` ברמת איסור, זיהוי ומניעה בלבד.
+- ‏`Wash Trading` / non-bona-fide activity ברמת compliance.
 - ‏`Self-Trade` / `Self-Match` prevention.
-- ‏duplicate strategy instances שעלולים לפגוש זה את זה.
-- ‏conflicts בין Entry, Exit, Replacement, Retry ו־Recovery orders.
+- ‏duplicate strategy instances ו־single-writer/fencing.
+- ‏conflicts בין Entry, Exit, Replacement, Retry, Recovery ו־Manual orders.
 - ‏auction-related conduct concepts כגון marking open/close ברמת מניעה.
 - ‏`Momentum Ignition` כקטגוריית conduct risk ברמת זיהוי ואיסור בלבד.
-- ‏cancel/order behavior כ־surveillance signal בלי לקבע threshold אוניברסלי.
-- ‏pre-trade compliance vetoes.
+- ‏cancel/order behavior כ־surveillance signal בלי threshold אוניברסלי.
+- ‏pre-trade `Compliance Gate` עם `ALLOW / BLOCK / REVIEW_REQUIRED / EXIT_ONLY`.
 - ‏post-trade surveillance metrics.
-- ‏Reason Codes ו־audit trail ל־compliance decisions.
-- ‏Self-Trade Prevention capabilities של broker/venue כאשר קיימות.
-- ‏safe retry/idempotency כדי למנוע conduct issues מתקלות.
-- ‏isolation בין Test/Paper/Live.
+- ‏Reason Codes ו־audit lineage מלא.
+- ‏broker/venue Self-Match Prevention כ־defense-in-depth.
+- ‏safe retry/idempotency תחת `UNKNOWN_EFFECT`.
+- ‏hard isolation בין Replay/Shadow/Paper/Live.
 - ‏manual-vs-automated order conflict detection.
-- ‏versioned regulatory/broker references עם מקורות רשמיים ועדכניים.
+- ‏versioned regulatory/broker/venue references עם `VerifiedAt`.
 - ‏Compliance incidents כחלק מ־RCA ו־Incident Packets.
-- ‏`ComplianceMode` שיכול לחסום New Risk תוך שמירה על יכולת להקטין Exposure.
-- ‏Golden scenarios ו־fault tests ל־self-trade / duplicate-order prevention.
+- ‏`ComplianceMode` שחוסם New Risk תוך שמירה על יכולת להפחית Exposure.
+- ‏Golden scenarios, fault tests ו־property invariants.
+- ‏conduct metrics כחלק מ־Champion/Challenger ו־Continuous Improvement.
 
 ‏הנושא מתועד גם ב־`00-FINAL-COURSE-GAP-REVIEW.md`.
 
-‏הקורס הרגיל אינו נחשב Complete עד שהנושא הזה הושלם ואומת.
+‏ה־Completion Blocking Gap שנמצא ב־Gap Review נפתר. הכרזת Completion סופית של הקורס וה־handoff לפרויקט ההמלצות נשארות שלב סגירה נפרד, כדי לאחד ולאמת את ה־authoritative state לפני המעבר לצ'אט חדש.
