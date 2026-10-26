@@ -19,8 +19,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     08 — Short-Term Momentum
                     09 — Velocity / Acceleration / Momentum Shape
                     10 — Trade Activity / Volume / Flow
+                    11 — Liquidity / Executability
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 11 — Liquidity / Executability
+Next Segment: 12 — Filters Before Ranking
 Source of Truth: GitHub main
 ```
 
@@ -114,9 +115,10 @@ Baseline
 | `08-SHORT-TERM-MOMENTUM.md` | `08-SHORT-TERM-MOMENTUM.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `09-VELOCITY-ACCELERATION-MOMENTUM-SHAPE.md` | `09-VELOCITY-ACCELERATION-MOMENTUM-SHAPE.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `10-TRADE-ACTIVITY-VOLUME-AND-FLOW.md` | `10-TRADE-ACTIVITY-VOLUME-FLOW.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `11-LIQUIDITY-AND-EXECUTABILITY.md` | `11-LIQUIDITY-EXECUTABILITY.md` | TBD | `NOT STARTED` |
+| `11-LIQUIDITY-AND-EXECUTABILITY.md` | `11-LIQUIDITY-EXECUTABILITY.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `12-FILTERS-BEFORE-RANKING.md` | `12-FILTERS-BEFORE-RANKING.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 12–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 13–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
