@@ -1,5 +1,7 @@
 # ‏חלק 4 — Liquidity Control: ‏`Post Only`, ‏`Hidden`, ‏`Reserve/Iceberg` ו־Queue Behavior
 
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, ‏`Post Only`, ‏`Hidden` ו־`Reserve/Iceberg` הם Liquidity / Display attributes או constraints. הם אינם `Application Execution Mode` בפני עצמם. המנוע בוחר קודם intent ו־Mode, ורק אחר כך מחבר attributes ל־Concrete Broker Order.
+
 ## ‏4.1 השאלה האמיתית: האם אנחנו רוצים **לספק** נזילות או **לקחת** נזילות?
 
 ‏לפני `Post Only`, ‏`Hidden` או `Iceberg`, צריך להבין שהמנוע מקבל החלטה עמוקה יותר:
@@ -52,19 +54,20 @@ Market = taker
 ‏לכן המנוע צריך לתעד בפועל:
 
 ```text
+liquidity_intent
 was_liquidity_added?
 was_liquidity_removed?
 venue
 fee_or_rebate
 ```
 
-‏ולא להסיק זאת רק מ־`order_type`.
+‏ולא להסיק זאת רק מ־Broker Order Primitive.
 
 ---
 
 ## ‏4.3 מה `Post Only` מנסה להבטיח
 
-‏`Post Only` היא בקשה בסגנון:
+‏`Post Only` היא Liquidity Constraint בסגנון:
 
 > ‏אל תהפוך אותי ל־liquidity taker. אם הייתי מתבצע מיד נגד Order קיימת, טפל בי לפי כללי ה־Venue/Broker במקום לקחת אותה.
 
@@ -73,9 +76,11 @@ fee_or_rebate
 - ‏להבטיח שנישאר Passive.
 - ‏להימנע מתשלום spread/taker economics במצב שבו התכוונו לספק נזילות.
 - ‏למנוע bug שבו price calculation שלנו חצה בטעות את השוק.
-- ‏ליצור Execution Mode ברור: `PASSIVE_OR_NOTHING`.
+- ‏לאכוף Behavior כגון `PASSIVE_POST_ONLY` כאשר passive intent הוא חובה.
 
-‏זה שימוש רובוטי חשוב מאוד: `Post Only` יכולה להיות **guardrail**, לא רק פקודה למי שעושה Market Making.
+> ‏`ENGINE RULE` — `Post Only` אינה Mode קנוני. ‏`PASSIVE` הוא `Application Execution Mode`; ‏`PASSIVE_POST_ONLY` הוא Behavior Candidate; ‏`postOnly=true` הוא attribute/materialization detail.
+
+‏זה שימוש רובוטי חשוב מאוד: `Post Only` יכולה להיות **guardrail**, לא רק כלי למי שעושה Market Making.
 
 ---
 
@@ -96,14 +101,15 @@ BUY LMT 20.00
 
 ‏אבל בין החישוב לשליחה ה־Ask יורד ל־20.00.
 
-‏Limit רגילה יכולה להפוך marketable ולהתבצע מיד. אם הכוונה של ה־Mode הייתה "רק Passive", קיבלנו execution שונה ממה שתכננו.
+‏Limit רגילה יכולה להפוך marketable ולהתבצע מיד. אם הכוונה של ה־Mode הייתה `PASSIVE`, קיבלנו execution שונה ממה שתכננו.
 
 ‏`Post Only` יכולה, כאשר הנתיב תומך בסמנטיקה המתאימה, למנוע את המעבר השקט הזה מ־maker intent ל־taker execution.
 
 ‏מבחינת קוד זה מאפשר invariant שימושי:
 
 ```text
-if execution_mode == PASSIVE_ONLY:
+if application_execution_mode == PASSIVE
+and behavior_candidate == PASSIVE_POST_ONLY:
     never intentionally take displayed liquidity
 ```
 
@@ -175,7 +181,7 @@ best_price != best_queue_position
 
 ```text
 queue_ahead_estimate
-order_age
+working_order_age
 executed_volume_at_level_since_join
 level_size_change
 ```
@@ -209,11 +215,11 @@ queue_ahead = displayed_size_before_us
 
 ## ‏4.9 `Order Aging` — לפעמים Order ישנה נהיית דווקא מסוכנת יותר
 
-‏פקודה Passive שיושבת זמן רב צוברת שני דברים שונים:
+‏פקודה Passive שיושבת זמן רב צוברת שני clocks שונים:
 
 ```text
-queue age
-signal age
+working_order_age
+signal_age
 ```
 
 ‏הראשון יכול להיות טוב — אולי התקדמנו בתור.
@@ -255,7 +261,7 @@ post_fill_markout
 
 ‏ביחד.
 
-‏Passive mode עם fill rate גבוה אבל markout רע יכול להיות גרוע יותר מ־aggressive mode עם מחיר כניסה פחות יפה.
+‏Passive behavior עם fill rate גבוה אבל markout רע יכול להיות גרוע יותר מ־aggressive behavior עם מחיר כניסה פחות יפה.
 
 ---
 
@@ -281,15 +287,15 @@ improve bid by one tick
 - ‏יכולה להזיז את ה־NBBO אם אנחנו באמת הטובים ביותר.
 - ‏עדיין אינה מבטיחה Fill.
 
-‏לכן עבורנו `improve_one_tick` צריך להיות Execution Mode נפרד ולא fallback אוטומטי בכל פעם שלא התמלאנו.
+‏לכן עבורנו `IMPROVE_ONE_TICK` הוא Behavior Candidate נפרד ולא fallback אוטומטי בכל פעם שלא התמלאנו. ברמת Mode הוא עדיין בדרך כלל `PRICE_IMPROVING` או `PASSIVE`, לפי policy הקנונית.
 
 ---
 
-## ‏4.12 `Hidden Order` — להסתיר את כל הכמות המוצגת
+## ‏4.12 `Hidden` — Display Attribute שמסתיר את הכמות המוצגת
 
 ‏`Hidden` מבקשת שה־Order לא תופיע ככמות גלויה ב־market depth, בכפוף ל־Venue/Broker semantics.
 
-‏הסיבה הקלאסית היא להימנע מחשיפת Order גדולה שעלולה לגרום למשתתפים אחרים להגיב אליה.
+‏הסיבה הקלאסית היא להימנע מחשיפת Order גדול שעלולה לגרום למשתתפים אחרים להגיב אליה.
 
 ‏זה שימוש חשוב למוסדיים או לכמויות גדולות יחסית לנזילות.
 
@@ -326,7 +332,7 @@ hidden_vs_displayed_net_edge
 
 ## ‏4.14 פרט חשוב ב־IBKR: Hidden יכולה להיות Simulated
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת שהיא תנסה לנתב Hidden Orders ל־Exchanges שתומכים בהן Native. אם אין Destination מתאים עם native support, היא עשויה לדמות Hidden Order בכך שהיא מחזיקה אותה אצלה ושולחת `IOC` לבורסה כאשר הפקודה נעשית marketable.
 
@@ -335,16 +341,16 @@ hidden_vs_displayed_net_edge
 ‏למנוע שלנו זה משמעותי מאוד:
 
 ```text
-Hidden native
+Venue-native Hidden
 !=
-Hidden broker-simulated
+Broker-simulated Hidden
 ```
 
-‏אותו checkbox יכול להוביל ל־latency/fill path שונה.
+‏ושני המצבים גם אינם אומרים אותו דבר לגבי `broker-resident`. אלה dimensions נפרדים לפי `00A`.
 
 ---
 
-## ‏4.15 `Reserve / Iceberg` — להציג חלק ולהסתיר את היתר
+## ‏4.15 `Reserve / Iceberg` — Display Attribute שמציג חלק ומסתיר את היתר
 
 ‏`Iceberg` או `Reserve` מאפשרת להחזיק Order כוללת גדולה יותר, אבל לפרסם לשוק רק `display size` קטן ממנה.
 
@@ -369,7 +375,7 @@ display_qty = 200
 
 ## ‏4.16 איך `Display Size` עובד ב־IBKR
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת Iceberg/Reserve דרך שדה `Display Size`. בדוגמה הרשמית, Order של 5,000 מניות עם Display Size של 200 מציגה 200, ולאחר שהכמות המוצגת מתמלאת מוגשת פרוסה נוספת עד להשלמת הכמות הכוללת.
 
@@ -446,6 +452,7 @@ queue_delay_per_slice
 
 | תכונה | `Hidden` | `Iceberg / Reserve` |
 |---|---|---|
+| שכבה קנונית | Display attribute | Display / reserve attribute |
 | כמות גלויה | ‏אפס, לפי semantics | ‏חלק מהכמות |
 | מטרה | ‏להסתיר את קיום/גודל ה־Order | ‏להראות slice קטן בלבד |
 | Fill behavior | ‏תלוי Venue/priority/simulation | ‏תלוי slices/replenishment |
@@ -480,20 +487,21 @@ maximize maker rebate
 
 ---
 
-## ‏4.22 `Post Only` כ־Safety Invariant ברובוט
+## ‏4.22 `Post Only` כ־Safety Constraint ברובוט
 
 ‏יש שימוש שאני כן רואה כרלוונטי במיוחד למנוע שלנו:
 
 ```text
-mode = PASSIVE_ONLY
-=> require post-only capability when reliable
+application_execution_mode = PASSIVE
+behavior_candidate = PASSIVE_POST_ONLY
+post_only = required
 ```
 
 ‏כלומר אם המנוע החליט שהעסקה כדאית **רק** אם אנחנו לא חוצים Spread, אז Post Only יכולה לאכוף את ההנחה ברמת Order path.
 
 ‏אם אין capability אמינה, המנוע צריך לפחות לבצע pre-submit check ולהתמודד עם race שבו השוק משתנה לפני arrival.
 
-‏זו דוגמה שבה Order Type/attribute מתקדם אינו "טריק להשגת מחיר טוב" — אלא דרך להפוך החלטת Strategy ל־constraint תפעולי.
+‏זו דוגמה שבה attribute מתקדם אינו "טריק להשגת מחיר טוב" — אלא דרך להפוך החלטת Execution Policy ל־constraint תפעולי.
 
 ---
 
@@ -529,7 +537,7 @@ missed-move cost >> spread cost
 
 ## ‏4.24 `IBKR ATS` — דוגמה מיוחדת ל־Liquidity Posting
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת שה־ATS שלה זמין למניות ו־ETF אמריקאיים כ־Directed destination. Orders שמנותבות ל־IBKR ATS כדי להוסיף נזילות מתויגות אוטומטית כ־`not held` ומפורסמות ב־order book של IBKR ATS; הן יכולות להיפגש עם SmartRouted Orders שנעשות marketable נגדן.
 
@@ -538,7 +546,7 @@ missed-move cost >> spread cost
 ‏זה מלמד אותנו שני דברים:
 
 1. ‏`Post Only` יכולה להיות קשורה ל־Destination ספציפי ולא רק checkbox כללי.
-2. ‏Routing ו־liquidity policy אינם נושאים נפרדים — הם חלק מאותה החלטת Execution.
+2. ‏Routing ו־liquidity attributes הם dimensions נפרדים אבל משתלבים באותה Concrete Order.
 
 ‏נרד לזה עוד יותר בחלק Routing.
 
@@ -546,7 +554,7 @@ missed-move cost >> spread cost
 
 ## ‏4.25 `TWS API` — ה־attributes הרלוונטיים
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏ב־`Order` object הנוכחי של `TWS API` קיימים בין היתר:
 
@@ -572,16 +580,18 @@ contract/route capability
 +
 broker acceptance
 +
-observed live semantics
+observed semantics
++
+enablement evidence
 =
-usable feature
+usable capability
 ```
 
 ---
 
 ## ‏4.26 `IBKR` — Hidden ו־Iceberg ב־UI
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏בדף Order Types הנוכחי של IBKR:
 
@@ -606,59 +616,68 @@ Routing: Smart, Directed
 
 ```text
 UI availability
-vs
-TWS API field availability
+API field availability
+runtime capability
+production enablement
 ```
 
 ‏ולא נכתוב פשוט `IBKR supports Hidden = yes`.
 
 ---
 
-## ‏4.27 Automation Modes שאני רוצה שנחקור
+## ‏4.27 Behaviors שנרצה לחקור — לא Modes חדשים
 
-‏אחרי החלק הזה אפשר להגדיר כמה Modes חדשים למנוע:
+‏ה־Application Modes הקנוניים נשארים כגון `PASSIVE`, ‏`PRICE_IMPROVING` ו־`AGGRESSIVE_CAPPED`.
 
-### ‏`PASSIVE_DISPLAYED`
+‏מתחתיהם אפשר לחקור Behavior Candidates:
+
+### ‏`PASSIVE_JOIN`
 
 ```text
-join/improve displayed quote
-short TTL
+mode = PASSIVE
+join displayed quote
+short application_order_ttl
 normal visible size
 ```
 
 ### ‏`PASSIVE_POST_ONLY`
 
 ```text
-passive intent is mandatory
-reject/reprice outcome is handled explicitly
+mode = PASSIVE
+postOnly = required
+reject/reprice outcome handled explicitly
 ```
 
 ### ‏`PASSIVE_HIDDEN`
 
 ```text
-hide order when capability and economics justify it
+mode = PASSIVE
+hidden = true
+only when capability and economics justify it
 ```
 
 ### ‏`PASSIVE_RESERVE`
 
 ```text
+mode = PASSIVE
 large relative size
-controlled display slice
+displaySize < total quantity
 ```
 
 ### ‏`AGGRESSIVE_CAPPED`
 
 ```text
-consume liquidity within economic cap
+mode = AGGRESSIVE_CAPPED
+consume liquidity within Economic Price Bound
 ```
 
-‏המנוע לא צריך לעבור אוטומטית בין המצבים. מעבר מ־Passive ל־Aggressive הוא **החלטה חדשה** שדורשת re-evaluation של Signal ו־Edge.
+‏המנוע לא צריך לעבור אוטומטית בין Behaviors. מעבר מ־Passive ל־Aggressive הוא **Decision חדשה** שדורשת re-evaluation של Signal ו־Edge.
 
 ---
 
-## ‏4.28 כלל חשוב: Passive Order חייבת `escape condition`
+## ‏4.28 כלל חשוב: Passive Behavior חייב `escape condition`
 
-‏כל Passive Mode צריך לענות מראש:
+‏כל Passive Behavior צריך לענות מראש:
 
 ```text
 When do we give up?
@@ -667,8 +686,8 @@ When do we give up?
 ‏לדוגמה:
 
 ```text
-max_order_age_ms
-max_signal_age_ms
+application_order_ttl
+signal_ttl
 max_queue_wait_ms
 cancel_if_bid_weakens
 cancel_if_ask_runs_away
@@ -685,6 +704,8 @@ cancel_if_market_data_stale
 ‏בנוסף למדדים הקודמים:
 
 ```text
+application_execution_mode
+behavior_candidate
 liquidity_intent = add/remove
 post_only_requested
 post_only_outcome
@@ -718,7 +739,7 @@ hidden_vs_displayed_markout_delta
 iceberg_slice_fill_rate
 queue_wait_cost
 missed_move_after_passive_no_fill
-net_edge_by_liquidity_mode
+net_edge_by_liquidity_behavior
 ```
 
 ‏כך נוכל לדעת האם "הוספת נזילות" באמת מוסיפה לנו ערך או רק גורמת לנו לקבל fills רעילים.
@@ -727,14 +748,14 @@ net_edge_by_liquidity_mode
 
 ## ‏4.30 מטריצת התאמה ראשונית למנוע שלנו
 
-| כלי | התאמה ראשונית | מתי מועיל | הסיכון המרכזי |
+| כלי / Behavior | שכבה | התאמה ראשונית | הסיכון המרכזי |
 |---|---|---|---|
-| Passive displayed Limit | `High` כ־Challenger | ‏Spread חשוב ויש זמן קצר להמתין | ‏No-fill / adverse selection |
-| `Post Only` | `High/Challenger` ל־Passive-only mode | ‏רוצים לאכוף שלא נהפוך ל־taker | ‏פספוס move / route semantics |
-| `Hidden` | `Low/Challenger` | ‏גודל יחסי משמעותי ו־signaling הוא בעיה | ‏fill/priority/simulation uncertainty |
-| `Reserve/Iceberg` | `Low/Advanced` | ‏Order גדול יחסית לעומק | ‏replenishment/priority/complexity |
-| Improve Bid/Ask | `Medium` | ‏רוצים לקצר queue במחיר של tick | ‏מוותרים על spread וחושפים urgency |
-| Aggressive capped | `High` ל־urgent mode | ‏Signal קצר וחזק | ‏spread/slippage |
+| Passive displayed Limit / `PASSIVE_JOIN` | Behavior + LMT | `High` כ־Challenger | ‏No-fill / adverse selection |
+| `PASSIVE_POST_ONLY` | Behavior + liquidity attribute | `High/Challenger` | ‏פספוס move / route semantics |
+| `Hidden` | Display attribute | `Low/Challenger` | ‏fill/priority/simulation uncertainty |
+| `Reserve/Iceberg` | Display attribute | `Low/Advanced` | ‏replenishment/priority/complexity |
+| `IMPROVE_ONE_TICK` | Behavior | `Medium` | ‏מוותרים על spread וחושפים urgency |
+| `AGGRESSIVE_CAPPED` | Application mode | `High` ל־urgent context | ‏spread/slippage |
 
 ‏זו עדיין מטריצת Research ולא החלטת Live.
 
@@ -742,17 +763,17 @@ net_edge_by_liquidity_mode
 
 ## ‏4.31 Recommendation למנוע שלנו בשלב הזה
 
-‏אני לא ממליץ להפוך `Hidden` או `Iceberg` לברירת מחדל רק מפני שהן מתקדמות ומעניינות.
+‏אין סיבה להפוך `Hidden` או `Iceberg` לברירת מחדל רק מפני שהן מתקדמות ומעניינות.
 
-‏כן הייתי מכניס מוקדם למחקר:
+‏כן נרצה לחקור מוקדם:
 
 ```text
-A. Passive displayed Limit + short TTL
-B. Passive Post-Only mode, כאשר capability מאומתת
-C. Marketable Limit + IOC
+A. PASSIVE_JOIN
+B. PASSIVE_POST_ONLY, כאשר capability מאומתת
+C. MARKETABLE_LIMIT_IOC
 ```
 
-‏ואז משווה לפי:
+‏ואז להשוות לפי:
 
 ```text
 net edge per signal
@@ -770,7 +791,7 @@ exit feasibility
 
 ## ‏4.32 Practitioner Secrets — הדברים שקל לפספס
 
-### ‏1. `Post Only` היא Guardrail, לא Alpha
+### ‏1. `Post Only` היא Constraint, לא Alpha ולא Mode
 
 ‏היא אוכפת passive intent; היא לא יוצרת Edge.
 
@@ -784,7 +805,7 @@ exit feasibility
 
 ### ‏4. Hidden יכולה לשנות Execution Path
 
-‏ב־IBKR היא עשויה להיות Native או simulated, ולכן latency/fill semantics יכולות להשתנות.
+‏ב־IBKR היא עשויה להיות Venue-native או broker-simulated, ולכן latency/fill semantics יכולות להשתנות.
 
 ### ‏5. Iceberg אינה רק הסתרת מספר
 
@@ -794,7 +815,7 @@ exit feasibility
 
 ‏אין היגיון לחסוך fee קטן במחיר של missed move גדול.
 
-### ‏7. `Improve by one tick` הוא Trade חדש
+### ‏7. `IMPROVE_ONE_TICK` הוא Behavior חדש
 
 ‏זו אינה "תחזוקה" של אותה החלטה; ויתרנו על מחיר כדי לקנות Priority טובה יותר.
 
@@ -804,7 +825,7 @@ exit feasibility
 
 ### ‏9. Passive-to-Aggressive transition חייב re-evaluation
 
-‏אסור שהמנוע יתחיל Passive ואז יחצה Spread אוטומטית רק מפני שפג timer. לפני escalation מחשבים מחדש Edge, cap ו־signal validity.
+‏אסור שהמנוע יתחיל Passive ואז יחצה Spread אוטומטית רק מפני שפג timer. לפני escalation מחשבים מחדש Edge, bound ו־signal validity.
 
 ---
 
@@ -819,9 +840,9 @@ exit feasibility
 
 # ‏Checkpoint — סוף חלק 4
 
-‏בחלק הזה בנינו את שכבת ה־Liquidity Control: ההבדל בין maker/taker intent, למה `Post Only` יכולה לשמש guardrail רובוטי, איך Queue Position ו־Order Aging צריכים להימדד, ומה הסיכון של adverse selection דווקא ב־Passive fills. ירדנו גם לעומק של `Hidden` ו־`Reserve/Iceberg`, כולל העובדה שב־IBKR Hidden יכולה להיות broker-simulated וש־Iceberg דרך Display Size משנה את אופן חשיפת הכמות ועשויה להתנהג אחרת כאשר Order marketable.
+‏בחלק הזה בנינו את שכבת ה־Liquidity Control תוך הפרדה קנונית בין `Application Execution Mode`, ‏Behavior Candidate ו־Liquidity/Display attributes. ‏`Post Only`, ‏`Hidden` ו־`Reserve/Iceberg` אינם Modes עצמאיים; הם constraints/attributes שמממשים intent בתוך Concrete Order.
 
-‏המסקנה למנוע שלנו בשלב זה: **Passive displayed + TTL קצר, Post Only כאשר semantics מאומתות, ו־Marketable Limit + IOC הם שלושת מסלולי המחקר המרכזיים. Hidden/Iceberg נשארות Advanced עד שנוכיח שהגודל שלנו באמת יוצר footprint שמצדיק אותן.**
+‏המסקנה למנוע שלנו בשלב זה: **`PASSIVE_JOIN`, ‏`PASSIVE_POST_ONLY` ו־`MARKETABLE_LIMIT_IOC` הם Behaviors מרכזיים למחקר. Hidden/Iceberg נשארות attributes מתקדמים עד שנוכיח שהגודל שלנו באמת יוצר footprint שמצדיק אותן.**
 
 ‏החלק הבא יהיה **Pegged, Relative, Midpoint ו־Snap families** — שם נרד לעומק בפקודות שהמחיר שלהן זז עם השוק, כולל ההבדלים בין `MidPrice`, ‏`Pegged-to-Midpoint`, ‏`Relative/Pegged-to-Primary`, ‏`Pegged-to-Market` ו־`Snap` ב־IBKR, ומה מהן באמת מתאים למנוע מומנטום של שניות.
 
