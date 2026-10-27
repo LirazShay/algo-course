@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R9_IN_PROGRESS",
-  "repairCheckpoint": "R9G_PRINT_VERIFICATION_COMPLETE",
+  "repairCheckpoint": "R9I_POST_CLEANUP_VERIFICATION_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -14,7 +14,7 @@
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": true,
     "assembler": "advanced-orders/build/assemble.mjs",
-    "reason": "R1-R8 course-source work is complete. R9 deterministic generation and browser-level print verification have both completed successfully in GitHub Actions without local-runtime dependency. Final repository cleanup and closeout remain.",
+    "reason": "R1-R8 course-source work is complete. Deterministic generation, final cleanup, and post-cleanup browser-level print verification have completed successfully in GitHub Actions. Final closeout remains.",
     "generatedSha256": "6fe512365a6026b6ae2cb5b631beac80511d42d4002548c4d2ac79fbe8998c3a",
     "generatedFromCommit": "b268cc4cde34de5d9e0c10d84c65ccb1adc5c93d"
   },
@@ -334,18 +334,18 @@
     }
   ],
   "printVerification": {
-    "state": "R9G_COMPLETE",
+    "state": "R9I_POST_CLEANUP_COMPLETE",
     "workflow": ".github/workflows/advanced-orders-print-verify.yml",
-    "workflowRunId": "40581496730",
-    "verifiedCommit": "7792c87037a41b1f6dd94796f0b26b561857ec1a",
+    "workflowRunId": "40582210092",
+    "verifiedCommit": "a376824f0bbfb44bfce2e7752a7fb23808787961",
     "browser": "Chromium via Playwright",
     "generatedSha256": "6fe512365a6026b6ae2cb5b631beac80511d42d4002548c4d2ac79fbe8998c3a",
     "sourceCount": 39,
     "renderedCharacters": 683634,
     "headlessPdfBytes": 4603729,
     "checks": [
-      "generated master passes canonical assembler --check before browser verification",
-      "print viewer loads over its dependency-free HTTP server",
+      "generated master passes canonical assembler --check after final cleanup",
+      "print viewer loads over its dependency-free HTTP server after final cleanup",
       "manifest-driven viewer assembly hash equals generated master SHA-256",
       "rendered course has expected substantial content and heading structure",
       "paper size, margins, font size, line height, density, and column controls apply",
@@ -353,6 +353,6 @@
       "headless Chromium produces a non-trivial PDF payload",
       "browser console and page emit no errors during verification"
     ],
-    "reason": "The final generated course is verified externally in CI at browser and print-media level. No local browser or local command execution is required."
+    "reason": "The cleaned final course tree is verified externally in CI at assembly, browser, and print-media level. No local browser or local command execution is required."
   }
 }
