@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R3_IN_PROGRESS",
-  "repairCheckpoint": "R3B_DISCRETIONARY_COMPLETE",
+  "repairCheckpoint": "R3C_TRIGGER_TAXONOMY_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -80,6 +80,12 @@
       "id": "06",
       "title": "Stops Trailing Bracket OCA OCO and Conditional",
       "source": "advanced-orders/source/06-STOPS-BRACKET-OCA-CONDITIONAL.md",
+      "status": "ready"
+    },
+    {
+      "id": "06A",
+      "title": "MIT LIT and Trailing If Touched Trigger Taxonomy",
+      "source": "advanced-orders/source/06A-MIT-LIT-AND-TRAILING-TOUCHED-ORDERS.md",
       "status": "ready"
     },
     {
