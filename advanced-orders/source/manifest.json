@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R3_COMPLETE",
-  "repairCheckpoint": "R3D_PRODUCT_SCOPE_COMPLETE",
+  "repairState": "R4_IN_PROGRESS",
+  "repairCheckpoint": "R4A_AGGRESSIVE_EXECUTION_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1 source migration, R2 structure/taxonomy normalization, and R3 missing-advanced-order repairs are complete. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
+    "reason": "R1 source migration, R2 structure/taxonomy normalization, and R3 missing-advanced-order repairs are complete. R4 decision/comparison repairs are in progress. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
   },
   "buildPolicy": {
     "requireAllEntriesReady": true,
@@ -50,6 +50,12 @@
       "id": "02A",
       "title": "Sweep to Fill and Market to Limit",
       "source": "advanced-orders/source/02A-SWEEP-TO-FILL-AND-MARKET-TO-LIMIT.md",
+      "status": "ready"
+    },
+    {
+      "id": "02B",
+      "title": "Aggressive Execution Decision Guide",
+      "source": "advanced-orders/source/02B-AGGRESSIVE-EXECUTION-DECISION-GUIDE.md",
       "status": "ready"
     },
     {
