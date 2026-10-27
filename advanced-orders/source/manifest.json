@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R5_COMPLETE",
-  "repairCheckpoint": "R5C_CLOSEOUT_COMPLETE",
+  "repairState": "R6_IN_PROGRESS",
+  "repairCheckpoint": "R6A_FAILURE_CONTRACTS_SURVIVABILITY_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1 source migration, R2 structure/taxonomy normalization, R3 missing-advanced-order repairs, R4 decision/comparison repairs, and R5 engine mapping/capability normalization repairs are complete. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
+    "reason": "R1 source migration, R2 structure/taxonomy normalization, R3 missing-advanced-order repairs, R4 decision/comparison repairs, and R5 engine mapping/capability normalization repairs are complete. R6 failure contracts, survivability and safety repairs are in progress. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
   },
   "buildPolicy": {
     "requireAllEntriesReady": true,
@@ -140,6 +140,12 @@
       "id": "08A",
       "title": "Modify Replace and Repricing Decision Guide",
       "source": "advanced-orders/source/08A-MODIFY-REPLACE-AND-REPRICING-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "08B",
+      "title": "Failure Contracts and Order Survivability",
+      "source": "advanced-orders/source/08B-FAILURE-CONTRACTS-AND-ORDER-SURVIVABILITY.md",
       "status": "ready"
     },
     {
