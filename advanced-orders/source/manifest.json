@@ -34,30 +34,26 @@
     {
       "id": "02",
       "title": "Core Execution",
-      "source": null,
-      "legacyHeading": "חלק 2 — Core Execution",
-      "status": "pending_split"
+      "source": "advanced-orders/source/02-CORE-EXECUTION.md",
+      "status": "ready"
     },
     {
       "id": "03",
       "title": "Time in Force and Immediate Execution",
-      "source": null,
-      "legacyHeading": "חלק 3 — Time in Force",
-      "status": "pending_split"
+      "source": "advanced-orders/source/03-TIME-IN-FORCE.md",
+      "status": "ready"
     },
     {
       "id": "04",
       "title": "Liquidity Control",
-      "source": null,
-      "legacyHeading": "חלק 4 — Liquidity",
-      "status": "pending_split"
+      "source": "advanced-orders/source/04-LIQUIDITY-CONTROL.md",
+      "status": "ready"
     },
     {
       "id": "05",
       "title": "Pegged Relative Midpoint and Snap",
-      "source": null,
-      "legacyHeading": "חלק 5 — Pegged",
-      "status": "pending_split"
+      "source": "advanced-orders/source/05-PEGGED-MIDPOINT-SNAP.md",
+      "status": "ready"
     },
     {
       "id": "06",
