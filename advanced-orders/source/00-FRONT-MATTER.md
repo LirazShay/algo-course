@@ -46,6 +46,10 @@
 
 ‏ה־Glossary מתחיל בכל מונח מ־**במילים פשוטות**, ואז נותן את המשמעות המקצועית, מה לא לבלבל איתו ולאיזה פרק ממשיכים. הוא אינו מבחן כניסה לקורס ואינו מחליף את ההסבר המלא בפרקי המשפחות.
 
+‏כאשר קופצים ישר לבעיה מסוימת ורוצים לדעת מה prerequisite, לאן ממשיכים אחר כך, או מי מנהל את ה־Order לאחר Submit, משתמשים ב־:
+
+`00D-PREREQUISITES-CROSS-REFERENCES-AND-OWNERSHIP-MAP.md`
+
 ‏אם כבר יש לך בעיה מסוימת — למשל “אני רוצה ניסיון ביצוע מיידי בלי להשאיר remainder”, “מי מנהל את הפקודה אחרי disconnect?” או “איך מגינים על Position?” — אפשר להתחיל ישירות ב־Problem → Candidate Index שב־`00B`, להגיע לפרק המשפחה, ואז להמשיך להשוואה, failure/safety ו־engine mapping הרלוונטיים.
 
 ---
@@ -67,7 +71,7 @@
 → Part 10D: Full Decision Engine
 ```
 
-‏`00A` נשאר Reference קנוני של taxonomy ו־`00C` נשאר Reference מהיר של definitions לאורך כל המסלול.
+‏`00A` נשאר Reference קנוני של taxonomy, ‏`00C` נשאר Reference מהיר של definitions, ו־`00D` הוא מפת prerequisites/cross-references/ownership לאורך כל המסלול.
 
 ‏הפרקים אינם רשימת פקודות בלבד. המטרה היא לעבור בהדרגה מ־semantics של Order בודדת אל מנוע שמסוגל לבחור, לנהל, לבטל, להחליף, לשחזר ולהגן על Orders בצורה עקבית.
 
@@ -86,6 +90,10 @@
 ## ‏`00C` — Canonical Glossary
 
 ‏מילון beginner-first למונחים שחוזרים לאורך הקורס: Mode, Candidate, Primitive, TIF, materialization, queue, markout, ownership, residency, survivability, reconciliation, capability ועוד. כל ערך מתחיל בהסבר פשוט ורק אחר כך בשם ובהגדרה המקצועיים.
+
+## ‏`00D` — Prerequisites, Cross-References and Ownership Map
+
+‏מפה שמראה מה צריך להבין לפני כל חלק, לאן ממשיכים ממנו, ואיך להבדיל בין `venue-native`, ‏`broker-resident`, ‏`broker-simulated`, ‏`broker-managed` ו־`client-managed`. היא גם קובעת את כלל `Define Once → Cross-reference → Extend Only When Needed` כדי לצמצם חזרות מיותרות.
 
 ## ‏חלק 1 — השפה המקצועית של פקודה
 
