@@ -1,0 +1,170 @@
+name: Advanced Orders print verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/advanced-orders-print-verify.yml'
+      - 'advanced-orders/print/**'
+      - 'advanced-orders/ADVANCED-ORDER-MASTERY.md'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: advanced-orders-print-verification-main
+  cancel-in-progress: false
+
+jobs:
+  verify-print-viewer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify generated master is current
+        shell: bash
+        run: |
+          set -euo pipefail
+          node advanced-orders/build/assemble.mjs --check | tee /tmp/advanced-orders-master-check.log
+          grep -qx 'CHECK_OK' /tmp/advanced-orders-master-check.log
+
+      - name: Install headless Chromium verification runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Start print viewer server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node advanced-orders/print/serve.mjs --port=4173 >/tmp/advanced-orders-print-server.log 2>&1 &
+          echo $! >/tmp/advanced-orders-print-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/advanced-orders/print/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/advanced-orders-print-server.log >&2
+          exit 1
+
+      - name: Verify browser rendering and print output
+        id: printverify
+        shell: bash
+        run: |
+          set -euo pipefail
+          node advanced-orders/print/verify-print.mjs | tee /tmp/advanced-orders-print-verify.log
+          grep -qx 'PRINT_VERIFICATION_OK' /tmp/advanced-orders-print-verify.log
+          hash="$(sed -n 's/^PRINT_VIEWER_HASH_OK=//p' /tmp/advanced-orders-print-verify.log | tail -n 1)"
+          sources="$(sed -n 's/^PRINT_VIEWER_SOURCES_OK=//p' /tmp/advanced-orders-print-verify.log | tail -n 1)"
+          chars="$(sed -n 's/^PRINT_VIEWER_RENDER_CHARS=//p' /tmp/advanced-orders-print-verify.log | tail -n 1)"
+          pdf_bytes="$(sed -n 's/^PRINT_PDF_BYTES=//p' /tmp/advanced-orders-print-verify.log | tail -n 1)"
+          test -n "$hash"
+          test -n "$sources"
+          test -n "$chars"
+          test -n "$pdf_bytes"
+          echo "sha256=$hash" >> "$GITHUB_OUTPUT"
+          echo "sources=$sources" >> "$GITHUB_OUTPUT"
+          echo "chars=$chars" >> "$GITHUB_OUTPUT"
+          echo "pdf_bytes=$pdf_bytes" >> "$GITHUB_OUTPUT"
+
+      - name: Stop print viewer server
+        if: always()
+        shell: bash
+        run: |
+          if test -f /tmp/advanced-orders-print-server.pid; then
+            kill "$(cat /tmp/advanced-orders-print-server.pid)" 2>/dev/null || true
+          fi
+
+      - name: Remove transient browser dependency
+        if: always()
+        shell: bash
+        run: rm -rf node_modules
+
+      - name: Record successful print verification in manifest
+        env:
+          VERIFIED_SHA256: ${{ steps.printverify.outputs.sha256 }}
+          VERIFIED_SOURCES: ${{ steps.printverify.outputs.sources }}
+          RENDER_CHARS: ${{ steps.printverify.outputs.chars }}
+          PDF_BYTES: ${{ steps.printverify.outputs.pdf_bytes }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+          VERIFIED_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFile, writeFile } from 'node:fs/promises';
+
+          const path = 'advanced-orders/source/manifest.json';
+          const manifest = JSON.parse(await readFile(path, 'utf8'));
+          if (manifest.generatedMaster?.generatedSha256 !== process.env.VERIFIED_SHA256) {
+            throw new Error(`print verification hash ${process.env.VERIFIED_SHA256} does not match generated master ${manifest.generatedMaster?.generatedSha256}`);
+          }
+
+          manifest.repairState = 'R9_IN_PROGRESS';
+          manifest.repairCheckpoint = 'R9G_PRINT_VERIFICATION_COMPLETE';
+          manifest.generatedMaster = {
+            ...manifest.generatedMaster,
+            reason: 'R1-R8 course-source work is complete. R9 deterministic generation and browser-level print verification have both completed successfully in GitHub Actions without local-runtime dependency. Final repository cleanup and closeout remain.'
+          };
+          manifest.printVerification = {
+            state: 'R9G_COMPLETE',
+            workflow: '.github/workflows/advanced-orders-print-verify.yml',
+            workflowRunId: process.env.WORKFLOW_RUN_ID,
+            verifiedCommit: process.env.VERIFIED_COMMIT,
+            browser: 'Chromium via Playwright',
+            generatedSha256: process.env.VERIFIED_SHA256,
+            sourceCount: Number(process.env.VERIFIED_SOURCES),
+            renderedCharacters: Number(process.env.RENDER_CHARS),
+            headlessPdfBytes: Number(process.env.PDF_BYTES),
+            checks: [
+              'generated master passes canonical assembler --check before browser verification',
+              'print viewer loads over its dependency-free HTTP server',
+              'manifest-driven viewer assembly hash equals generated master SHA-256',
+              'rendered course has expected substantial content and heading structure',
+              'paper size, margins, font size, line height, density, and column controls apply',
+              'print media hides screen-only controls and removes paper chrome',
+              'headless Chromium produces a non-trivial PDF payload',
+              'browser console and page emit no errors during verification'
+            ],
+            reason: 'The final generated course is verified externally in CI at browser and print-media level. No local browser or local command execution is required.'
+          };
+
+          await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+          NODE
+
+      - name: Guard verification changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git status --porcelain | sed -E 's/^.. //')
+          for path in "${changed[@]}"; do
+            case "$path" in
+              advanced-orders/source/manifest.json) ;;
+              *) echo "Unexpected verification change: $path" >&2; exit 1 ;;
+            esac
+          done
+          test -n "$(git status --porcelain)"
+
+      - name: Commit verified print state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add advanced-orders/source/manifest.json
+          git commit -m 'R9G record external print verification'
+          git push origin HEAD:main
