@@ -83,8 +83,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     71 — Account Mechanics and Regulations
                     72 — Fees, Tax and Accounting Awareness
                     73 — Automatic Daily Review
+                    74 — Scanner Diagnostics
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 74 — Scanner Diagnostics
+Next Segment: 75 — Feature Retirement
 Source of Truth: GitHub main
 ```
 
@@ -242,9 +243,10 @@ Baseline
 | `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `72-FEES-TAX-AND-ACCOUNTING-AWARENESS.md` | `72-FEES-TAX-AND-ACCOUNTING-AWARENESS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `73-AUTOMATIC-DAILY-REVIEW.md` | `73-AUTOMATIC-DAILY-REVIEW.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `74-SCANNER-DIAGNOSTICS.md` | `74-SCANNER-DIAGNOSTICS.md` | TBD | `NOT STARTED` |
+| `74-SCANNER-DIAGNOSTICS.md` | `74-SCANNER-DIAGNOSTICS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `75-FEATURE-RETIREMENT.md` | `75-FEATURE-RETIREMENT.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 75–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 76–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
