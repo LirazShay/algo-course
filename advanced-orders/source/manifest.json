@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R3_IN_PROGRESS",
-  "repairCheckpoint": "R3C_TRIGGER_TAXONOMY_COMPLETE",
+  "repairState": "R3_COMPLETE",
+  "repairCheckpoint": "R3D_PRODUCT_SCOPE_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1 source migration and R2 structure/taxonomy normalization are complete. R3 missing-advanced-order repairs are in progress. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
+    "reason": "R1 source migration, R2 structure/taxonomy normalization, and R3 missing-advanced-order repairs are complete. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
   },
   "buildPolicy": {
     "requireAllEntriesReady": true,
@@ -104,6 +104,12 @@
       "id": "09",
       "title": "IBKR Capability Matrix",
       "source": "advanced-orders/source/09-IBKR-CAPABILITY-MATRIX.md",
+      "status": "ready"
+    },
+    {
+      "id": "09A",
+      "title": "Product-Specific and Out-of-Scope Advanced Orders",
+      "source": "advanced-orders/source/09A-PRODUCT-SPECIFIC-AND-OUT-OF-SCOPE-ORDERS.md",
       "status": "ready"
     },
     {
