@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R8_IN_PROGRESS",
-  "repairCheckpoint": "R8C_PREREQUISITES_CROSSREF_OWNERSHIP_NORMALIZATION_COMPLETE",
+  "repairState": "R8_COMPLETE",
+  "repairCheckpoint": "R8D_CLOSEOUT_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1-R7 repairs are complete. R8A beginner navigation / Problem-to-Candidate index, R8B canonical beginner-first glossary, and R8C prerequisites / cross-reference / ownership terminology normalization are complete. R8 final learning-flow and duplication cleanup remains before R9 deterministic assembly/print work."
+    "reason": "R1-R8 source repair, safety, practitioner judgment, beginner navigation, glossary, prerequisites, cross-references, ownership normalization, learning-flow cleanup, and define-once duplication policy are complete. R9 deterministic assembly, regenerated master, compact print viewer, print verification, and final repository cleanup remain."
   },
   "finalizationPolicy": {
     "goal": "The final advanced-orders area is a clean printable Advanced Orders course, not a workspace dump.",
