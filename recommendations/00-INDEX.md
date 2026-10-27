@@ -94,8 +94,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     82 — Production v1 Design
                     83 — Know by Heart vs Reference
                     84 — Glossary
+                    85 — Readiness Checklist
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 85 — Readiness Checklist
+Next Segment: 85A — Market Conduct, Manipulation Prevention, Self-Trade Controls and Automated-Trading Compliance
 Source of Truth: GitHub main
 ```
 
@@ -264,9 +265,10 @@ Baseline
 | `82-PRODUCTION-V1-DESIGN.md` | `82-PRODUCTION-V1-DESIGN.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `83-KNOW-BY-HEART-VS-REFERENCE.md` | `83-KNOW-BY-HEART-VS-REFERENCE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `84-GLOSSARY.md` | `84-GLOSSARY.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `85-READINESS-CHECKLIST.md` | `85-READINESS-CHECKLIST.md` | TBD | `NOT STARTED` |
+| `85-READINESS-CHECKLIST.md` | `85-READINESS-CHECKLIST.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` | `85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי `85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר ה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
