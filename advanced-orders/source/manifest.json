@@ -1,20 +1,14 @@
 {
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
-  "migrationState": "R1_COMPLETE",
-  "repairState": "R9_IN_PROGRESS",
-  "repairCheckpoint": "R9I_POST_CLEANUP_VERIFICATION_COMPLETE",
+  "repairState": "R9_COMPLETE",
+  "repairCheckpoint": "R9J_FINAL_CLOSEOUT_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
-  "legacyMaster": {
-    "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
-    "blobSha": "ab823e9b14c798016942619c496013cf523fb7bc",
-    "policy": "legacy migration reference; replacement is now authorized only through the deterministic R9 assembler"
-  },
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": true,
     "assembler": "advanced-orders/build/assemble.mjs",
-    "reason": "R1-R8 course-source work is complete. Deterministic generation, final cleanup, and post-cleanup browser-level print verification have completed successfully in GitHub Actions. Final closeout remains.",
+    "reason": "Final canonical course is deterministically generated from 39 ready sources and remains byte-identical after final cleanup and closeout verification.",
     "generatedSha256": "6fe512365a6026b6ae2cb5b631beac80511d42d4002548c4d2ac79fbe8998c3a",
     "generatedFromCommit": "b268cc4cde34de5d9e0c10d84c65ccb1adc5c93d"
   },
@@ -354,5 +348,25 @@
       "browser console and page emit no errors during verification"
     ],
     "reason": "The cleaned final course tree is verified externally in CI at assembly, browser, and print-media level. No local browser or local command execution is required."
+  },
+  "finalCloseout": {
+    "state": "R9J_COMPLETE",
+    "workflowRunId": "40582627267",
+    "verifiedCommit": "ec84404c97938d378c5aff10267e4bd14230c9a1",
+    "generatedSha256": "6fe512365a6026b6ae2cb5b631beac80511d42d4002548c4d2ac79fbe8998c3a",
+    "retainedAdvancedOrdersFiles": 45,
+    "canonicalSourceCount": 39,
+    "checks": [
+      "advanced-orders contains only the final master plus source, build, and print trees",
+      "review and parts trees are absent",
+      "superseded local generation runner is absent",
+      "source contains exactly 39 ready manifest Markdown sources plus manifest.json",
+      "build contains only the deterministic assembler",
+      "print contains only the retained viewer, server, and browser verification script",
+      "canonical assembler --check succeeds against the retained final master",
+      "post-cleanup Chromium print verification is recorded complete for the same SHA-256",
+      "legacy migration metadata is removed from the final manifest"
+    ],
+    "remainingWork": []
   }
 }
