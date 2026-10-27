@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R3_IN_PROGRESS",
-  "repairCheckpoint": "R3A_SWEEP_MTL_COMPLETE",
+  "repairCheckpoint": "R3B_DISCRETIONARY_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -62,6 +62,12 @@
       "id": "04",
       "title": "Liquidity Control",
       "source": "advanced-orders/source/04-LIQUIDITY-CONTROL.md",
+      "status": "ready"
+    },
+    {
+      "id": "04A",
+      "title": "Discretionary and Executable Willingness",
+      "source": "advanced-orders/source/04A-DISCRETIONARY-AND-EXECUTABLE-WILLINGNESS.md",
       "status": "ready"
     },
     {
