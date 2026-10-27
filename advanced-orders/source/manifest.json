@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R8_COMPLETE",
-  "repairCheckpoint": "R8D_CLOSEOUT_COMPLETE",
+  "repairState": "R9_IN_PROGRESS",
+  "repairCheckpoint": "R9A_DETERMINISTIC_ASSEMBLER_CREATED",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,8 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1-R8 source repair, safety, practitioner judgment, beginner navigation, glossary, prerequisites, cross-references, ownership normalization, learning-flow cleanup, and define-once duplication policy are complete. R9 deterministic assembly, regenerated master, compact print viewer, print verification, and final repository cleanup remain."
+    "assembler": "advanced-orders/build/assemble.mjs",
+    "reason": "R1-R8 course-source work is complete and the deterministic R9 assembler now exists. The legacy master remains frozen until the assembler is validated and used to regenerate it in a later R9 segment; print viewer, print verification, and final repository cleanup also remain."
   },
   "finalizationPolicy": {
     "goal": "The final advanced-orders area is a clean printable Advanced Orders course, not a workspace dump.",
