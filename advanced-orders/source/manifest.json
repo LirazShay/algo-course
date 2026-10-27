@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R9_IN_PROGRESS",
-  "repairCheckpoint": "R9E_GENERATION_RUNNER_READY_MASTER_PENDING",
+  "repairCheckpoint": "R9F_CI_GENERATION_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -14,21 +14,26 @@
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": true,
     "assembler": "advanced-orders/build/assemble.mjs",
-    "reason": "R1-R8 course-source work is complete. R9A created the deterministic assembler, R9B validated its runtime contract, R9C added the compact print viewer, R9D opened the generation gate, and R9E added a Windows entrypoint that runs the canonical assembler with --write followed immediately by --check. The generated master is still pending an actual repository runtime execution; print verification and cleanup remain blocked until that execution succeeds."
+    "reason": "R1-R8 course-source work is complete. The deterministic R9 assembler has now run in GitHub Actions with --write followed immediately by --check, producing and verifying the generated master without any local-runtime dependency. Print verification and final repository cleanup remain.",
+    "generatedSha256": "6fe512365a6026b6ae2cb5b631beac80511d42d4002548c4d2ac79fbe8998c3a",
+    "generatedFromCommit": "b268cc4cde34de5d9e0c10d84c65ccb1adc5c93d"
   },
   "generationRunner": {
-    "state": "R9E_ENTRYPOINT_READY",
-    "path": "advanced-orders/build/generate-course.cmd",
-    "platform": "Windows",
-    "executionState": "PENDING_LOCAL_REPO_RUNTIME",
+    "state": "R9F_GITHUB_ACTIONS_COMPLETE",
+    "path": ".github/workflows/advanced-orders-generate.yml",
+    "platform": "GitHub Actions / ubuntu-latest",
+    "executionState": "CI_WRITE_CHECK_OK",
+    "workflowRunId": "40581144194",
+    "generatedSha256": "6fe512365a6026b6ae2cb5b631beac80511d42d4002548c4d2ac79fbe8998c3a",
     "contract": [
+      "checkout the canonical main branch in GitHub Actions",
       "run the canonical assembler with --write",
       "immediately run the same assembler with --check",
-      "stop on the first non-zero exit code",
-      "never edit canonical source files or bypass generatedMaster.buildAllowed",
-      "do not start print verification or cleanup until WRITE_OK and CHECK_OK are both observed"
+      "require identical SHA-256 from write and check",
+      "commit only the generated master and generation metadata",
+      "do not start final cleanup until generation verification succeeds"
     ],
-    "reason": "The connected GitHub surface supports repository reads and writes but does not expose a shell on the repository. The separate local shell cannot reach GitHub, so generation must not be emulated by manual concatenation."
+    "reason": "GitHub Actions is the canonical external generation runner. No local checkout or local command execution is required to produce or verify the master."
   },
   "assemblerValidation": {
     "state": "R9B_COMPLETE",
@@ -93,44 +98,239 @@
     "insertSingleBlankLineBetweenEntries": true
   },
   "entries": [
-    {"id":"00","title":"Front Matter and Course Map","source":"advanced-orders/source/00-FRONT-MATTER.md","status":"ready"},
-    {"id":"00B","title":"Beginner Navigation and Problem to Candidate Index","source":"advanced-orders/source/00B-BEGINNER-NAVIGATION-AND-PROBLEM-INDEX.md","status":"ready"},
-    {"id":"00A","title":"Canonical Taxonomy and Vocabulary","source":"advanced-orders/source/00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md","status":"ready"},
-    {"id":"00C","title":"Canonical Beginner-First Glossary","source":"advanced-orders/source/00C-CANONICAL-GLOSSARY.md","status":"ready"},
-    {"id":"00D","title":"Prerequisites Cross-References and Ownership Map","source":"advanced-orders/source/00D-PREREQUISITES-CROSS-REFERENCES-AND-OWNERSHIP-MAP.md","status":"ready"},
-    {"id":"01","title":"Order Language","source":"advanced-orders/source/01-ORDER-LANGUAGE.md","status":"ready"},
-    {"id":"02","title":"Core Execution","source":"advanced-orders/source/02-CORE-EXECUTION.md","status":"ready"},
-    {"id":"02A","title":"Sweep to Fill and Market to Limit","source":"advanced-orders/source/02A-SWEEP-TO-FILL-AND-MARKET-TO-LIMIT.md","status":"ready"},
-    {"id":"02B","title":"Aggressive Execution Decision Guide","source":"advanced-orders/source/02B-AGGRESSIVE-EXECUTION-DECISION-GUIDE.md","status":"ready"},
-    {"id":"03","title":"Time in Force and Immediate Execution","source":"advanced-orders/source/03-TIME-IN-FORCE.md","status":"ready"},
-    {"id":"04","title":"Liquidity Control","source":"advanced-orders/source/04-LIQUIDITY-CONTROL.md","status":"ready"},
-    {"id":"04A","title":"Discretionary and Executable Willingness","source":"advanced-orders/source/04A-DISCRETIONARY-AND-EXECUTABLE-WILLINGNESS.md","status":"ready"},
-    {"id":"04B","title":"Liquidity and Display Decision Guide","source":"advanced-orders/source/04B-LIQUIDITY-AND-DISPLAY-DECISION-GUIDE.md","status":"ready"},
-    {"id":"05","title":"Pegged Relative Midpoint and Snap","source":"advanced-orders/source/05-PEGGED-MIDPOINT-SNAP.md","status":"ready"},
-    {"id":"05A","title":"Dynamic Pricing Decision Guide","source":"advanced-orders/source/05A-DYNAMIC-PRICING-DECISION-GUIDE.md","status":"ready"},
-    {"id":"06","title":"Stops Trailing Bracket OCA OCO and Conditional","source":"advanced-orders/source/06-STOPS-BRACKET-OCA-CONDITIONAL.md","status":"ready"},
-    {"id":"06A","title":"MIT LIT and Trailing If Touched Trigger Taxonomy","source":"advanced-orders/source/06A-MIT-LIT-AND-TRAILING-TOUCHED-ORDERS.md","status":"ready"},
-    {"id":"06B","title":"Trigger and Dynamic Exit Decision Guide","source":"advanced-orders/source/06B-TRIGGER-AND-DYNAMIC-EXIT-DECISION-GUIDE.md","status":"ready"},
-    {"id":"06C","title":"Composite Coordination and Conditional Decision Guide","source":"advanced-orders/source/06C-COMPOSITE-COORDINATION-CONDITIONAL-DECISION-GUIDE.md","status":"ready"},
-    {"id":"07","title":"Routing and Broker Algos","source":"advanced-orders/source/07-ROUTING-AND-BROKER-ALGOS.md","status":"ready"},
-    {"id":"07A","title":"Routing Policy Decision Guide","source":"advanced-orders/source/07A-ROUTING-POLICY-DECISION-GUIDE.md","status":"ready"},
-    {"id":"08","title":"Cancel Replace and Execution State Machine","source":"advanced-orders/source/08-CANCEL-REPLACE-STATE-MACHINE.md","status":"ready"},
-    {"id":"08A","title":"Modify Replace and Repricing Decision Guide","source":"advanced-orders/source/08A-MODIFY-REPLACE-AND-REPRICING-DECISION-GUIDE.md","status":"ready"},
-    {"id":"08B","title":"Failure Contracts and Order Survivability","source":"advanced-orders/source/08B-FAILURE-CONTRACTS-AND-ORDER-SURVIVABILITY.md","status":"ready"},
-    {"id":"08C","title":"Bracket OCA and Protection Deep Safety","source":"advanced-orders/source/08C-BRACKET-OCA-AND-PROTECTION-DEEP-SAFETY.md","status":"ready"},
-    {"id":"08D","title":"Recovery Ownership Shutdown and Earned READY","source":"advanced-orders/source/08D-RECOVERY-OWNERSHIP-SHUTDOWN-AND-READY.md","status":"ready"},
-    {"id":"09","title":"IBKR Capability Matrix","source":"advanced-orders/source/09-IBKR-CAPABILITY-MATRIX.md","status":"ready"},
-    {"id":"09A","title":"Product-Specific and Out-of-Scope Advanced Orders","source":"advanced-orders/source/09A-PRODUCT-SPECIFIC-AND-OUT-OF-SCOPE-ORDERS.md","status":"ready"},
-    {"id":"09B","title":"Engine Mapping and Candidate Registry","source":"advanced-orders/source/09B-ENGINE-MAPPING-AND-CANDIDATE-REGISTRY.md","status":"ready"},
-    {"id":"09C","title":"Failure Destinations and Outcome Contracts","source":"advanced-orders/source/09C-FAILURE-DESTINATIONS-AND-OUTCOME-CONTRACTS.md","status":"ready"},
-    {"id":"10A","title":"Decision Inputs and Elimination Gates","source":"advanced-orders/source/10A-DECISION-INPUTS-AND-GATES.md","status":"ready"},
-    {"id":"10B","title":"Entry Decision and Execution Behavior Selection","source":"advanced-orders/source/10B-ENTRY-DECISION.md","status":"ready"},
-    {"id":"10C","title":"Exit Decision Protection and Ownership","source":"advanced-orders/source/10C-EXIT-DECISION.md","status":"ready"},
-    {"id":"10D","title":"Full Decision Engine","source":"advanced-orders/source/10D-FULL-DECISION-ENGINE.md","status":"ready"},
-    {"id":"10E","title":"Entry vs Exit Asymmetry Decision Guide","source":"advanced-orders/source/10E-ENTRY-VS-EXIT-ASYMMETRY-DECISION-GUIDE.md","status":"ready"},
-    {"id":"10F","title":"Comparison Closeout Decision Checklist","source":"advanced-orders/source/10F-COMPARISON-CLOSEOUT-DECISION-CHECKLIST.md","status":"ready"},
-    {"id":"10G","title":"Practitioner Judgment Core","source":"advanced-orders/source/10G-PRACTITIONER-JUDGMENT-CORE.md","status":"ready"},
-    {"id":"10H","title":"Practitioner Judgment by Order Family","source":"advanced-orders/source/10H-PRACTITIONER-JUDGMENT-BY-FAMILY.md","status":"ready"},
-    {"id":"10I","title":"Practitioner Judgment Completion","source":"advanced-orders/source/10I-PRACTITIONER-JUDGMENT-COMPLETION.md","status":"ready"}
+    {
+      "id": "00",
+      "title": "Front Matter and Course Map",
+      "source": "advanced-orders/source/00-FRONT-MATTER.md",
+      "status": "ready"
+    },
+    {
+      "id": "00B",
+      "title": "Beginner Navigation and Problem to Candidate Index",
+      "source": "advanced-orders/source/00B-BEGINNER-NAVIGATION-AND-PROBLEM-INDEX.md",
+      "status": "ready"
+    },
+    {
+      "id": "00A",
+      "title": "Canonical Taxonomy and Vocabulary",
+      "source": "advanced-orders/source/00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md",
+      "status": "ready"
+    },
+    {
+      "id": "00C",
+      "title": "Canonical Beginner-First Glossary",
+      "source": "advanced-orders/source/00C-CANONICAL-GLOSSARY.md",
+      "status": "ready"
+    },
+    {
+      "id": "00D",
+      "title": "Prerequisites Cross-References and Ownership Map",
+      "source": "advanced-orders/source/00D-PREREQUISITES-CROSS-REFERENCES-AND-OWNERSHIP-MAP.md",
+      "status": "ready"
+    },
+    {
+      "id": "01",
+      "title": "Order Language",
+      "source": "advanced-orders/source/01-ORDER-LANGUAGE.md",
+      "status": "ready"
+    },
+    {
+      "id": "02",
+      "title": "Core Execution",
+      "source": "advanced-orders/source/02-CORE-EXECUTION.md",
+      "status": "ready"
+    },
+    {
+      "id": "02A",
+      "title": "Sweep to Fill and Market to Limit",
+      "source": "advanced-orders/source/02A-SWEEP-TO-FILL-AND-MARKET-TO-LIMIT.md",
+      "status": "ready"
+    },
+    {
+      "id": "02B",
+      "title": "Aggressive Execution Decision Guide",
+      "source": "advanced-orders/source/02B-AGGRESSIVE-EXECUTION-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "03",
+      "title": "Time in Force and Immediate Execution",
+      "source": "advanced-orders/source/03-TIME-IN-FORCE.md",
+      "status": "ready"
+    },
+    {
+      "id": "04",
+      "title": "Liquidity Control",
+      "source": "advanced-orders/source/04-LIQUIDITY-CONTROL.md",
+      "status": "ready"
+    },
+    {
+      "id": "04A",
+      "title": "Discretionary and Executable Willingness",
+      "source": "advanced-orders/source/04A-DISCRETIONARY-AND-EXECUTABLE-WILLINGNESS.md",
+      "status": "ready"
+    },
+    {
+      "id": "04B",
+      "title": "Liquidity and Display Decision Guide",
+      "source": "advanced-orders/source/04B-LIQUIDITY-AND-DISPLAY-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "05",
+      "title": "Pegged Relative Midpoint and Snap",
+      "source": "advanced-orders/source/05-PEGGED-MIDPOINT-SNAP.md",
+      "status": "ready"
+    },
+    {
+      "id": "05A",
+      "title": "Dynamic Pricing Decision Guide",
+      "source": "advanced-orders/source/05A-DYNAMIC-PRICING-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "06",
+      "title": "Stops Trailing Bracket OCA OCO and Conditional",
+      "source": "advanced-orders/source/06-STOPS-BRACKET-OCA-CONDITIONAL.md",
+      "status": "ready"
+    },
+    {
+      "id": "06A",
+      "title": "MIT LIT and Trailing If Touched Trigger Taxonomy",
+      "source": "advanced-orders/source/06A-MIT-LIT-AND-TRAILING-TOUCHED-ORDERS.md",
+      "status": "ready"
+    },
+    {
+      "id": "06B",
+      "title": "Trigger and Dynamic Exit Decision Guide",
+      "source": "advanced-orders/source/06B-TRIGGER-AND-DYNAMIC-EXIT-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "06C",
+      "title": "Composite Coordination and Conditional Decision Guide",
+      "source": "advanced-orders/source/06C-COMPOSITE-COORDINATION-CONDITIONAL-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "07",
+      "title": "Routing and Broker Algos",
+      "source": "advanced-orders/source/07-ROUTING-AND-BROKER-ALGOS.md",
+      "status": "ready"
+    },
+    {
+      "id": "07A",
+      "title": "Routing Policy Decision Guide",
+      "source": "advanced-orders/source/07A-ROUTING-POLICY-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "08",
+      "title": "Cancel Replace and Execution State Machine",
+      "source": "advanced-orders/source/08-CANCEL-REPLACE-STATE-MACHINE.md",
+      "status": "ready"
+    },
+    {
+      "id": "08A",
+      "title": "Modify Replace and Repricing Decision Guide",
+      "source": "advanced-orders/source/08A-MODIFY-REPLACE-AND-REPRICING-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "08B",
+      "title": "Failure Contracts and Order Survivability",
+      "source": "advanced-orders/source/08B-FAILURE-CONTRACTS-AND-ORDER-SURVIVABILITY.md",
+      "status": "ready"
+    },
+    {
+      "id": "08C",
+      "title": "Bracket OCA and Protection Deep Safety",
+      "source": "advanced-orders/source/08C-BRACKET-OCA-AND-PROTECTION-DEEP-SAFETY.md",
+      "status": "ready"
+    },
+    {
+      "id": "08D",
+      "title": "Recovery Ownership Shutdown and Earned READY",
+      "source": "advanced-orders/source/08D-RECOVERY-OWNERSHIP-SHUTDOWN-AND-READY.md",
+      "status": "ready"
+    },
+    {
+      "id": "09",
+      "title": "IBKR Capability Matrix",
+      "source": "advanced-orders/source/09-IBKR-CAPABILITY-MATRIX.md",
+      "status": "ready"
+    },
+    {
+      "id": "09A",
+      "title": "Product-Specific and Out-of-Scope Advanced Orders",
+      "source": "advanced-orders/source/09A-PRODUCT-SPECIFIC-AND-OUT-OF-SCOPE-ORDERS.md",
+      "status": "ready"
+    },
+    {
+      "id": "09B",
+      "title": "Engine Mapping and Candidate Registry",
+      "source": "advanced-orders/source/09B-ENGINE-MAPPING-AND-CANDIDATE-REGISTRY.md",
+      "status": "ready"
+    },
+    {
+      "id": "09C",
+      "title": "Failure Destinations and Outcome Contracts",
+      "source": "advanced-orders/source/09C-FAILURE-DESTINATIONS-AND-OUTCOME-CONTRACTS.md",
+      "status": "ready"
+    },
+    {
+      "id": "10A",
+      "title": "Decision Inputs and Elimination Gates",
+      "source": "advanced-orders/source/10A-DECISION-INPUTS-AND-GATES.md",
+      "status": "ready"
+    },
+    {
+      "id": "10B",
+      "title": "Entry Decision and Execution Behavior Selection",
+      "source": "advanced-orders/source/10B-ENTRY-DECISION.md",
+      "status": "ready"
+    },
+    {
+      "id": "10C",
+      "title": "Exit Decision Protection and Ownership",
+      "source": "advanced-orders/source/10C-EXIT-DECISION.md",
+      "status": "ready"
+    },
+    {
+      "id": "10D",
+      "title": "Full Decision Engine",
+      "source": "advanced-orders/source/10D-FULL-DECISION-ENGINE.md",
+      "status": "ready"
+    },
+    {
+      "id": "10E",
+      "title": "Entry vs Exit Asymmetry Decision Guide",
+      "source": "advanced-orders/source/10E-ENTRY-VS-EXIT-ASYMMETRY-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "10F",
+      "title": "Comparison Closeout Decision Checklist",
+      "source": "advanced-orders/source/10F-COMPARISON-CLOSEOUT-DECISION-CHECKLIST.md",
+      "status": "ready"
+    },
+    {
+      "id": "10G",
+      "title": "Practitioner Judgment Core",
+      "source": "advanced-orders/source/10G-PRACTITIONER-JUDGMENT-CORE.md",
+      "status": "ready"
+    },
+    {
+      "id": "10H",
+      "title": "Practitioner Judgment by Order Family",
+      "source": "advanced-orders/source/10H-PRACTITIONER-JUDGMENT-BY-FAMILY.md",
+      "status": "ready"
+    },
+    {
+      "id": "10I",
+      "title": "Practitioner Judgment Completion",
+      "source": "advanced-orders/source/10I-PRACTITIONER-JUDGMENT-COMPLETION.md",
+      "status": "ready"
+    }
   ]
 }
