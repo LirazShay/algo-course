@@ -66,8 +66,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     55 — Security and Operations Best Practices
                     56 — 100 Common Mistakes in Short Algo Trading
                     57 — 100 Practical Tips for a Personal Algo Builder
+                    58 — Order and Execution Subtleties
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 58 — Order and Execution Subtleties
+Next Segment: 59 — Market Data Subtleties
 Source of Truth: GitHub main
 ```
 
@@ -208,9 +209,10 @@ Baseline
 | `55-SECURITY-AND-OPERATIONS-BEST-PRACTICES.md` | `55-SECURITY-AND-OPERATIONS-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `56-100-COMMON-MISTAKES-IN-SHORT-ALGO-TRADING.md` | `56-100-COMMON-MISTAKES-IN-SHORT-ALGO-TRADING.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `57-100-PRACTICAL-TIPS-FOR-A-PERSONAL-ALGO-BUILDER.md` | `57-100-PRACTICAL-TIPS-FOR-A-PERSONAL-ALGO-BUILDER.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `58-ORDER-AND-EXECUTION-SUBTLETIES.md` | `58-ORDER-AND-EXECUTION-SUBTLETIES.md` | TBD | `NOT STARTED` |
+| `58-ORDER-AND-EXECUTION-SUBTLETIES.md` | `58-ORDER-AND-EXECUTION-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `59-MARKET-DATA-SUBTLETIES.md` | `59-MARKET-DATA-SUBTLETIES.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 59–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 60–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
