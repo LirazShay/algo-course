@@ -15,6 +15,32 @@
     "buildAllowed": false,
     "reason": "R1 source migration, R2 structure/taxonomy normalization, R3 missing-advanced-order repairs, R4 decision/comparison repairs, R5 engine mapping/capability normalization, R6 failure/survivability/safety repairs, and R7 practitioner judgment repairs are complete. R8 reference/navigation/final learning cleanup and R9 deterministic assembly/print work remain. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented."
   },
+  "finalizationPolicy": {
+    "goal": "The final advanced-orders area is a clean printable Advanced Orders course, not a workspace dump.",
+    "keep": [
+      "canonical course source files that are still required",
+      "deterministic assembler/build files required to generate the course",
+      "the final generated Advanced Order Mastery course",
+      "the compact print viewer and only assets required for printing"
+    ],
+    "removeBeforeFinalCompletion": [
+      "review files",
+      "closeout audit files",
+      "migration leftovers",
+      "obsolete duplicate parts",
+      "temporary planning/debug files",
+      "superseded intermediate artifacts",
+      "any other file that does not contribute to reading, building, verifying, or printing the final course"
+    ],
+    "rules": [
+      "Do not delete construction evidence before R8/R9 no longer depend on it.",
+      "Before final completion, inventory advanced-orders and classify every remaining file as final-course, build-required, print-required, or removable.",
+      "The final learner-facing deliverable must not require opening review or audit files.",
+      "The printable course must be reproducibly assembled from the retained canonical sources.",
+      "No duplicate legacy master or obsolete source tree may remain merely because it was useful during repair.",
+      "Final completion requires a cleanliness check after deletion, assembly, and print verification."
+    ]
+  },
   "buildPolicy": {
     "requireAllEntriesReady": true,
     "rejectPendingEntries": true,
