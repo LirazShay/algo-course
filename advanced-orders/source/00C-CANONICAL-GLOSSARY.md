@@ -147,7 +147,7 @@
 
 ‏**קנוני:** Position השתנתה ולכן זו Decision State חדשה; אסור להמשיך אוטומטית כאילו לא קרה דבר.
 
-‏**המשך:** `08`, `09C`, `10E`.
+‏**המשך:** `00A`, `08`, `09C`, `10E`.
 
 ## ‏`NO_FILL`
 
@@ -265,7 +265,7 @@
 
 ‏**קנוני:** Behavior ownership הוא dimension נפרד מ־residency ומ־native semantics.
 
-‏**המשך:** `00A`, `08B`.
+‏**המשך:** `00A`, `00D`, `08B`.
 
 ## ‏`Client-Managed`
 
@@ -273,7 +273,7 @@
 
 ‏**משמעות disconnect:** behavior מקומי עלול להפסיק; Orders שכבר נשלחו יכולות עדיין להישאר executable לפי ה־state שלהן.
 
-‏**המשך:** `08B`, `08D`.
+‏**המשך:** `00D`, `08B`, `08D`.
 
 ## ‏`Broker-Managed`
 
@@ -281,7 +281,7 @@
 
 ‏**לא אומר:** שה־Broker יודע שה־Signal שלנו מתה או שה־Order בטוחה להשאיר ללא watchdog מקומי.
 
-‏**המשך:** `07`, `08B`, `10H`.
+‏**המשך:** `00D`, `07`, `08B`, `10H`.
 
 ## ‏`Broker-Resident`
 
@@ -289,7 +289,7 @@
 
 ‏**קנוני:** residency בלבד. זה **לא** אומר שה־Venue מכיר את ה־semantics Native.
 
-‏**המשך:** `00A`, `08B`.
+‏**המשך:** `00A`, `00D`, `08B`.
 
 ## ‏`Broker-Simulated`
 
@@ -297,7 +297,7 @@
 
 ‏**קנוני:** simulation semantics. Order יכולה להיות גם `Broker-Resident` וגם `Broker-Simulated` באותו זמן.
 
-‏**המשך:** `00A`, `08B`.
+‏**המשך:** `00A`, `00D`, `08B`.
 
 ## ‏`Venue-Native`
 
@@ -305,7 +305,7 @@
 
 ‏**לא אומר:** שה־feature מתאים לחשבון/route שלנו או Production-enabled אצלנו.
 
-‏**המשך:** `00A`, `09`.
+‏**המשך:** `00A`, `00D`, `09`.
 
 ## ‏`Survivability`
 
@@ -331,7 +331,7 @@ CANCEL_REQUESTED
 != TERMINAL_NON_EXECUTABLE
 ```
 
-‏**המשך:** `08`, `10H`.
+‏**המשך:** `00A`, `08`, `10H`.
 
 ## ‏`UNKNOWN`
 
@@ -492,10 +492,11 @@ CONNECTED != READY
 
 ## ‏00C.3 Cross-Reference rule
 
-‏כאשר Chapter משתמש לראשונה במונח שקשה להבין בלי prerequisite, ה־final cleanup צריך להפנות אל אחד משלושת סוגי המקור:
+‏כאשר Chapter משתמש לראשונה במונח שקשה להבין בלי prerequisite, מפנים אל אחד מארבעת סוגי המקור:
 
 ```text
 definition / vocabulary → 00A or 00C
+prerequisite / ownership → 00D
 family semantics        → Parts 2–7
 lifecycle / safety      → Parts 8–9
 engine decision         → Parts 10A–10I
@@ -505,12 +506,25 @@ engine decision         → Parts 10A–10I
 
 ---
 
-## ‏00C.4 Checkpoint
+## ‏00C.4 היררכיית מקור האמת
 
-‏הפרק סוגר את:
+‏ה־Glossary נועד ל־quick lookup ולהסבר beginner-first. הוא אינו יוצר הגדרה מקבילה כאשר כבר קיים contract קנוני.
 
 ```text
-AO-GAP-P1-23 — Canonical Advanced Orders Glossary
+00A
+→ canonical taxonomy / clocks / price boundary / cancel / partial-fill vocabulary
+
+00C
+→ short beginner-first explanation
+
+family chapters
+→ family-specific semantics and trade-offs
+
+08–09
+→ lifecycle / failure / capability contracts
+
+10A–10I
+→ decision / engine / practitioner application
 ```
 
-‏והוא מניח vocabulary reference אחיד ל־`AO-GAP-P1-24 — Prerequisites / Cross-References`, שייסגר כאשר cross-references יוטמעו באופן עקבי בפרקי המקור.
+‏כאשר אין consequence ייחודי למשפחה מסוימת, מפנים להגדרה הקנונית במקום להגדיר מחדש את אותו מושג.
