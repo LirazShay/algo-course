@@ -1,8 +1,10 @@
 # ‏חלק 8 — Cancel/Replace ו־Execution State Machine: להפוך פקודות למערכת אמינה
 
-## ‏8.1 מכאן והלאה הבעיה המרכזית אינה `Order Type` — אלא אמת מערכתית
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, הפרק הזה מפריד בין ארבעה צירים שאסור לדחוס ל־enum אחד: `Order Lifecycle`, ‏`Epistemic Uncertainty`, ‏`System Operating Mode` ו־`Position Truth`. בנוסף, `Modify` הוא שם כללי מדי: הקורס משתמש ב־`MODIFY_IN_PLACE`, ‏`CANCEL_THEN_NEW` ו־`OVERLAPPED_REPLACEMENT` כאשר צריך לתאר מנגנונים שונים.
 
-‏אפשר לבחור `Marketable Limit`, ‏`IOC`, ‏`Pegged`, ‏`Adaptive` או `Bracket` בצורה מושלמת, ועדיין להפסיד בגלל מנוע שחושב ש־Order בוטלה כאשר היא עדיין יכולה להתבצע.
+## ‏8.1 מכאן והלאה הבעיה המרכזית אינה שם הפקודה — אלא אמת מערכתית
+
+‏אפשר לבחור `Marketable Limit`, ‏`IOC`, ‏`Pegged`, ‏`Adaptive` או `Bracket` בצורה מושלמת, ועדיין להיכשל בגלל מנוע שחושב ש־Order בוטלה כאשר היא עדיין יכולה להתבצע.
 
 ‏לכן מערכת Production צריכה לענות בכל רגע:
 
@@ -12,7 +14,7 @@ What commands did we send?
 What did broker acknowledge?
 What actually executed?
 What is still potentially executable?
-What is our real position now?
+What is our reconciled position now?
 ```
 
 ‏זה הלב של Execution State Machine.
@@ -36,9 +38,9 @@ EXECUTION / POSITION TRUTH
 
 ‏`Broker-Observed Truth` היא ה־state האחרון שה־Broker דיווח.
 
-‏`Execution Truth` היא מה שבוצע בפועל — וממנה נגזרת Position.
+‏`Execution Truth` היא מה שבוצע בפועל. ממנה נבנה `execution_ledger_position`, שאותה בודקים מול `broker_reported_position` עד שמתקבלת `reconciled_position`.
 
-‏הטעות המסוכנת היא להחליף אחת בשנייה.
+> ‏`ENGINE RULE` — Decision חדשה שמגדילה Risk אינה נשענת על requested quantity או על local ledger לבדם כאשר קיים mismatch; היא נשענת על `reconciled_position`.
 
 ---
 
@@ -68,34 +70,81 @@ placeOrder(existingOrderId, modifiedOrder)
 
 ‏אינה עובדה שה־Modify נכנס לתוקף.
 
-‏לכן כל command יוצרת `REQUESTED` state עד evidence מתאים.
+‏לכן כל command יוצרת מצב `REQUESTED` עד evidence מתאים.
 
 ---
 
-## ‏8.4 מודל State בסיסי ל־Order יחידה
+## ‏8.4 שלושה צירי State שונים — לא State Machine אחת ענקית
+
+### ‏`Order Lifecycle`
 
 ```text
 LOCAL_CREATED
-  ↓
 SUBMIT_REQUESTED
-  ↓
-SUBMITTED / PRESUBMITTED / HELD
-  ├── PARTIALLY_FILLED
-  ├── MODIFY_REQUESTED
-  ├── CANCEL_REQUESTED
-  ├── FILLED
-  ├── CANCELLED
-  ├── REJECTED
-  └── INACTIVE / UNKNOWN
+HELD / PRESUBMITTED / SUBMITTED / WORKING
+PARTIALLY_FILLED
+MODIFY_REQUESTED
+CANCEL_REQUESTED
+FILLED
+CANCELLED
+REJECTED
+INACTIVE
 ```
+
+### ‏`Epistemic Uncertainty`
+
+```text
+KNOWN
+SUBMIT_UNKNOWN
+MODIFY_UNKNOWN
+CANCEL_UNKNOWN
+STATE_INCONSISTENT
+```
+
+### ‏`System Operating Mode`
+
+```text
+BOOTING
+RECOVERING
+READY
+ENTRY_DISABLED
+EXIT_ONLY
+DEGRADED
+EMERGENCY
+FROZEN
+```
+
+> ‏`ENGINE RULE` — `UNKNOWN`, ‏`RECOVERING` ו־`FROZEN` אינם peers. ‏`UNKNOWN` מתאר מה איננו יודעים על Order; ‏`RECOVERING` מתאר מה המערכת עושה; ‏`FROZEN` הוא control/safety mode.
 
 ‏לא כל Broker status חייב להפוך אחד־לאחד ל־state פנימי. המטרה היא לשמור semantics שאנחנו יכולים להגן עליהן.
 
 ---
 
-## ‏8.5 `Terminal` אינה מילה נרדפת ל־"אני גמרתי לחשוב על Order"
+## ‏8.5 `Working`, ‏`Live`, ‏`Active` ו־`Executable` אינם מילים נרדפות
 
-‏גם אחרי status שנראה terminal, המנוע יכול עדיין לקבל מידע שדורש reconciliation — למשל Execution שטרם עובד אצלנו או תיקון Execution.
+‏בפרוזה קל להשתמש בהן כאילו הן זהות, אבל במנוע עדיף להיות מדויק:
+
+```text
+WORKING
+= broker reports the order as currently working/held in a relevant lifecycle state
+
+POTENTIALLY_EXECUTABLE
+= based on available evidence, the order may still produce execution
+
+ACTIVE_PROTECTION
+= protection relationship is currently eligible/armed according to verified semantics
+
+LIVE
+= informal prose only; avoid as a technical state unless explicitly defined
+```
+
+‏Order שנמצאת ב־`CANCEL_REQUESTED` יכולה כבר לא להיראות "working" במובן מסוים ועדיין להיות `POTENTIALLY_EXECUTABLE`.
+
+---
+
+## ‏8.6 `Terminal` אינה מילה נרדפת ל־"אני גמרתי לחשוב על Order"
+
+‏גם אחרי status שנראה terminal, המנוע יכול לקבל מידע שדורש reconciliation — למשל Execution שטרם עובד אצלנו או תיקון Execution.
 
 ‏לכן אנחנו מפרידים:
 
@@ -109,7 +158,7 @@ position_reconciliation_complete
 
 ---
 
-## ‏8.6 מזהים: Order אחת צריכה יותר ממספר אחד
+## ‏8.7 מזהים: Order אחת צריכה יותר ממספר אחד
 
 ‏ב־IBKR רלוונטיים לפחות:
 
@@ -128,9 +177,9 @@ execId per execution
 
 ---
 
-## ‏8.7 `orderId` הוא מזהה API — לא מזהה עסקי גלובלי
+## ‏8.8 `orderId` הוא מזהה API — לא מזהה עסקי גלובלי
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת ש־`orderId` הוא מזהה של ה־API client, וש־Order חדשה עם ID שכבר שימש אינה חוקית; reuse של אותו `orderId` נועד למעשה ל־modify של Order פתוחה.
 
@@ -138,9 +187,9 @@ execId per execution
 
 ---
 
-## ‏8.8 `nextValidId` הוא חלק מ־connection readiness
+## ‏8.9 `nextValidId` הוא חלק מ־connection readiness
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏ב־TWS API, ה־handshake מחזיר בין היתר את ה־next valid order identifier. IBKR מזהירה שבקשות שנשלחות לפני שהחיבור הושלם ו־`nextValidID` התקבל עלולות להיזרק.
 
@@ -149,22 +198,14 @@ execId per execution
 ```text
 socket connected
 !=
-execution engine ready to send orders
+execution engine READY
 ```
 
-‏נרצה state כגון:
-
-```text
-DISCONNECTED
-CONNECTING
-HANDSHAKING
-RECONCILING
-READY
-```
+‏`CONNECTING`, ‏`HANDSHAKING`, ‏`RECOVERING` ו־`READY` הם System Operating Modes, לא Order lifecycle states.
 
 ---
 
-## ‏8.9 `permId` הוא עוגן חשוב ל־reconciliation
+## ‏8.10 `permId` הוא עוגן חשוב ל־reconciliation
 
 ‏IBKR מתעדת את `permId` כ־Host order identifier; הוא שימושי במיוחד כאשר אותו Order מקבלת API `orderId` שונה אחרי binding/session אחר.
 
@@ -180,9 +221,9 @@ internal_order_id
 
 ---
 
-## ‏8.10 `execId` הוא מזהה Fill — וכל Partial Fill היא אירוע עצמאי
+## ‏8.11 `execId` הוא מזהה Fill — וכל Partial Fill היא אירוע עצמאי
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת שלכל partial fill יש `execId` נפרד. היא גם מתעדת Execution corrections באמצעות `execId` שונה בחלק שאחרי הנקודה האחרונה.
 
@@ -196,7 +237,7 @@ orderId + price + qty
 
 ---
 
-## ‏8.11 `orderRef` — מקום טוב ל־correlation, לא ל־state היחיד
+## ‏8.12 `orderRef` — מקום טוב ל־correlation, לא ל־state היחיד
 
 ‏IBKR מאפשרת `orderRef` מותאם משתמש שנשאר מקושר ל־Order.
 
@@ -213,9 +254,9 @@ internal_order_id
 
 ---
 
-## ‏8.12 ארבעה streams שצריך לעבד יחד
+## ‏8.13 ארבעה streams שצריך לעבד יחד
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR ממליצה במערכת Order robust לעקוב לפחות אחרי:
 
@@ -234,13 +275,13 @@ execDetails
 
 ‏`execDetails` מתאר executions בפועל.
 
-‏`error` יכולה לשאת rejection, warning או operational failure שחייבים לשלב ב־state.
+‏`error` יכולה לשאת rejection, warning או operational failure שחייבים להשתלב ב־state.
 
 ---
 
-## ‏8.13 `orderStatus` יכולה להגיע כפול — וזה תקין
+## ‏8.14 `orderStatus` יכולה להגיע כפול — וזה תקין
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏בחומר ההדרכה של IBKR מצוין שב־`orderStatus` יכולים להיות duplicate callbacks ושעל API client להיות מוכן לסנן אותם.
 
@@ -255,7 +296,7 @@ same status twice
 
 ---
 
-## ‏8.14 אסור לבנות State Machine שתלויה במספר callbacks קבוע
+## ‏8.15 אסור לבנות State Machine שתלויה במספר callbacks קבוע
 
 ‏מנוע לא יכתוב:
 
@@ -274,25 +315,25 @@ then Filled
 
 ---
 
-## ‏8.15 Fills הם מקור האמת ל־Position
+## ‏8.16 Position Truth: שלושה מושגים שונים
 
 ‏Order status יכולה לומר cumulative filled, אבל Position ledger שלנו צריך להיבנות מאירועי Execution מאומתים ולהיבדק מול Broker position state.
 
-‏כל Execution מעדכנת:
+‏נשתמש במונחים:
 
 ```text
-filled_qty
-position_qty
-average_entry_or_exit_price
-remaining_intent_qty
-protection_qty
+execution_ledger_position
+broker_reported_position
+reconciled_position
 ```
 
-‏ה־requested quantity אינה Position.
+‏כל Execution מעדכנת את ה־ledger המקומי. Broker position היא evidence חיצונית. ‏`reconciled_position` היא המסקנה לאחר יישוב ביניהם.
+
+> ‏`ENGINE RULE` — requested quantity אינה Position, ו־local ledger שאינו reconciled לאחר external/manual activity או recovery אינו מספיק כדי לאשר Risk חדש.
 
 ---
 
-## ‏8.16 Invariant כמות בסיסי
+## ‏8.17 Invariant כמות בסיסי
 
 ‏ל־Order רגילה:
 
@@ -310,9 +351,35 @@ filled_qty + remaining_qty == total_quantity
 
 ---
 
-## ‏8.17 Modify ב־IBKR הוא `placeOrder` עם אותו `orderId`
+## ‏8.18 שלושה מנגנונים שונים שהמילה `Modify` מסתירה
 
-> ‏אימות אחרון: `2026-10-27`.
+‏ה־taxonomy הקנונית היא:
+
+```text
+MODIFY_IN_PLACE
+CANCEL_THEN_NEW
+OVERLAPPED_REPLACEMENT
+```
+
+### ‏`MODIFY_IN_PLACE`
+
+‏בקשת modification לאותה Broker Order כאשר ה־API/path מאפשרים זאת.
+
+### ‏`CANCEL_THEN_NEW`
+
+‏ביטול Order הישנה, המתנה ל־evidence בטוח, חישוב remaining intent חדש ורק אז Submit חדשה.
+
+### ‏`OVERLAPPED_REPLACEMENT`
+
+‏Order חדשה יכולה להישלח בזמן שהישנה עדיין potentially executable, **רק** תחת exposure budget מפורש ובדיקות ייעודיות.
+
+> ‏`ENGINE RULE` — שלושת המנגנונים אינם interchangeable implementation details. הם יוצרים exposure, queue ו־race semantics שונות.
+
+---
+
+## ‏8.19 Modify ב־IBKR הוא `placeOrder` עם אותו `orderId`
+
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת Modify של API Order באמצעות קריאה נוספת ל־`placeOrder` עם אותו `orderId` של Order הפתוחה ועם השדות המעודכנים.
 
@@ -322,34 +389,33 @@ filled_qty + remaining_qty == total_quantity
 same orderId
 +
 changed allowed fields
-=> modification request
+=> MODIFY_IN_PLACE request
 ```
 
 ‏ולא Order חדשה מבחינת ה־API intent.
 
 ---
 
-## ‏8.18 IBKR ממליצה לצמצם In-Place Modify לשדות פשוטים
+## ‏8.20 IBKR ממליצה לצמצם In-Place Modify לשדות פשוטים
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏בתיעוד הנוכחי IBKR אומרת שבדרך כלל לא מומלץ לשנות שדות מעבר ל־price, size ו־`TIF` במעבר `DAY -> IOC`; לשינויים אחרים עדיף לעיתים לבטל וליצור Order חדשה.
 
 ‏לכן adapter שלנו יסווג:
 
 ```text
-SAFE_MODIFY_CANDIDATE
-vs
-CANCEL_AND_NEW_CANDIDATE
+MODIFY_IN_PLACE eligible?
+CANCEL_THEN_NEW required?
 ```
 
 ‏ולא ינסה להפוך כל Order family לצורה אחרת באמצעות אותו ID.
 
 ---
 
-## ‏8.19 Modify יכולה להידחות מפני שה־Order עדיין Processing
+## ‏8.21 Modify יכולה להידחות מפני שה־Order עדיין Processing
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏Error `2102` של IBKR מתאר מצב שבו מנסים לבצע Modify לפני שה־Order הקודמת סיימה processing.
 
@@ -365,7 +431,7 @@ MODIFY_REQUESTED
 
 ---
 
-## ‏8.20 Modify אינה פעולה מקומית על Object
+## ‏8.22 Modify אינה פעולה מקומית על Object
 
 ‏אם שינינו:
 
@@ -389,9 +455,9 @@ last_acknowledged_price
 
 ---
 
-## ‏8.21 Queue Priority היא חלק מהעלות של Modify
+## ‏8.23 Queue Priority היא consequence תלוית Venue/Route — לא guarantee אוניברסלי
 
-‏ב־Passive Order, שינוי מחיר/כמות או cancel/replacement יכול להשפיע על queue priority לפי Venue והפעולה.
+‏ב־Passive Order, שינוי מחיר/כמות או cancel/replacement **יכול** להשפיע על queue priority לפי Venue, route והפעולה הספציפית.
 
 ‏לכן metric של reprice אינה רק:
 
@@ -399,21 +465,21 @@ last_acknowledged_price
 new price better/worse
 ```
 
-‏אלא גם:
+‏אלא גם, כאשר ניתן למדוד:
 
 ```text
-queue_age_lost
+queue_age_lost_estimate
 new_level_join_time
 fill_probability_change
 ```
 
-‏לפעמים tick טוב יותר במחיר אינו מצדיק איבוד queue position שכבר הייתה משמעותית.
+‏לפעמים tick טוב יותר במחיר אינו מצדיק איבוד queue context שכבר היה משמעותי, אבל אין לקודד כלל אוניברסלי בלי route-specific evidence.
 
 ---
 
-## ‏8.22 Binding של Order יכולה בעצמה לפגוע ב־Queue
+## ‏8.24 Binding של Order יכולה בעצמה לפגוע ב־Queue
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת ש־binding של Order קיימת דרך API כרוך כיום ב־cancel/resubmit של Order העובדת ב־Exchange ועלול להשפיע על מקומה בתור.
 
@@ -423,9 +489,9 @@ fill_probability_change
 
 ---
 
-## ‏8.23 `reqOpenOrders` ו־`reqAllOpenOrders` אינם אותו דבר
+## ‏8.25 `reqOpenOrders` ו־`reqAllOpenOrders` אינם אותו דבר
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏לפי IBKR, `reqOpenOrders` יכולה bind Orders פתוחות שלא קיבלו API order ID בהקשר המתאים; `reqAutoOpenOrders` יכולה bind Orders עתידיות; ואילו `reqAllOpenOrders` אינה מבצעת binding.
 
@@ -433,21 +499,23 @@ fill_probability_change
 
 ---
 
-## ‏8.24 Cancel הוא Request — לא Delete
+## ‏8.26 Cancel הוא Request — לא Delete
 
 ‏כאשר המנוע מחליט שה־Signal מת:
 
 ```text
-state = CANCEL_REQUESTED
+order_lifecycle = CANCEL_REQUESTED
 ```
 
-‏ה־Order נשארת `potentially executable` עד שיש evidence שהיא כבר לא יכולה לבצע או עד reconciliation שמוכיח זאת.
+‏אם adapter יודע להבחין ב־broker-side pending state אמיתי, ניתן לשמור גם `CANCEL_PENDING` כ־observation; אין להמציא אותו אם הממשק אינו מספק evidence מתאים.
 
-‏זה invariant בסיסי לכל המנוע.
+‏ה־Order נשארת `POTENTIALLY_EXECUTABLE` עד שיש evidence terminal מתאים או reconciliation שמוכיח שאינה יכולה עוד לבצע.
+
+> ‏`ENGINE INVARIANT` — **Any order without terminal broker evidence remains potentially executable.**
 
 ---
 
-## ‏8.25 Late Fill אחרי Cancel Request אינו Contradiction
+## ‏8.27 Late Fill אחרי Cancel Request אינו Contradiction
 
 ‏תרחיש:
 
@@ -467,11 +535,11 @@ if cancel_requested:
     ignore execution
 ```
 
-‏אלא להפך: Fill בתקופת cancel-in-flight היא אירוע שחייב לעדכן Position מיד.
+‏אלא להפך: Fill בתקופת cancel-in-flight היא אירוע שחייב לעדכן `execution_ledger_position` מיד ולהוביל ל־reconciliation.
 
 ---
 
-## ‏8.26 שגיאת Cancel אינה הוכחה שה־Order עדיין חיה
+## ‏8.28 שגיאת Cancel אינה הוכחה שה־Order עדיין חיה — וגם לא שהיא מתה
 
 ‏IBKR מתעדת errors כגון:
 
@@ -482,11 +550,11 @@ if cancel_requested:
 
 ‏תגובה נכונה אינה לנחש את ה־state מתוך error code בלבד.
 
-‏נבקש/נבנה reconciliation של open orders + executions + position ונחליט לפי Broker truth.
+‏נבקש/נבנה reconciliation של open orders + executions + position ונחליט לפי Broker evidence.
 
 ---
 
-## ‏8.27 `Cancel/Replace` בטוח הוא Two-Phase Protocol
+## ‏8.29 `CANCEL_THEN_NEW` בטוח הוא Two-Phase Protocol
 
 ‏כאשר אנחנו רוצים לעבור מ־Order A ל־Order B:
 
@@ -501,11 +569,11 @@ compute true remaining intent
 submit B only for safe remaining quantity
 ```
 
-‏זה איטי יותר מ־"cancel ואז מיד new", אבל מונע overfill.
+‏זה איטי יותר מ־"cancel ואז מיד new", אבל מונע overfill כברירת מחדל.
 
 ---
 
-## ‏8.28 למה `Cancel then immediately New` מסוכן
+## ‏8.30 למה `Cancel then immediately New` מסוכן
 
 ‏נניח:
 
@@ -528,23 +596,39 @@ B can fill = 100
 
 ---
 
-## ‏8.29 Fast Reprice דורשת Policy מפורשת לסיכון Overlap
+## ‏8.31 `OVERLAPPED_REPLACEMENT` היא Risk Mode מפורש
 
-‏לפעמים waiting for terminal cancel יכול להיות יקר לסיגנל של מאות מילישניות.
+‏לפעמים waiting for terminal cancel יכול להיות יקר לסיגנל קצר.
 
 ‏אם נרצה deliberate overlap כדי לחסוך latency, זה צריך להיות mode מוגדר עם bound:
 
 ```text
-max_possible_fill_across_old_and_new <= position_limit
+max_possible_fill_across_old_and_new <= configured exposure budget
 ```
 
 ‏לא bug שנוצר בגלל impatience.
 
-‏זו החלטת Risk/Execution מתקדמת שתיכנס רק אחרי simulation ו־acceptance tests.
+> ‏`RESEARCH HYPOTHESIS` — overlap עשוי לחסוך latency במצבים מסוימים, אבל הוא אינו Production default עד simulation, acceptance tests ו־exposure accounting מלאים.
 
 ---
 
-## ‏8.30 Revision Number מונע Modify ישן מלנצח חדש
+## ‏8.32 Reprice: להפריד Broker-managed מ־Client-initiated
+
+‏`Reprice` אינה פעולה אחת.
+
+```text
+BROKER_MANAGED_REPRICE
+= Relative/Pegged/Algo משנה effective behavior לפי semantics שלה
+
+CLIENT_INITIATED_REPRICE
+= המנוע שולח MODIFY_IN_PLACE או replacement חדש
+```
+
+‏בשני המקרים המחיר יכול להשתנות; ownership, races, queue consequences ו־telemetry שונים.
+
+---
+
+## ‏8.33 Revision Number מונע Modify ישן מלנצח חדש
 
 ‏לכל Order פנימית נשמור:
 
@@ -560,7 +644,7 @@ revision = 0,1,2,...
 
 ---
 
-## ‏8.31 `Desired State` מול `Observed State`
+## ‏8.34 `Desired State` מול `Observed State`
 
 ‏מודל חשוב:
 
@@ -582,7 +666,7 @@ observed:
 
 ---
 
-## ‏8.32 Command Ledger — כל side effect מקבל זהות
+## ‏8.35 Command Ledger — כל side effect מקבל זהות
 
 ‏נשמור לכל command:
 
@@ -606,7 +690,7 @@ reason
 
 ---
 
-## ‏8.33 Idempotency מתחילה לפני Broker API
+## ‏8.36 Idempotency מתחילה לפני Broker API
 
 ‏נניח שה־Scanner שולח אותו Signal פעמיים בגלל retry.
 
@@ -627,7 +711,7 @@ signal retry
 
 ---
 
-## ‏8.34 `At-Least-Once` Thinking עדיפה על הנחת Exactly-Once
+## ‏8.37 `At-Least-Once` Thinking עדיפה על הנחת Exactly-Once
 
 ‏במערכת מבוזרת קל לקבל:
 
@@ -651,7 +735,7 @@ facts must be reconciled
 
 ---
 
-## ‏8.35 Ambiguous Submit הוא אחד המצבים המסוכנים ביותר
+## ‏8.38 Ambiguous Submit היא `Epistemic Uncertainty`
 
 ‏תרחיש:
 
@@ -665,17 +749,17 @@ no callback seen
 
 ‏ייתכן שהראשונה כבר חיה אצל IBKR.
 
-‏נכנסים ל־:
+‏לכן נשמור למשל:
 
 ```text
-SUBMIT_UNKNOWN
+order_uncertainty = SUBMIT_UNKNOWN
 ```
 
-‏ומבצעים reconciliation לפני יצירת exposure נוסף.
+‏ונבצע reconciliation לפני יצירת exposure נוסף.
 
 ---
 
-## ‏8.36 Ambiguous Cancel גם דורשת State משלה
+## ‏8.39 Ambiguous Cancel גם היא `Epistemic Uncertainty`
 
 ‏אם:
 
@@ -686,17 +770,15 @@ connection breaks
 
 ‏אין לנו מידע אם Order עדיין חיה.
 
-‏State:
-
 ```text
-CANCEL_UNKNOWN
+order_uncertainty = CANCEL_UNKNOWN
 ```
 
-‏דורשת open-orders/executions/positions reconciliation לפני fallback action שעלולה להתנגש ב־Order הישנה.
+‏היא עדיין `POTENTIALLY_EXECUTABLE` עד evidence אחר, ודורשת reconciliation לפני fallback action שעלולה להתנגש ב־Order הישנה.
 
 ---
 
-## ‏8.37 Reconnect אינו `onConnected -> resumeTrading()`
+## ‏8.40 Reconnect אינו `onConnected -> resumeTrading()`
 
 ‏אחרי reconnect המנוע המקומי הוא potentially stale.
 
@@ -707,6 +789,8 @@ CONNECTED
 ↓
 HANDSHAKE_READY
 ↓
+SystemMode = RECOVERING
+↓
 FREEZE_NEW_RISK
 ↓
 FETCH / RECEIVE BROKER STATE
@@ -715,21 +799,21 @@ RECONCILE
 ↓
 VALIDATE INVARIANTS
 ↓
-READY
+SystemMode = READY
 ```
 
 ‏רק אז חוזרים לקבל Entries חדשות.
 
 ---
 
-## ‏8.38 Broker Truth אחרי Reconnect
+## ‏8.41 Broker Truth אחרי Reconnect
 
 ‏נאסוף לפחות:
 
 ```text
 open orders
 recent executions
-positions
+broker_reported_position
 account/order ownership metadata
 ```
 
@@ -739,9 +823,9 @@ account/order ownership metadata
 
 ---
 
-## ‏8.39 `reqExecutions` / Execution History היא חלק מה־Recovery
+## ‏8.42 `reqExecutions` / Execution History היא חלק מה־Recovery
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מאפשרת לבקש Executions לפי `ExecutionFilter`, כולל זמן, account, symbol, side ועוד; בתיעוד הנוכחי קיימים גם שדות לבקשת ימים/תאריכים אחרונים בטווח הנתמך.
 
@@ -749,7 +833,7 @@ account/order ownership metadata
 
 ---
 
-## ‏8.40 Unknown Broker Order היא Incident, לא משהו שמוחקים
+## ‏8.43 Unknown Broker Order היא Incident שדורשת Classification לפני Action
 
 ‏אם Broker מחזירה Order חיה שאין לנו ב־local ledger:
 
@@ -767,11 +851,11 @@ bracket child?
 system-generated order?
 ```
 
-‏Cancel אוטומטי עיוור יכול להסיר protection חשובה.
+> ‏`ENGINE RULE` — classify ownership/protection role first; only then decide whether cancellation is safe. ‏Cancel אוטומטי עיוור יכול להסיר protection חשובה.
 
 ---
 
-## ‏8.41 Missing Broker Order גם היא Incident
+## ‏8.44 Missing Broker Order גם היא Incident
 
 ‏אם local state אומר:
 
@@ -795,7 +879,7 @@ not visible in the queried scope
 
 ---
 
-## ‏8.42 Manual Orders ו־API Orders חייבות Ownership Classification
+## ‏8.45 Manual Orders ו־API Orders חייבות Ownership Classification
 
 ‏מערכת יכולה לפגוש Order שנוצרה ב־TWS ידנית או מ־API client אחר.
 
@@ -807,9 +891,13 @@ ownership = OUR_ENGINE | MANUAL | OTHER_CLIENT | UNKNOWN
 
 ‏ורק `OUR_ENGINE` מקבלת אוטומציה מלאה כברירת מחדל.
 
+‏Manual intervention שמשנה Order או Position משנה **ownership assumptions**; היא אינה רק הערת audit log.
+
 ---
 
-## ‏8.43 `clientId=0` נותן כוח — ולכן דורש זהירות
+## ‏8.46 `clientId=0` נותן כוח — ולכן דורש זהירות
+
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת ש־binding של manual/TWS Orders לצורך modify/cancel נעשה דרך client ID 0, וש־`reqAutoOpenOrders` בהקשר הזה יכולה bind Orders עתידיות.
 
@@ -819,7 +907,7 @@ ownership = OUR_ENGINE | MANUAL | OTHER_CLIENT | UNKNOWN
 
 ---
 
-## ‏8.44 Multiple Clients: `permId` חשוב יותר מ־orderId בלבד
+## ‏8.47 Multiple Clients: `permId` חשוב יותר מ־orderId בלבד
 
 ‏Order יכולה לקבל bindings שונים בהקשרי TWS users/clients, בעוד `permId` מסייע לזהות אותה ברמת Host.
 
@@ -833,7 +921,7 @@ orderId alone
 
 ---
 
-## ‏8.45 State צריך להיות Persisted לפני Side Effects קריטיים
+## ‏8.48 State צריך להיות Persisted לפני Side Effects קריטיים
 
 ‏לפני submit/modify/cancel נשמור את ה־intent/command כך שאחרי crash נוכל לדעת שהיה side effect מתוכנן או נשלח.
 
@@ -850,7 +938,7 @@ persist observed result asynchronously
 
 ---
 
-## ‏8.46 Event Log עדיף על Snapshot יחיד בלבד
+## ‏8.49 Event Log עדיף על Snapshot יחיד בלבד
 
 ‏Snapshot אומר:
 
@@ -878,7 +966,7 @@ cancel confirmed
 
 ---
 
-## ‏8.47 Duplicate Event לא צריך ליצור Duplicate Side Effect
+## ‏8.50 Duplicate Event לא צריך ליצור Duplicate Side Effect
 
 ‏כל event processor צריך לענות:
 
@@ -897,17 +985,17 @@ execId already applied
 
 ---
 
-## ‏8.48 Out-of-Order Thinking
+## ‏8.51 Out-of-Order Thinking
 
 ‏גם בלי להניח שה־Broker מבטיחה סדר שרירותי מסוים בין כל סוגי callbacks, המנוע צריך להיות מסוגל לעבד מידע אסינכרוני שלא הגיע בדיוק ברצף שה־UI היה מציג.
 
-‏לדוגמה, אם Fill evidence מגיע לפני שעיבדנו snapshot חדש של `remaining`, אין סיבה להמתין כדי לעדכן Position.
+‏לדוגמה, אם Fill evidence מגיע לפני שעיבדנו snapshot חדש של `remaining`, אין סיבה להמתין כדי לעדכן `execution_ledger_position`.
 
 ‏ה־reducers שלנו צריכים לעבוד לפי identities, cumulative facts ו־invariants.
 
 ---
 
-## ‏8.49 State Transition חייבת להיות Monotonic מבחינת Facts
+## ‏8.52 State Transition חייבת להיות Monotonic מבחינת Facts
 
 ‏Desired state יכולה להשתנות קדימה ואחורה, אך Fact שכבר התרחש לא נעלם:
 
@@ -922,14 +1010,14 @@ execution happened
 
 ---
 
-## ‏8.50 `Filled` Order יכולה עדיין לדרוש פעולות מערכת
+## ‏8.53 `Filled` Order יכולה עדיין לדרוש פעולות מערכת
 
 ‏אחרי Entry מלאה ייתכן שצריך:
 
 ```text
 activate/verify protection
 cancel competing entries
-update position
+update reconciled position
 start exit policy
 record execution costs
 ```
@@ -946,7 +1034,7 @@ TRADE_LIFECYCLE_COMPLETE
 
 ---
 
-## ‏8.51 Position היא Aggregation מעל Executions
+## ‏8.54 Position היא Aggregation מעל Executions
 
 ‏Order State אינה Position State.
 
@@ -960,11 +1048,11 @@ profit exit
 protective stop
 ```
 
-‏לכן Position service צריכה aggregate Executions ולבדוק מול Broker Position — לא לקרוא `filled` מ־Order אחת ולהכריז על exposure.
+‏לכן Position service צריכה aggregate Executions ל־`execution_ledger_position`, להשוות ל־`broker_reported_position`, ולפרסם `reconciled_position` — לא לקרוא `filled` מ־Order אחת ולהכריז על exposure.
 
 ---
 
-## ‏8.52 Quantity Budget מונע Overfill בין Orders מתחרות
+## ‏8.55 Quantity Budget מונע Overfill בין Orders מתחרות
 
 ‏לכל Trade Intent נגדיר:
 
@@ -983,20 +1071,20 @@ confirmed_filled_qty
 <= allowed_max_qty
 ```
 
-‏אלא אם policy מפורשת מרשה overlap מוגבל.
+‏אלא אם `OVERLAPPED_REPLACEMENT` מפורשת מרשה overlap מוגבל בתוך exposure budget ידוע.
 
 ---
 
-## ‏8.53 `Potentially Executable` היא קטגוריה קריטית
+## ‏8.56 `Potentially Executable` היא קטגוריה קריטית
 
 ‏נכניס אליה לפחות:
 
 ```text
-Submitted
+Submitted / Working
 PreSubmitted when eligible to progress
 PartiallyFilled remainder
-ModifyPending old/new uncertainty
-CancelPending
+Modify in flight when old/new effective revision is uncertain
+CancelRequested / broker-side CancelPending when applicable
 SubmitUnknown after disconnect
 ```
 
@@ -1004,7 +1092,7 @@ SubmitUnknown after disconnect
 
 ---
 
-## ‏8.54 Bracket יושבת מעל אותה State Machine — לא מערכת נפרדת
+## ‏8.57 Bracket יושבת מעל אותה State Machine — לא מערכת נפרדת
 
 ‏ה־parent, TP ו־Stop משתמשות באותם primitives:
 
@@ -1023,9 +1111,9 @@ ownership
 
 ---
 
-## ‏8.55 Broker Algos גם הן Orders מבחינת lifecycle
+## ‏8.58 Broker Algos גם הן Orders מבחינת lifecycle
 
-‏`Adaptive`, ‏`MidPrice` ו־Pegged broker-managed orders אינן פטורות מה־state machine.
+‏`Adaptive`, ‏`MidPrice` ו־Pegged broker-managed behaviors אינן פטורות מה־state machine.
 
 ‏כאשר Signal מת:
 
@@ -1033,13 +1121,13 @@ ownership
 cancel requested
 ```
 
-‏וה־Algo נשארת potentially executable עד confirmation/reconciliation.
+‏וה־Order נשארת potentially executable עד confirmation/reconciliation.
 
-‏Delegating `HOW` ל־Broker לא מעביר אליו ownership של `WHETHER`.
+> ‏`ENGINE RULE` — Broker may optimize `HOW`; the client retains authority over `WHETHER` the intent is still valid.
 
 ---
 
-## ‏8.56 Market Data Health ו־Order State חייבים להתחבר
+## ‏8.59 Market Data Health ו־Order State חייבים להתחבר
 
 ‏אם Data שלנו stale אבל Order broker-resident ממשיכה לעבוד, engine לא יכולה להעריך Signal validity.
 
@@ -1048,7 +1136,7 @@ cancel requested
 ```text
 market_data_health = DEGRADED
 => block new entries
-=> cancel vulnerable client-managed entries
+=> cancel vulnerable entry intents according to policy
 => preserve/verify safety exits according to risk policy
 ```
 
@@ -1056,29 +1144,29 @@ market_data_health = DEGRADED
 
 ---
 
-## ‏8.57 Connectivity Error אינה בהכרח Order Error
+## ‏8.60 Connectivity Error אינה בהכרח Order Error
 
 ‏Network/API disconnect אומר שהיכולת שלנו **לראות ולשלוט** ירדה.
 
 ‏הוא אינו אומר שכל broker-resident Orders נעלמו.
 
-‏לכן `DISCONNECTED` מגדיל uncertainty; הוא לא מאפס State.
+‏לכן `DISCONNECTED` מגדיל uncertainty; הוא לא מאפס Order lifecycle ולא מאפס Position.
 
 ---
 
-## ‏8.58 `maintainAndResubmitOrdersOnReconnect` היא Capability שדורשת Policy
+## ‏8.61 `maintainAndResubmitOrdersOnReconnect` היא Capability שדורשת Policy
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏ב־API settings הנוכחיים של IBKR קיים `maintainAndResubmitOrdersOnReconnect`, שמתואר כיכולת להגיש Orders שניסו להישלח בזמן ניתוק לאחר reconnect.
 
 ‏זו התנהגות שיכולה להיות נוחה, אבל בסיגנל קצר היא מסוכנת אם Order שהייתה נכונה בזמן הניתוק כבר stale בזמן החיבור מחדש.
 
-‏לכן לא מפעילים semantics כאלה בלי להבין כיצד הן משתלבות עם Signal TTL ו־generation guards שלנו.
+‏לכן לא מפעילים semantics כאלה בלי להבין כיצד הן משתלבות עם `signal_ttl`, ‏`application_order_ttl` ו־generation guards שלנו.
 
 ---
 
-## ‏8.59 Recovery Generation מונעת מתהליך ישן להמשיך לפעול
+## ‏8.62 Recovery Generation מונעת מתהליך ישן להמשיך לפעול
 
 ‏בכל startup/reconnect cycle נגדיר:
 
@@ -1092,9 +1180,9 @@ recovery_generation
 
 ---
 
-## ‏8.60 `READY` הוא State שצריך להרוויח
+## ‏8.63 `READY` הוא State שצריך להרוויח
 
-‏מנוע לא עובר ל־READY רק מפני שיש socket.
+‏מנוע לא עובר ל־`READY` רק מפני שיש socket.
 
 ‏לפחות:
 
@@ -1103,7 +1191,7 @@ connection handshake complete
 order-id allocator valid
 open orders reconciled
 recent executions reconciled
-positions reconciled
+reconciled_position available
 unknown orders classified
 critical invariants pass
 market data healthy enough
@@ -1111,9 +1199,11 @@ market data healthy enough
 
 ‏רק אז Entry חדשה מותרת.
 
+> ‏`ENGINE INVARIANT` — reconnect restores connectivity; reconciliation earns `READY`.
+
 ---
 
-## ‏8.61 Retry Policy צריכה להבדיל בין Failure Classes
+## ‏8.64 Retry Policy צריכה להבדיל בין Failure Classes
 
 ‏לא כל failure מקבל retry זהה.
 
@@ -1139,9 +1229,9 @@ retry immediately forever
 
 ---
 
-## ‏8.62 Error `134` מלמד את עקרון ה־Reconciliation
+## ‏8.65 Error `134` מלמד את עקרון ה־Reconciliation
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתארת `134 — Modify order failed` ומציינת שה־Order אולי כבר executed או cancelled ושיש לבקש open orders כדי לאמת current status.
 
@@ -1163,7 +1253,7 @@ unexpected response
 
 ---
 
-## ‏8.63 Order Efficiency ו־Message Churn הם Constraint תפעולי
+## ‏8.66 Order Efficiency ו־Message Churn הם Constraint תפעולי
 
 ‏IBKR מלמדת גם על Order Efficiency Ratio בהקשר של submissions/modifications/cancellations לעומת executions.
 
@@ -1179,7 +1269,7 @@ modify every quote tick
 
 ---
 
-## ‏8.64 Reprice Policy נכונה משתמשת ב־Hysteresis
+## ‏8.67 Client Reprice Policy נכונה משתמשת ב־Hysteresis
 
 ‏במקום:
 
@@ -1192,49 +1282,66 @@ if bid changed by 1 tick:
 
 ```text
 minimum_price_improvement
-minimum_time_since_last_modify
+minimum_time_since_last_client_reprice
 signal_still_valid
-expected_gain_from_reprice > queue_loss_cost
-revision not already in flight
+expected_gain_from_reprice > estimated queue/race cost
+no conflicting revision already in flight
 ```
 
 ‏כך נמנעת oscillation סביב quote noise.
 
+‏הסעיף הזה מתייחס ל־`CLIENT_INITIATED_REPRICE`; Broker-managed Pegged/Algo repricing נמדדת ומנוהלת לפי semantics שלה.
+
 ---
 
-## ‏8.65 State Machine מוצעת ל־Order יחידה
+## ‏8.68 State Model מוצע ל־Order יחידה — צירים נפרדים
+
+### ‏Lifecycle
 
 ```text
 CREATED
   ↓
 SUBMIT_REQUESTED
-  ├── SUBMIT_UNKNOWN
   ├── REJECTED
   └── WORKING
        ├── PARTIAL
        ├── MODIFY_REQUESTED
-       │    ├── MODIFY_UNKNOWN
        │    ├── MODIFY_REJECTED
        │    └── WORKING(new revision)
        ├── CANCEL_REQUESTED
-       │    ├── CANCEL_UNKNOWN
        │    ├── PARTIAL / FILLED
        │    └── CANCELLED
        └── FILLED
 ```
 
-‏ומעליה global modes:
+### ‏Uncertainty overlay
 
 ```text
-NORMAL
+KNOWN
+SUBMIT_UNKNOWN
+MODIFY_UNKNOWN
+CANCEL_UNKNOWN
+STATE_INCONSISTENT
+```
+
+### ‏System mode
+
+```text
+BOOTING
 RECOVERING
+READY
+ENTRY_DISABLED
+EXIT_ONLY
 DEGRADED
+EMERGENCY
 FROZEN
 ```
 
+‏כך `CANCEL_UNKNOWN` אינו "שלב אחרי Cancel" במובן העסקי בלבד; הוא אומר שהמערכת אינה יודעת אם ה־Cancel אפקטיבי.
+
 ---
 
-## ‏8.66 Events שאנחנו רוצים לנרמל בתוך המנוע
+## ‏8.69 Events שאנחנו רוצים לנרמל בתוך המנוע
 
 ‏Broker adapter יתרגם API-specific callbacks ל־events פנימיים כגון:
 
@@ -1258,7 +1365,7 @@ RECONCILIATION_COMPLETED
 
 ---
 
-## ‏8.67 Commands שאנחנו רוצים לנרמל
+## ‏8.70 Commands שאנחנו רוצים לנרמל
 
 ```text
 SUBMIT_ORDER
@@ -1274,44 +1381,45 @@ REQUEST_POSITIONS
 
 ---
 
-## ‏8.68 Invariants שחייבים לעבור אחרי כל Event
+## ‏8.71 Invariants שחייבים לעבור אחרי כל Event
 
 ```text
 filled quantity never applied twice
-position derives from executions, not requested orders
-no new entry while execution state is UNKNOWN/RECOVERING
+reconciled position derives from execution + broker evidence, not requested orders
+no new entry while relevant order state is epistemically UNKNOWN
+no new risk while SystemMode is RECOVERING or FROZEN
 no replacement assumes cancel is final before evidence
 potential entry exposure <= configured max
 potential exit exposure cannot silently reverse position
-all live orders have ownership classification
+all live/potentially-executable orders have ownership classification
 all bracket children map to valid trade/position state
 all command revisions are monotonic
 ```
 
-‏Invariant failure מעבירה את המנוע ל־`FROZEN/RECOVERING`, לא ל־"log warning and continue".
+‏Invariant failure מעבירה את המנוע ל־control path מתאים כגון `FROZEN` או `RECOVERING`; היא אינה רק `log warning and continue`.
 
 ---
 
-## ‏8.69 Failure Matrix כללית
+## ‏8.72 Failure Matrix כללית
 
 | מצב | מה איננו יודעים | הסיכון | תגובה עקרונית |
 |---|---|---|---|
 | Submit נשלחה, אין Ack | האם Order חיה | duplicate entry | `SUBMIT_UNKNOWN` + reconcile |
-| Modify נשלח, connection נפל | איזה revision חיה | stale price/qty | freeze modifications + reconcile |
-| Cancel נשלח, אין Ack | האם יכולה להתבצע | late fill/overlap | treat as executable + reconcile |
+| Modify נשלח, connection נפל | איזה revision חיה | stale price/qty | `MODIFY_UNKNOWN` + freeze conflicting modifications + reconcile |
+| Cancel נשלח, אין Ack | האם יכולה להתבצע | late fill/overlap | `CANCEL_UNKNOWN`; treat as executable + reconcile |
 | Duplicate `orderStatus` | האם זה אירוע חדש | duplicate side effect | dedupe/reducer idempotent |
 | Duplicate `execDetails` | האם Fill כבר הוחלה | double position | dedupe by execution identity |
 | Partial Fill בזמן Modify | quantity changed mid-flight | over-order | recompute from executions |
 | Partial Fill בזמן Cancel | remainder changed | wrong replacement qty | wait/reconcile |
 | Unknown broker order | ownership unknown | cancel protection/manual order | classify before action |
 | Local working order missing | terminal reason unknown | hidden fill/position mismatch | executions + positions check |
-| Restart with live orders | local memory stale | duplicate orders | recovery gate |
-| Manual trade during runtime | position changed externally | bracket mismatch | broker position reconciliation |
-| Market data stale | signal validity unknown | stale live entry | block/cancel by policy |
+| Restart with live orders | local memory stale | duplicate orders | `RECOVERING` gate |
+| Manual trade during runtime | position changed externally | bracket mismatch | ownership update + position reconciliation |
+| Market data stale | signal validity unknown | stale live entry | block/cancel entries by policy; preserve/verify protection |
 
 ---
 
-## ‏8.70 Telemetry שחייבים להוסיף
+## ‏8.73 Telemetry שחייבים להוסיף
 
 ```text
 internal_order_id
@@ -1327,11 +1435,17 @@ command_type
 command_created_ts
 command_sent_ts
 command_result_ts
-observed_status
+order_lifecycle_state
+order_uncertainty_state
+system_operating_mode
+observed_broker_status
 observed_price
 observed_qty
 filled_qty
 remaining_qty
+execution_ledger_position
+broker_reported_position
+reconciled_position
 last_exec_id
 cancel_requested_ts
 cancel_terminal_ts
@@ -1346,7 +1460,7 @@ state_uncertainty_reason
 
 ---
 
-## ‏8.71 Metrics תפעוליים
+## ‏8.74 Metrics תפעוליים
 
 ```text
 submit_to_ack_ms
@@ -1370,7 +1484,7 @@ message_to_execution_ratio
 
 ---
 
-## ‏8.72 Acceptance Tests לפני Live
+## ‏8.75 Acceptance Tests לפני Live
 
 ```text
 1. submit -> normal ack -> cancel
@@ -1378,7 +1492,7 @@ message_to_execution_ratio
 3. duplicate orderStatus
 4. duplicate execDetails
 5. two identical-price partial fills with distinct execIds
-6. partial fill then modify remaining price
+6. partial fill then MODIFY_IN_PLACE remaining price
 7. partial fill during modify request
 8. modify rejected because order still processing
 9. modify after order already filled
@@ -1386,28 +1500,30 @@ message_to_execution_ratio
 11. partial fill during cancel
 12. full fill during cancel
 13. cancel error then reconciliation
-14. cancel-and-new with safe remaining quantity
-15. connection drop after submit send before ack
-16. connection drop after cancel send before ack
-17. restart with one broker-resident order
-18. restart with partial position and live exit
-19. unknown manual order discovered
-20. order from another client discovered
-21. binding an external/manual order and observing queue implications
-22. stale market data while broker order remains live
-23. nextValidId readiness gate
-24. old-generation callback after reconnect
-25. execution correction handling
-26. bracket child + local exit race through common state machine
+14. CANCEL_THEN_NEW with safe remaining quantity
+15. deliberate OVERLAPPED_REPLACEMENT under explicit exposure budget
+16. connection drop after submit send before ack
+17. connection drop after cancel send before ack
+18. restart with one broker-resident order
+19. restart with partial position and live exit
+20. unknown manual order discovered
+21. order from another client discovered
+22. binding an external/manual order and observing queue implications
+23. stale market data while broker order remains live
+24. nextValidId readiness gate
+25. old-generation callback after reconnect
+26. execution correction handling
+27. bracket child + local exit race through common state machine
+28. broker-managed reprice while client signal expires
 ```
 
-‏בלי הבדיקות האלה, Order Type מתקדמת אינה Production capability — היא רק API call שעובדת ב־Happy Path.
+‏בלי הבדיקות האלה, Advanced Order אינה Production capability — היא רק API call שעובדת ב־Happy Path.
 
 ---
 
-## ‏8.73 Recommendation ארכיטקטונית למנוע שלנו
+## ‏8.76 Recommendation ארכיטקטונית למנוע שלנו
 
-‏הייתי בונה את Execution Core סביב חמישה רכיבים:
+‏Execution Core צריכה להישען על חמישה רכיבים:
 
 ```text
 1. Intent Store
@@ -1422,14 +1538,15 @@ message_to_execution_ratio
 ```text
 Execution Policy
 Routing Policy
+Broker Algo / Materialization Adapter
 Risk / Invariant Guard
 ```
 
-‏כך `Marketable Limit`, ‏`IOC`, ‏`Pegged`, ‏`Adaptive` ו־`Bracket` הן plugins/policies מעל lifecycle משותף — לא איים נפרדים של קוד.
+‏כך `Marketable Limit`, ‏`IOC`, ‏`Pegged`, ‏`Adaptive` ו־`Bracket` משתמשות ב־lifecycle משותף — לא באיים נפרדים של קוד.
 
 ---
 
-## ‏8.74 למה `Reducer` הוא מודל טוב
+## ‏8.77 למה `Reducer` הוא מודל טוב
 
 ‏במקום שכל callback תעשה side effects ישירות:
 
@@ -1452,7 +1569,7 @@ broker event
 
 ---
 
-## ‏8.75 `Reconciliation` אינה רק מנגנון חירום
+## ‏8.78 `Reconciliation` אינה רק מנגנון חירום
 
 ‏גם במערכת בריאה כדאי לבצע reconciliation תקופתי/אירועי:
 
@@ -1469,7 +1586,7 @@ before resuming from degraded state
 
 ---
 
-## ‏8.76 למה זה קריטי במיוחד למסחר של שניות
+## ‏8.79 למה זה קריטי במיוחד למסחר של שניות
 
 ‏ככל שה־TTL קצר יותר, temptation לעשות:
 
@@ -1495,7 +1612,7 @@ ambiguous outcomes
 
 ---
 
-## ‏8.77 כלל המפתח שלנו: קודם Correctness, אחר כך Latency Optimization
+## ‏8.80 כלל המפתח שלנו: קודם Correctness, אחר כך Latency Optimization
 
 ‏אין ערך לחסוך 20ms אם פעם באלף ניסיונות אנחנו קונים פעמיים או הופכים Position בטעות.
 
@@ -1513,67 +1630,79 @@ then faster
 
 ---
 
-## ‏8.78 Practitioner Secrets — הדברים שקל מאוד לפספס
+## ‏8.81 Practitioner Secrets — הדברים שקל מאוד לפספס
 
 ### ‏1. `cancelOrder()` אינה מחיקה
 
-‏עד terminal evidence, Order נשארת potentially executable.
+‏עד terminal broker evidence, Order נשארת potentially executable.
 
 ### ‏2. `placeOrder()` היא גם Submit וגם Modify
 
 ‏אותו API call משנה משמעות לפי `orderId` וה־state הקיים.
 
-### ‏3. Binding היא פעולה Execution-sensitive
+### ‏3. `Modify` אינו מנגנון אחד
+
+‏`MODIFY_IN_PLACE`, ‏`CANCEL_THEN_NEW` ו־`OVERLAPPED_REPLACEMENT` יוצרים failure/exposure semantics שונות.
+
+### ‏4. Binding היא פעולה Execution-sensitive
 
 ‏ב־IBKR היא יכולה לבצע cancel/resubmit ולפגוע בתור.
 
-### ‏4. Duplicate callbacks הן חלק מהחיים
+### ‏5. Duplicate callbacks הן חלק מהחיים
 
 ‏Idempotency אינה optimization אלא requirement.
 
-### ‏5. Fill identity חשובה יותר מ־status count
+### ‏6. Fill identity חשובה יותר מ־status count
 
 ‏`execId` מונעת מאיתנו להחיל אותה Execution פעמיים.
 
-### ‏6. Lost Ack אינו Failed Order
+### ‏7. Lost Ack אינו Failed Order
 
-‏זה `UNKNOWN` עד reconciliation.
+‏זה uncertainty שדורשת reconciliation.
 
-### ‏7. Restart אינו Reset
+### ‏8. Restart אינו Reset
 
 ‏Broker-resident Orders ו־Positions יכולות לשרוד את ה־process שלנו.
 
-### ‏8. Queue Priority היא State כלכלי
+### ‏9. Queue Priority היא State כלכלי, אבל route-specific
 
-‏Modify/Bind/Cancel-Replace יכולים לשנות אותה, גם אם price בסוף זהה.
+‏Modify/Bind/Cancel-Replace יכולים לשנות אותה; אין להניח כלל venue-universal בלי evidence.
 
-### ‏9. `orderId` אינו Global Business ID
+### ‏10. `orderId` אינו Global Business ID
 
 ‏Internal ID + `permId` + binding metadata נותנים מודל אמין יותר.
 
-### ‏10. Error Message אינה Truth מלאה
+### ‏11. Error Message אינה Truth מלאה
 
 ‏ב־ambiguous modify/cancel failure, בודקים Broker state במקום לנחש.
 
-### ‏11. Safety Exit ו־Entry stale order אינן מטופלות אותו דבר בזמן Data Failure
+### ‏12. Safety Exit ו־Entry stale order אינן מטופלות אותו דבר בזמן Data Failure
 
 ‏לעיתים צריך לבטל Entry, אבל דווקא לשמר/לאמת protective Stop.
 
-### ‏12. Fast Engine חייב Backpressure
+### ‏13. Fast Engine חייב Backpressure
 
 ‏אם Modify עדיין processing, עוד Modify אינה בהכרח "מהירה יותר" — היא יכולה להידחות או לייצר churn.
 
-### ‏13. State Machine אחת לכל Order families
+### ‏14. State Machine אחת לכל Order families
 
 ‏אם Bracket, Pegged ו־Adaptive מקבלות lifecycle engines שונים, bugs של reconciliation יתרבו.
 
-### ‏14. `READY` היא מסקנה, לא socket state
+### ‏15. `READY` היא מסקנה, לא socket state
 
 ‏רק אחרי reconciliation ו־invariants המנוע רשאי לקחת Risk חדש.
 
-### ‏15. ה־Broker הוא מקור Evidence, לא תחליף ל־Ledger שלנו
+### ‏16. ה־Broker הוא מקור Evidence, לא תחליף ל־Ledger שלנו
 
 ‏אנחנו צריכים גם durable local history כדי להבין intents, revisions והחלטות שלא קיימות אצל Broker.
+
+### ‏17. `UNKNOWN` הוא ידע חסר, לא סוג Order
+
+‏התגובה הנכונה היא לצמצם פעולות שמניחות עובדות ולרכוש evidence מחדש.
+
+### ‏18. Broker-managed repricing ו־client repricing אינם אותו lifecycle
+
+‏שניהם יכולים להזיז מחיר, אבל רק אחד דורש מאיתנו side effect חדש בכל reprice.
 
 ---
 
@@ -1594,8 +1723,8 @@ then faster
 
 # ‏Checkpoint — סוף חלק 8
 
-‏בחלק הזה חיברנו את כל משפחות הפקודות שלמדנו למנוע Execution אחד: הפרדנו Intent מ־Command ומ־Broker Observation ומ־Execution Truth; בנינו identity model עם `internal_order_id`, ‏`orderId`, ‏`permId`, ‏`clientId` ו־`execId`; ירדנו לעומק של submit/modify/cancel races, duplicate events, queue loss, ambiguous outcomes, binding, reconnect ו־reconciliation; והגדרנו State Machine, invariants, telemetry ו־acceptance tests ברמת Production.
+‏בחלק הזה חיברנו את כל משפחות הפקודות שלמדנו למנוע Execution אחד, אבל הפרדנו בין הצירים הנכונים: Intent, Command, Broker Observation, Execution/Position Truth; ‏Order Lifecycle מול Epistemic Uncertainty מול System Operating Mode; ו־`MODIFY_IN_PLACE` מול `CANCEL_THEN_NEW` מול `OVERLAPPED_REPLACEMENT`.
 
-‏המסקנה למנוע שלנו היא שאופטימיזציית latency מתחילה **רק לאחר** correctness: Order שנמצאת ב־cancel/modify/unknown נשארת חלק מחישוב ה־potential exposure עד ש־Broker evidence מוכיחה אחרת, וכל restart/reconnect עובר Recovery Gate לפני Entry חדשה.
+‏המסקנה למנוע שלנו היא שאופטימיזציית latency מתחילה **רק לאחר** correctness: Order ללא terminal broker evidence נשארת חלק מחישוב ה־potential exposure; ‏Position חדשה נקבעת מתוך `reconciled_position`; ‏`UNKNOWN` חוסמת הנחות מסוכנות; וכל restart/reconnect עובר `RECOVERING` עד שהמערכת מרוויחה מחדש `READY`.
 
-‏החלק הבא יהיה **חלק 9 — `IBKR` Capability Matrix**: נאחד את כל מה שנבדק עד עכשיו למטריצה שיטתית לכל Order Type חשוב — Products, Platforms, `TWS API`, ‏Web API, ‏SMART/Direct, native/simulated, caveats, relevance למניות US ולמנוע שלנו, ומה דורש acceptance test לפני שנרשה אותו ב־Production.
+‏החלק הבא יהיה **חלק 9 — `IBKR` Capability Matrix**: נאחד את כל מה שנבדק עד עכשיו למטריצה שיטתית לפי Broker primitive, Time/Fill Policy, attributes, composite structures, Routing ו־Broker Algos — ונפריד availability מתועדת מ־Production enablement.
