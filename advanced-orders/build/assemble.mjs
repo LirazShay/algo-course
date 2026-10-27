@@ -112,6 +112,9 @@ async function main() {
   console.log(`output=${built.manifest.generatedMaster.path}`);
 
   if (write) {
+    if (built.manifest.generatedMaster?.buildAllowed !== true) {
+      throw new Error('write blocked: manifest.generatedMaster.buildAllowed must be true');
+    }
     await writeFile(built.outputPath, built.output, 'utf8');
     console.log('WRITE_OK');
     return;
