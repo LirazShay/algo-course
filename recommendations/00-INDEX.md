@@ -72,8 +72,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     60A — Negative Evidence, Veto and Disqualification Engine
                     61 — Backtest Subtleties
                     62 — Live Trading Subtleties
+                    63 — How Professionals Think About Edge
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 63 — How Professionals Think About Edge
+Next Segment: 64 — Professional Checklist Before Real Money
 Source of Truth: GitHub main
 ```
 
@@ -220,9 +221,10 @@ Baseline
 | `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `61-BACKTEST-SUBTLETIES.md` | `61-BACKTEST-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `62-LIVE-TRADING-SUBTLETIES.md` | `62-LIVE-TRADING-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `63-HOW-PROFESSIONALS-THINK-ABOUT-EDGE.md` | `63-HOW-PROFESSIONALS-THINK-ABOUT-EDGE.md` | TBD | `NOT STARTED` |
+| `63-HOW-PROFESSIONALS-THINK-ABOUT-EDGE.md` | `63-HOW-PROFESSIONALS-THINK-ABOUT-EDGE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `64-PROFESSIONAL-CHECKLIST-BEFORE-REAL-MONEY.md` | `64-PROFESSIONAL-CHECKLIST-BEFORE-REAL-MONEY.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 64–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 65–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
