@@ -1,35 +1,37 @@
-# ‏חלק 3 — Time in Force ופקודות מיידיות
+# ‏חלק 3 — Time / Fill Policy ופקודות מיידיות
+
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, ‏`DAY/GTC/GTD/IOC/FOK` שייכים לשכבת Time / Fill Policy; ‏`AON` ו־`Minimum Quantity` הם Fill/Quantity constraints. הם אינם Broker Order Primitives מקבילים ל־`Market` או `Limit`.
 
 ## ‏3.1 `Time in Force` הוא חלק מהאלגוריתם, לא שדה מנהלתי
 
-‏ה־`TIF` עונה על שאלה שונה מ־Order Type:
+‏ה־`TIF` עונה על שאלה שונה מ־Broker Order Primitive:
 
 ```text
-Order Type = איך לבצע
-TIF        = כמה זמן מותר לפקודה להמשיך לנסות
+Broker Order Primitive = מהו מנגנון המחיר/ביצוע הבסיסי
+TIF / Fill Policy      = כמה זמן ובאילו תנאי fill הפקודה רשאית לעבוד
 ```
 
-‏אבל במנוע קצר־טווח, ההפרדה הזו אפילו יותר עמוקה. יש לפחות שלושה שעונים:
+‏במנוע קצר־טווח יש לפחות ארבעה clocks נפרדים:
 
 ```text
-signal_lifetime
+signal_ttl
 application_order_ttl
-broker_or_venue_tif
+broker_tif
+working_order_age
 ```
 
 ‏לדוגמה:
 
 ```text
-signal_lifetime       = 3.0 s
-application_order_ttl = 350 ms
-broker_tif            = DAY
+signal_ttl             = 3.0 s
+application_order_ttl  = 350 ms
+broker_tif             = DAY
+working_order_age      = 120 ms
 ```
 
-‏זו אינה סתירה. ה־Broker רשאי להחזיק את הפקודה כ־`DAY`, אבל המנוע שלנו מחליט שאם לא קיבלנו את ההתנהגות הרצויה בתוך 350 מילישניות — אנחנו כבר לא רוצים אותה.
+‏זו אינה סתירה. ה־Broker רשאי להחזיק את הפקודה כ־`DAY`, אבל המנוע שלנו מחליט שאם לא קיבלנו את ההתנהגות הרצויה בתוך 350 מילישניות — אנחנו כבר לא רוצים את attempt הזה.
 
-‏המסקנה:
-
-> ‏`TIF` של הברוקר אינו תחליף ל־signal-aware expiry בתוך המנוע.
+> ‏`ENGINE RULE` — `broker_tif`, ‏`signal_ttl`, ‏`application_order_ttl` ו־`working_order_age` הם מושגים שונים. המילה `TTL` בלי qualifier אינה vocabulary קנונית.
 
 ---
 
@@ -51,7 +53,7 @@ valid while my signal is valid
 
 ### ‏מתי `DAY` כן שימושית לנו?
 
-‏כאשר אנחנו רוצים Order רגילה שהמנוע עצמו מנהל לה TTL קצר, לדוגמה:
+‏כאשר אנחנו רוצים Order רגילה שהמנוע עצמו מנהל לה `application_order_ttl` קצר, לדוגמה:
 
 ```text
 place passive DAY limit
@@ -75,7 +77,7 @@ cancel if stale
 ```text
 very short information half-life
 +
-very long order lifetime
+very long broker_tif
 =
 stale-order risk
 ```
@@ -103,7 +105,7 @@ stale-order risk
 ‏`GTD` מתאים יותר כאשר רוצים לומר:
 
 ```text
-this order is valid until a known clock time
+this order is valid until a known broker-clock time
 ```
 
 ‏למשל עד רגע מסוים בסשן.
@@ -114,7 +116,7 @@ this order is valid until a known clock time
 submit
 start local monotonic timer
 observe fills and market state
-cancel/reconcile when application TTL expires
+cancel/reconcile when application_order_ttl expires
 ```
 
 ‏כלומר `GTD` הוא capability חשוב, אבל אינו מחליף application-level lifetime.
@@ -123,7 +125,7 @@ cancel/reconcile when application TTL expires
 
 ## ‏3.5 `IOC` — בדיוק השאלה: מה ניתן לבצע עכשיו?
 
-‏`IOC` — ‏`Immediate or Cancel` — אומר:
+‏`IOC` — ‏`Immediate or Cancel` — היא Time / Fill Policy שאומרת:
 
 > ‏נסה לבצע מיד את מה שניתן; כל יתרה שלא התמלאה מיידית מתבטלת.
 
@@ -151,33 +153,47 @@ BUY 100 LMT 20.01 IOC
 30 canceled
 ```
 
-‏החלק החשוב הוא לא רק המהירות.
-
-‏הוא שה־remainder אינו נשאר מאחור כ־resting order.
+‏החלק החשוב הוא לא רק המהירות. הוא שה־remainder אינו נשאר מאחור כ־resting order.
 
 ---
 
-## ‏3.6 למה `Marketable Limit + IOC` כל כך מעניין למנוע שלנו
+## ‏3.6 `MARKETABLE_LIMIT_IOC` — Behavior Candidate, לא Order Primitive חדש
 
 ‏השילוב נותן semantics מאוד נקיות:
+
+```text
+Limit primitive
++
+marketable price at current snapshot
++
+IOC time/fill policy
++
+Economic Price Bound
+```
+
+‏ברמת המנוע נשתמש בשם Behavior Candidate:
+
+```text
+MARKETABLE_LIMIT_IOC
+```
+
+‏שמשמעותו:
 
 ```text
 price bound
 +
 try now
 +
-accept partial fill
+accept allowed partial fill
 +
 do not leave stale remainder
 ```
-
-‏זו בדיוק בעיה שמנוע של שניות פוגש שוב ושוב.
 
 ‏לדוגמה:
 
 ```text
 signal says BUY now
-max economically acceptable price = 50.04
+entry_max_price = 50.04
 requested qty = 200
 ```
 
@@ -213,7 +229,7 @@ remaining = 0 because remainder canceled
 ```text
 submit
 order becomes working
-wait local TTL
+wait application_order_ttl
 send cancel
 wait for cancel acknowledgement
 ```
@@ -240,7 +256,7 @@ cancel unfilled remainder immediately
 
 ‏אנחנו מעבירים חלק מה־state machine ל־Broker/Venue path ומקטינים את משך חיי ה־stale remainder.
 
-‏אבל עדיין חייבים לקבל ולפרש את execution reports; `IOC` אינה פוטרת אותנו מ־partial-fill accounting.
+‏אבל עדיין חייבים לקבל ולפרש execution reports; `IOC` אינה פוטרת אותנו מ־Partial Fill accounting.
 
 ---
 
@@ -273,7 +289,7 @@ result = 37 filled + 63 canceled
 
 ‏היתרון שלה הוא גם הסיכון שלה.
 
-‏נניח שה־Strategy תוכננה סביב 500 מניות, אבל רק 41 זמינות בתוך cap:
+‏נניח שה־Strategy תוכננה סביב 500 מניות, אבל רק 41 זמינות בתוך bound:
 
 ```text
 BUY 500 LMT X IOC
@@ -344,13 +360,13 @@ available immediately = 99
 
 ‏במקרה שלנו, ברוב עסקאות מניה קצרות, סביר יותר לבדוק `IOC + minimum useful fill policy` מאשר לדרוש full-size atomicity בכל מצב.
 
-‏זו Recommendation למחקר, לא כלל מוחלט.
+‏זו `RESEARCH HYPOTHESIS`, לא כלל מוחלט.
 
 ---
 
 ## ‏3.12 פרט קריטי ב־IBKR: `FOK` אינה כרגע כלי כללי למניות
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏בדף Order Types הנוכחי של IBKR, `Fill or Kill` מתועד עבור:
 
@@ -369,7 +385,7 @@ Routing: Smart, Directed
 
 ---
 
-## ‏3.13 `AON` — כל הכמות, אבל לא בהכרח עכשיו
+## ‏3.13 `AON` — Fill/Quantity Constraint, לא `TIF`
 
 ‏`AON` — ‏`All or None` — פותרת בעיה אחרת מ־`FOK`.
 
@@ -379,13 +395,13 @@ Routing: Smart, Directed
 no partial fill
 ```
 
-‏אבל הפקודה יכולה להמשיך לעבוד עד שהכמות המלאה זמינה, לפי Order Type ו־TIF.
+‏אבל הפקודה יכולה להמשיך לעבוד עד שהכמות המלאה זמינה, לפי ה־Broker Order Primitive וה־`broker_tif`.
 
 ‏כלומר:
 
 ```text
-FOK = full size + immediate
-AON = full size, but may wait
+FOK = full size + immediate time/fill policy
+AON = all-or-none quantity/fill constraint, waiting may still be allowed
 ```
 
 ‏הבדל קטן בניסוח — הבדל עצום בהתנהגות.
@@ -406,13 +422,14 @@ BUY 500 AON LMT 20.00
 
 ‏אחרי שתי שניות מופיעות 500 מניות — אבל ה־Signal כבר מת.
 
-‏אם לא ניהלנו application TTL קצר, דווקא התכונה שנועדה להגן עלינו מ־partial fill עלולה לגרום ל־**stale full fill**.
+‏אם לא ניהלנו `application_order_ttl` קצר, דווקא התכונה שנועדה להגן עלינו מ־Partial Fill עלולה לגרום ל־**stale full fill**.
 
 ‏לכן AON אצלנו דורשת לפחות:
 
 ```text
-very explicit signal expiry
-application cancel policy
+explicit signal_ttl
+application_order_ttl
+cancel policy
 reconciliation after cancel
 ```
 
@@ -420,7 +437,7 @@ reconciliation after cancel
 
 ## ‏3.15 פרט מתקדם ב־IBKR: `AON` יכולה להיות Broker-Simulated
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת `AON` עבור מניות, ETF, Options, Bonds ו־EFPs בארה״ב, דרך `SMART`, וב־`TWS`, ‏`IBKR Desktop`, ‏`IBKR Mobile` ו־`Client Portal`.
 
@@ -437,7 +454,7 @@ order size + 1000 shares
 ‏לכן `AON` אינה רק "checkbox שמונע partial". היא יכולה לשנות:
 
 - ‏מתי Order בכלל נעשית eligible.
-- ‏איפה היא מוחזקת.
+- ‏איפה ה־state שלה מוחזק.
 - ‏את fill probability.
 - ‏את latency עד ניסיון Fill.
 
@@ -445,13 +462,13 @@ order size + 1000 shares
 
 ---
 
-## ‏3.16 `Minimum Quantity` — לא הכול או כלום, אלא רף מינימלי
+## ‏3.16 `Minimum Quantity` — Fill/Quantity Constraint עם רף מינימלי
 
-‏`Minimum Quantity` הוא רעיון ביניים:
+‏`Minimum Quantity` אומרת בקירוב:
 
 > ‏אל תבצע Fill קטן מדי; אני רוצה שלפחות כמות מסוימת תהיה זמינה.
 
-‏הוא יכול להיות יותר גמיש מ־AON.
+‏היא יכולה להיות יותר גמישה מ־AON.
 
 ‏לדוגמה רעיונית:
 
@@ -462,7 +479,7 @@ min_qty = 200
 
 ‏המטרה אינה לדרוש בהכרח 500 בבת אחת, אלא למנוע Fill זעיר שאינו כלכלי.
 
-‏אבל התמיכה תלויה Product/Venue/Broker path, ולכן אסור לבנות עליו בלי capability check.
+‏אבל התמיכה תלויה Product/Venue/Broker path, ולכן אסור לבנות עליה בלי capability check.
 
 ‏ב־`TWS API` קיים שדה:
 
@@ -480,7 +497,7 @@ minQty
 
 ```text
 AON:
-minimum acceptable immediate/full execution = total requested quantity
+minimum acceptable execution = total requested quantity
 ```
 
 ‏לעומת:
@@ -498,25 +515,23 @@ minimum acceptable execution chunk < total requested quantity
 
 ---
 
-## ‏3.18 ארבע שאלות שונות שאסור לערבב
+## ‏3.18 ארבע שכבות שונות שאסור לערבב
 
-‏המשפחה הזו נראית דומה, אבל כל מנגנון עונה על שאלה אחרת:
+| מנגנון | שכבה קנונית | השאלה שהוא עונה עליה |
+|---|---|---|
+| `DAY/GTC/GTD` | Time policy / `broker_tif` | ‏כמה זמן Order רשאית להישאר חיה? |
+| `IOC` | Immediate time/fill policy | ‏מה אפשר לבצע מיד, ואז לבטל remainder? |
+| `FOK` | Immediate full-fill policy | ‏האם אפשר לבצע את כל הכמות מיד? |
+| `AON` | Fill/quantity constraint | ‏האם אפשר להימנע מכל Partial Fill גם אם צריך להמתין? |
+| `MinQty` | Fill/quantity constraint | ‏מהו Fill קטן מדי מכדי שנרצה לקבל אותו? |
 
-| מנגנון | השאלה שהוא עונה עליה |
-|---|---|
-| `DAY/GTC/GTD` | ‏כמה זמן Order רשאית להישאר חיה? |
-| `IOC` | ‏מה אפשר לבצע מיד, ואז לבטל remainder? |
-| `FOK` | ‏האם אפשר לבצע את כל הכמות מיד? |
-| `AON` | ‏האם אפשר להימנע מכל partial fill גם אם צריך להמתין? |
-| `MinQty` | ‏מהו Fill קטן מדי מכדי שנרצה לקבל אותו? |
-
-‏לכן אין משמעות לשאלה "איזו מהן הכי טובה" בלי להגדיר קודם את הבעיה.
+‏לכן אין משמעות לשאלה "איזו מהן הכי טובה" בלי להגדיר קודם את הבעיה ואת השכבה.
 
 ---
 
 ## ‏3.19 החלטה רובוטית נכונה מתחילה ב־Fill Policy
 
-‏לפני שבוחרים TIF, המנוע צריך לענות:
+‏לפני שבוחרים materialization קונקרטי, המנוע צריך לענות:
 
 ```text
 Do we accept partial fills?
@@ -531,35 +546,38 @@ Do we want a fresh re-evaluation after every attempt?
 
 ```text
 accept partial + now only
-=> IOC candidate
+=> IOC-compatible candidate
 
 full size + now only
 => FOK conceptually, if supported for product
 
 full size + waiting allowed
-=> AON conceptually
+=> AON-compatible materialization
 
 partial allowed + short local wait
-=> DAY/GTD + application TTL candidate
+=> DAY/GTD + application_order_ttl candidate
 ```
 
 ‏זו דרך מקצועית יותר מאשר להתחיל מרשימת Order Types ולחפש למי "יש שם יפה".
 
 ---
 
-## ‏3.20 `IOC` כ־Execution Primitive למנוע Event-Driven
+## ‏3.20 `IOC` כ־execution primitive-like behavior במנוע Event-Driven
 
-‏במנוע Event-Driven, אפשר להתייחס ל־IOC כמו לשאילתת ביצוע עם כסף אמיתי:
+‏ברמת המנוע נוח לחשוב על IOC כמו על attempt קצר וסגור:
 
 ```text
 market state
-→ compute economic cap
-→ send IOC
+→ compute Economic Price Bound
+→ choose Behavior Candidate
+→ materialize LMT + IOC
 → receive fill result
 → update position
 → recompute signal and remaining edge
 → decide next action
 ```
+
+‏אבל מבחינת taxonomy, ‏`IOC` עדיין Time / Fill Policy — לא Broker Order Primitive.
 
 ‏המודל הזה מעניין במיוחד כי כל ניסיון קצר ומוגדר.
 
@@ -579,8 +597,8 @@ market state
 max_attempts_per_signal
 min_recheck_interval
 max_total_filled_qty
-hard_price_cap
-signal_expiry
+Economic Price Bound
+signal_ttl
 ```
 
 ---
@@ -612,14 +630,14 @@ Ask = 20.04
 ‏לכן צריך למדוד בנפרד:
 
 ```text
-IOC no-fill because cap too tight
+IOC no-fill because bound too tight
 IOC no-fill because market moved
 IOC no-fill because visible size vanished
 IOC partial because depth insufficient
 IOC rejection because capability/rules
 ```
 
-‏אחרת נאשים את Order Type במה שהוא בעצם latency או stale-data problem.
+‏אחרת נאשים את ה־TIF במה שהוא בעצם latency או stale-data problem.
 
 ---
 
@@ -627,18 +645,18 @@ IOC rejection because capability/rules
 
 ### ‏Entry
 
-‏`IOC` מתאימה מאוד למחקר כאשר:
+‏Behavior עם `IOC` מתאימה מאוד למחקר כאשר:
 
 ```text
 I want execution now
 I accept partial
 I reject stale remainder
-I have a hard price cap
+I have a hard Economic Price Bound
 ```
 
 ### ‏Normal Exit
 
-‏גם כאן `IOC` יכולה להיות שימושית, אך partial exit משאיר Position פתוחה ולכן צריך immediate follow-up policy.
+‏גם כאן `IOC` יכולה להיות שימושית, אך Partial Exit משאיר Position פתוחה ולכן צריך immediate follow-up policy.
 
 ### ‏Emergency Exit
 
@@ -646,7 +664,7 @@ I have a hard price cap
 
 ‏כלומר:
 
-> ‏אותה `IOC` שיפה ב־Entry יכולה להיות רק שלב ראשון ב־Exit ladder.
+> ‏אותה `IOC` שיפה ב־Entry יכולה להיות רק materialization של attempt ראשון בתוך `FAST_EXIT` או `EMERGENCY_REDUCE`.
 
 ‏לדוגמה רעיונית:
 
@@ -658,11 +676,9 @@ if partial and risk remains:
     retry
 ```
 
-‏לא משאירים את זה ל־human intervention במקרה של מנוע אוטומטי.
-
 ---
 
-## ‏3.23 מתי `DAY + application TTL` עדיפה דווקא על `IOC`
+## ‏3.23 מתי `DAY + application_order_ttl` עדיפה דווקא על `IOC`
 
 ‏אם רוצים להיות Passive לזמן קצר ולתת לשוק להגיע אלינו, `IOC` אינה מתאימה — כי היא תנסה לבצע מיד ואז תיעלם.
 
@@ -679,12 +695,16 @@ cancel if not filled
 ‏זה use case טבעי ל־:
 
 ```text
-passive LIMIT + DAY
+PASSIVE application mode
 +
-application-managed TTL
+PASSIVE_JOIN behavior candidate
++
+LMT primitive
++
+DAY broker_tif
++
+short application_order_ttl
 ```
-
-‏או מנגנון Broker אחר אם יוכח שהוא נותן semantics מתאימות יותר.
 
 ‏לכן:
 
@@ -693,7 +713,7 @@ IOC = no waiting
 short passive TTL = deliberate waiting
 ```
 
-‏אלה שני Execution Modes שונים לחלוטין.
+‏אלה execution behaviors שונים לחלוטין.
 
 ---
 
@@ -721,7 +741,7 @@ ownership identification
 unknown-order handling
 ```
 
-‏זה חשוב במיוחד ל־GTC, אבל העיקרון חל על כל broker-resident order שחיה מעבר לחיבור המקומי.
+‏זה חשוב במיוחד ל־GTC, אבל העיקרון חל על כל `broker-resident` Order שחיה מעבר לחיבור המקומי.
 
 ---
 
@@ -732,7 +752,7 @@ unknown-order handling
 ‏לכן המנוע לא ישמור רק:
 
 ```text
-tif = DAY
+broker_tif = DAY
 ```
 
 ‏אלא גם session policy מפורשת:
@@ -752,7 +772,7 @@ after_hours_policy
 
 ## ‏3.26 `IBKR TWS API` — השדות הרלוונטיים
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏ב־Order object של `TWS API` קיימים בין היתר:
 
@@ -768,9 +788,9 @@ goodAfterTime
 
 ‏עם זאת:
 
-> ‏עצם קיום השדה ב־API אינו הוכחה שהשילוב הספציפי נתמך בכל Product/Venue/Route.
+> ‏עצם קיום השדה ב־API אינו הוכחה שהשילוב הספציפי נתמך בכל Product/Venue/Route ואינו מעביר אותו אוטומטית ל־`PRODUCTION_ENABLED`.
 
-‏לכן ה־engine adapter צריך לטפל גם ב־capability discovery וב־broker rejection.
+‏לכן ה־engine adapter צריך לטפל גם ב־capability discovery, acceptance evidence וב־broker rejection.
 
 ---
 
@@ -792,31 +812,36 @@ Web API capability set
 
 ## ‏3.28 מטריצת התאמה ראשונית למנוע שלנו
 
-| מנגנון | התאמה ראשונית | למה | הסיכון העיקרי |
+| מנגנון | שכבה | התאמה ראשונית | הסיכון העיקרי |
 |---|---|---|---|
-| `DAY` + TTL מקומי קצר | `High` ל־Passive modes | ‏מאפשר resting קצר בשליטת המנוע | ‏Cancel race / stale order אם ה־TTL נכשל |
-| `GTC` | `Low` ל־Entry מומנטום | ‏חיים ארוכים מדי ביחס ל־Signal | ‏stale fills / recovery complexity |
-| `GTD` | `Medium/Low` ל־core entry | ‏expiration מנוהל Broker | ‏לא תחליף ל־sub-second/second signal TTL |
-| `IOC` | `High` למחקר אגרסיבי | ‏partial-now + cancel remainder | ‏partial position / no-fill |
-| `FOK` | `Low` למניות שלנו | ‏full-now-or-zero | ‏ב־IBKR כרגע אינו stock baseline; no-fill גבוה |
-| `AON` | `Low` לרוב Signal קצר | ‏מונע partial fills | ‏waiting + broker simulation + stale fill risk |
-| `MinQty` | `Challenger` | ‏מונע fills זעירים | ‏support semantics תלויות Venue/Product |
+| `DAY` + `application_order_ttl` קצר | Time policy + local lifecycle | `High` ל־Passive | ‏Cancel race / stale order אם ה־TTL נכשל |
+| `GTC` | Time policy | `Low` ל־Entry מומנטום | ‏stale fills / recovery complexity |
+| `GTD` | Time policy | `Medium/Low` ל־core entry | ‏לא תחליף ל־sub-second/second signal TTL |
+| `IOC` | Immediate time/fill policy | `High` למחקר אגרסיבי | ‏Partial Position / no-fill |
+| `FOK` | Immediate full-fill policy | `Low` למניות שלנו | ‏ב־IBKR כרגע אינו stock baseline; no-fill גבוה |
+| `AON` | Fill/quantity constraint | `Low` לרוב Signal קצר | ‏waiting + broker simulation + stale fill risk |
+| `MinQty` | Fill/quantity constraint | `Challenger` | ‏support semantics תלויות Venue/Product |
 
 ‏זו מטריצת Research, לא configuration סופית ל־Live.
 
 ---
 
-## ‏3.29 Recommendation — מה הייתי מכניס לגרסה הראשונה של Execution Research
+## ‏3.29 Recommendation — מה נכנס לגרסה הראשונה של Execution Research
 
-‏למנוע מניות קצר־טווח הייתי מתחיל משלוש משפחות ברורות:
+‏למנוע מניות קצר־טווח אפשר להתחיל משלוש משפחות Behavior ברורות:
 
 ```text
-1. Passive Limit + short application TTL
-2. Marketable Limit + IOC
-3. Aggressive Limit + application-managed retry/exit policy
+1. PASSIVE_JOIN
+   -> LMT + DAY + short application_order_ttl
+
+2. MARKETABLE_LIMIT_IOC
+   -> marketable LMT + IOC + Economic Price Bound
+
+3. AGGRESSIVE_CAPPED attempt
+   -> LMT + application-managed retry/exit policy
 ```
 
-‏ואת הבאים משאיר כ־Challengers/Advanced עד Evidence:
+‏ואת הבאים להשאיר כ־Challengers/Advanced עד Evidence:
 
 ```text
 AON
@@ -826,7 +851,7 @@ long-lived GTD/GTC behavior
 
 ‏`FOK` נשאר ידע מקצועי חשוב, אבל לפי support הנוכחי של IBKR אינו candidate בסיסי למנוע המניות שלנו.
 
-‏הסיבה אינה פשטות לשמה. שלושת ה־baseline modes מכסים את שלוש השאלות המרכזיות שלנו:
+‏הסיבה אינה פשטות לשמה. שלושת ה־baseline behaviors מכסים את שלוש השאלות המרכזיות שלנו:
 
 ```text
 Can I get a better passive fill briefly?
@@ -836,14 +861,15 @@ Can I exit/retry under explicit price and risk bounds?
 
 ---
 
-## ‏3.30 Telemetry שחייבים להוסיף עבור TIF/Fill Policy
+## ‏3.30 Telemetry שחייבים להוסיף עבור Time / Fill Policy
 
 ‏בנוסף למדדים מחלק 2, נשמור:
 
 ```text
-tif
-application_ttl_ms
+broker_tif
+application_order_ttl_ms
 signal_ttl_ms
+working_order_age_ms
 all_or_none
 min_qty
 attempt_number
@@ -875,17 +901,17 @@ partial_position_exit_cost
 
 ## ‏3.31 Practitioner Secrets — הדברים שקל לפספס
 
-### ‏1. `IOC` היא Fill Policy בזמן, לא Price Policy
+### ‏1. `IOC` היא Time / Fill Policy, לא Price Policy
 
-‏בלי Limit/price cap נכון, עצם ה־IOC לא מגינה על economics.
+‏בלי Limit/price bound נכון, עצם ה־IOC לא מגינה על economics.
 
 ### ‏2. `IOC` יכולה לשפר state cleanliness
 
 ‏היתרון שלה אינו רק latency; היא מפחיתה resting remainder שממשיך לחיות אחרי attempt.
 
-### ‏3. `FOK` ו־`AON` אינן מילים נרדפות
+### ‏3. `FOK` ו־`AON` אינן מילים נרדפות — ואינן אותה שכבה
 
-‏אחת דורשת full fill מיד; השנייה יכולה להמתין.
+‏`FOK` דורשת full fill מיד; `AON` היא quantity/fill constraint שיכולה לאפשר waiting לפי ה־TIF.
 
 ### ‏4. `AON` יכולה להיות Simulated
 
@@ -897,7 +923,7 @@ partial_position_exit_cost
 
 ### ‏6. `DAY` יכולה להיות נכונה גם לסיגנל של 200ms
 
-‏אם application TTL אמין, TIF ארוך יותר אינו אומר שהמנוע באמת מתכוון לחכות עד סוף היום.
+‏אם `application_order_ttl` אמין, TIF ארוך יותר אינו אומר שהמנוע באמת מתכוון לחכות עד סוף היום.
 
 ### ‏7. `MinQty` עונה על שאלה כלכלית חשובה
 
@@ -905,7 +931,7 @@ partial_position_exit_cost
 
 ### ‏8. No-fill ב־IOC הוא מידע
 
-‏הוא יכול להעיד על quote fade, latency, cap tightness או insufficient depth — ולכן צריך לסווג אותו, לא רק לספור אותו.
+‏הוא יכול להעיד על quote fade, latency, bound tightness או insufficient depth — ולכן צריך לסווג אותו, לא רק לספור אותו.
 
 ---
 
@@ -921,9 +947,9 @@ partial_position_exit_cost
 
 # ‏Checkpoint — סוף חלק 3
 
-‏בחלק הזה הפרדנו בין שלוש שאלות שאסור לערבב: כמה זמן Order חיה, האם Partial Fill מקובל, והאם אנחנו דורשים ביצוע מיידי. ירדנו לעומק של `DAY`, ‏`GTC`, ‏`GTD`, ‏`IOC`, ‏`FOK`, ‏`AON` ו־`Minimum Quantity`, כולל ההבדלים בין Broker-managed expiry לבין application TTL.
+‏בחלק הזה הפרדנו בין שכבות שאסור לערבב: `broker_tif`, ‏Fill/Quantity constraints, ‏`application_order_ttl`, ‏`signal_ttl` ו־`working_order_age`. ירדנו לעומק של `DAY`, ‏`GTC`, ‏`GTD`, ‏`IOC`, ‏`FOK`, ‏`AON` ו־`Minimum Quantity`, אבל בלי להציג אותן כאילו כולן Order Types מאותה קטגוריה.
 
-‏המסקנה הראשונית למנוע שלנו היא ש־`Marketable Limit + IOC` היא Challenger מרכזית ל־aggressive entry קצר, בעוד Passive Entry דורשת דווקא resting time קצר שמנוהל באפליקציה. `AON/FOK` אינן ברירות מחדל למנוע המניות שלנו: הן פותרות בעיות אחרות ועלולות לפגוע ב־fill probability או להוסיף waiting/simulation behavior.
+‏המסקנה הראשונית למנוע שלנו היא ש־`MARKETABLE_LIMIT_IOC` היא Behavior Candidate מרכזית ל־aggressive entry קצר, בעוד Passive Entry דורשת דווקא resting time קצר שמנוהל באפליקציה. `AON/FOK` אינן ברירות מחדל למנוע המניות שלנו: הן פותרות בעיות אחרות ועלולות לפגוע ב־fill probability או להוסיף waiting/simulation behavior.
 
 ‏החלק הבא יהיה **Liquidity Control** — `Post Only`, ‏`Hidden`, ‏`Reserve/Iceberg`, ‏display size, ‏maker/taker, queue priority ו־order aging — ושם נרד לעומק בשאלה מתי כדאי לרובוט שלנו לספק נזילות, מתי אסור לו בטעות להפוך ל־taker, ומתי הסתרת גודל באמת מועילה.
 
