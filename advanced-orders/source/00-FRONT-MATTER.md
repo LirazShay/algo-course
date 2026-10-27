@@ -38,7 +38,13 @@
 
 `00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`
 
-‏הוא מקור האמת של המונחים המקצועיים. חוזרים אליו כאשר צריך להבין במדויק לאיזו שכבה שייך מונח כגון `Limit`, ‏`IOC`, ‏`Post Only`, ‏`Bracket`, ‏`SMART`, ‏`Adaptive` או `MARKETABLE_LIMIT_IOC`. הוא Reference חשוב, אבל אינו מבחן כניסה לקורס.
+‏הוא מקור האמת של שכבות המושגים וה־contracts הקנוניים. חוזרים אליו כאשר צריך להבין במדויק לאיזו שכבה שייך מונח כגון `Limit`, ‏`IOC`, ‏`Post Only`, ‏`Bracket`, ‏`SMART`, ‏`Adaptive` או `MARKETABLE_LIMIT_IOC`.
+
+‏ל־quick lookup של מונח בודד משתמשים ב־:
+
+`00C-CANONICAL-GLOSSARY.md`
+
+‏ה־Glossary מתחיל בכל מונח מ־**במילים פשוטות**, ואז נותן את המשמעות המקצועית, מה לא לבלבל איתו ולאיזה פרק ממשיכים. הוא אינו מבחן כניסה לקורס ואינו מחליף את ההסבר המלא בפרקי המשפחות.
 
 ‏אם כבר יש לך בעיה מסוימת — למשל “אני רוצה ניסיון ביצוע מיידי בלי להשאיר remainder”, “מי מנהל את הפקודה אחרי disconnect?” או “איך מגינים על Position?” — אפשר להתחיל ישירות ב־Problem → Candidate Index שב־`00B`, להגיע לפרק המשפחה, ואז להמשיך להשוואה, failure/safety ו־engine mapping הרלוונטיים.
 
@@ -61,7 +67,7 @@
 → Part 10D: Full Decision Engine
 ```
 
-‏`00A` נשאר Reference קנוני לאורך כל המסלול.
+‏`00A` נשאר Reference קנוני של taxonomy ו־`00C` נשאר Reference מהיר של definitions לאורך כל המסלול.
 
 ‏הפרקים אינם רשימת פקודות בלבד. המטרה היא לעבור בהדרגה מ־semantics של Order בודדת אל מנוע שמסוגל לבחור, לנהל, לבטל, להחליף, לשחזר ולהגן על Orders בצורה עקבית.
 
@@ -76,6 +82,10 @@
 ## ‏`00A` — Canonical Taxonomy and Vocabulary
 
 ‏מגדיר פעם אחת את שכבות המושגים, vocabulary של זמן/מחיר/cancel/partial fill/capability, וההבדל בין `FACT`, ‏`ENGINE RULE`, ‏`RESEARCH HYPOTHESIS` ו־`ACCEPTANCE TEST REQUIRED`.
+
+## ‏`00C` — Canonical Glossary
+
+‏מילון beginner-first למונחים שחוזרים לאורך הקורס: Mode, Candidate, Primitive, TIF, materialization, queue, markout, ownership, residency, survivability, reconciliation, capability ועוד. כל ערך מתחיל בהסבר פשוט ורק אחר כך בשם ובהגדרה המקצועיים.
 
 ## ‏חלק 1 — השפה המקצועית של פקודה
 
