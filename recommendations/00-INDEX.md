@@ -104,8 +104,9 @@ Completed Cross-Cutting: 01 — Recommended MVP
                          06 — Recommended Entry Policy
                          07 — Recommended Exit Policy
                          08 — Recommended Order Policy
+                         09 — Recommended Execution Policy
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: Cross-Cutting 09 — Recommended Execution Policy
+Next Segment: Cross-Cutting 10 — Recommended Risk Controls
 Source of Truth: GitHub main
 ```
 
@@ -295,7 +296,8 @@ Baseline
 | Recommended Entry Policy | `CC06-RECOMMENDED-ENTRY-POLICY.md` | `COMPLETED` |
 | Recommended Exit Policy | `CC07-RECOMMENDED-EXIT-POLICY.md` | `COMPLETED` |
 | Recommended Order Policy | `CC08-RECOMMENDED-ORDER-POLICY.md` | `COMPLETED` |
-| Recommended Execution Policy | `CC09-RECOMMENDED-EXECUTION-POLICY.md` | `NOT STARTED` |
+| Recommended Execution Policy | `CC09-RECOMMENDED-EXECUTION-POLICY.md` | `COMPLETED` |
+| Recommended Risk Controls | `CC10-RECOMMENDED-RISK-CONTROLS.md` | `NOT STARTED` |
 
 ‏לפני סיום הפרויקט חייבים להיווצר לפחות:
 
