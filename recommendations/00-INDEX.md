@@ -62,8 +62,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     51 — Execution Engine Best Practices
                     52 — Data Engineering Best Practices
                     53 — Testing Best Practices
+                    54 — Performance Best Practices
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 54 — Performance Best Practices
+Next Segment: 55 — Security and Operations Best Practices
 Source of Truth: GitHub main
 ```
 
@@ -200,9 +201,10 @@ Baseline
 | `51-EXECUTION-ENGINE-BEST-PRACTICES.md` | `51-EXECUTION-ENGINE-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `52-DATA-ENGINEERING-BEST-PRACTICES.md` | `52-DATA-ENGINEERING-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `53-TESTING-BEST-PRACTICES.md` | `53-TESTING-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `54-PERFORMANCE-BEST-PRACTICES.md` | `54-PERFORMANCE-BEST-PRACTICES.md` | TBD | `NOT STARTED` |
+| `54-PERFORMANCE-BEST-PRACTICES.md` | `54-PERFORMANCE-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `55-SECURITY-AND-OPERATIONS-BEST-PRACTICES.md` | `55-SECURITY-AND-OPERATIONS-BEST-PRACTICES.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 55–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 56–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
