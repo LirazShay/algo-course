@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Advanced Order Mastery — Print Viewer</title>
+  <style id="pageStyle">@page { size: A4 portrait; margin: 12mm; }</style>
+  <style>
+    :root {
+      --font-size: 10.5pt;
+      --line-height: 1.42;
+      --space: 0.72rem;
+      --column-gap: 9mm;
+      --paper-bg: #fff;
+      --screen-bg: #ececec;
+      --ink: #171717;
+      --muted: #666;
+      --border: #c9c9c9;
+      --code-bg: #f5f5f5;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--screen-bg);
+      color: var(--ink);
+      font-family: Arial, "Noto Sans Hebrew", sans-serif;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem 0.8rem;
+      align-items: end;
+      padding: 0.7rem 0.85rem;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 5px rgba(0,0,0,.08);
+      direction: rtl;
+    }
+
+    .toolbar label {
+      display: grid;
+      gap: 0.2rem;
+      font-size: 12px;
+      color: #333;
+    }
+
+    .toolbar select,
+    .toolbar input,
+    .toolbar button {
+      font: inherit;
+      min-height: 2rem;
+    }
+
+    .toolbar select,
+    .toolbar input[type="number"] {
+      padding: 0.25rem 0.4rem;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .toolbar button,
+    .file-button {
+      padding: 0.35rem 0.65rem;
+      border: 1px solid #888;
+      border-radius: 4px;
+      background: #fafafa;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .toolbar button:hover,
+    .file-button:hover { background: #f0f0f0; }
+
+    .file-button input { display: none; }
+
+    .status {
+      flex: 1 1 100%;
+      font-size: 12px;
+      color: var(--muted);
+      direction: ltr;
+      text-align: left;
+      unicode-bidi: plaintext;
+    }
+
+    .screen-help {
+      width: min(210mm, calc(100% - 24px));
+      margin: 12px auto 0;
+      padding: 0.6rem 0.8rem;
+      background: #fffbe8;
+      border: 1px solid #e4d89b;
+      border-radius: 5px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .paper {
+      width: min(210mm, calc(100% - 24px));
+      min-height: 297mm;
+      margin: 12px auto 28px;
+      padding: 12mm;
+      background: var(--paper-bg);
+      box-shadow: 0 2px 12px rgba(0,0,0,.16);
+    }
+
+    article {
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      direction: rtl;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    article.columns-2 {
+      column-count: 2;
+      column-gap: var(--column-gap);
+      column-rule: 0.35pt solid #d7d7d7;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.18;
+      margin: calc(var(--space) * 1.45) 0 calc(var(--space) * .55);
+      break-after: avoid-page;
+      page-break-after: avoid;
+    }
+
+    h1 { font-size: 1.72em; border-bottom: 1px solid #bbb; padding-bottom: .2em; }
+    h2 { font-size: 1.38em; }
+    h3 { font-size: 1.18em; }
+    h4 { font-size: 1.06em; }
+
+    p { margin: 0 0 var(--space); }
+    ul, ol { margin: 0 0 var(--space); padding-right: 1.4em; padding-left: 0; }
+    li { margin: 0.16em 0; }
+    blockquote {
+      margin: 0 0 var(--space);
+      padding: .35em .75em;
+      border-right: 3px solid #888;
+      background: #fafafa;
+      color: #333;
+    }
+
+    pre, table, blockquote, .wide {
+      break-inside: avoid-page;
+      page-break-inside: avoid;
+    }
+
+    article.columns-2 pre,
+    article.columns-2 table,
+    article.columns-2 .span-all {
+      column-span: all;
+    }
+
+    code {
+      direction: ltr;
+      unicode-bidi: isolate;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: .92em;
+      background: var(--code-bg);
+      padding: .04em .2em;
+      border-radius: 3px;
+    }
+
+    pre {
+      direction: ltr;
+      text-align: left;
+      unicode-bidi: plaintext;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: var(--code-bg);
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: .55em .7em;
+      margin: 0 0 var(--space);
+    }
+
+    pre code { background: transparent; padding: 0; font-size: .9em; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 0 var(--space);
+      font-size: .91em;
+    }
+
+    th, td {
+      border: 1px solid #aaa;
+      padding: .28em .4em;
+      vertical-align: top;
+      text-align: start;
+    }
+
+    th { background: #f2f2f2; font-weight: 700; }
+    hr { border: 0; border-top: 1px solid #bbb; margin: calc(var(--space) * 1.2) 0; }
+    a { color: inherit; text-decoration: underline; }
+
+    .empty {
+      padding: 3rem 1rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    body[data-density="compact"] { --space: .46rem; }
+    body[data-density="normal"] { --space: .72rem; }
+    body[data-density="comfortable"] { --space: 1rem; }
+
+    @media print {
+      body { background: #fff; }
+      .toolbar, .screen-help { display: none !important; }
+      .paper {
+        width: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+      }
+      article { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body data-density="compact">
+  <div class="toolbar" aria-label="בקרות הדפסה">
+    <label>נייר
+      <select id="paperSize">
+        <option value="A4" selected>A4</option>
+        <option value="A5">A5</option>
+        <option value="Letter">Letter</option>
+      </select>
+    </label>
+
+    <label>צפיפות
+      <select id="density">
+        <option value="compact" selected>Compact</option>
+        <option value="normal">Normal</option>
+        <option value="comfortable">Comfortable</option>
+      </select>
+    </label>
+
+    <label>גודל כתב (pt)
+      <input id="fontSize" type="number" min="8" max="16" step="0.25" value="10.5">
+    </label>
+
+    <label>גובה שורה
+      <input id="lineHeight" type="number" min="1.15" max="1.9" step="0.05" value="1.42">
+    </label>
+
+    <label>שוליים (mm)
+      <input id="marginMm" type="number" min="5" max="30" step="1" value="12">
+    </label>
+
+    <label>עמודות
+      <select id="columns">
+        <option value="1" selected>1</option>
+        <option value="2">2</option>
+      </select>
+    </label>
+
+    <button id="loadManifest" type="button">טען מה־manifest</button>
+
+    <label class="file-button">פתח Markdown
+      <input id="fileInput" type="file" accept=".md,.markdown,text/markdown,text/plain">
+    </label>
+
+    <button id="downloadMd" type="button" disabled>שמור Markdown מאוחד</button>
+    <button id="printBtn" type="button">הדפס</button>
+
+    <div id="status" class="status">No course loaded.</div>
+  </div>
+
+  <div class="screen-help">
+    ‏אם הדף מוגש דרך השרת המקומי המצורף, אפשר לטעון ישירות את `source/manifest.json` ולבנות את הקורס בזיכרון לפי הסדר הקנוני. אם פתחת את הקובץ ישירות כ־`file://`, בחר את `ADVANCED-ORDER-MASTERY.md` באמצעות “פתח Markdown”.
+  </div>
+
+  <main class="paper">
+    <article id="course" class="empty">לא נטען עדיין קורס.</article>
+  </main>
+
+  <script>
+    const courseEl = document.getElementById('course');
+    const statusEl = document.getElementById('status');
+    const pageStyle = document.getElementById('pageStyle');
+    const downloadBtn = document.getElementById('downloadMd');
+    let currentMarkdown = '';
+
+    function normalizeSource(text) {
+      return text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trimEnd();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+    }
+
+    function slugify(value) {
+      return value
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/[\u200e\u200f]/g, '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, '-')
+        .replace(/^-+|-+$/g, '') || `section-${Math.random().toString(36).slice(2)}`;
+    }
+
+    function inline(text) {
+      const codes = [];
+      let value = String(text).replace(/`([^`]+)`/g, (_, code) => {
+        const key = `@@CODE${codes.length}@@`;
+        codes.push(`<code>${escapeHtml(code)}</code>`);
+        return key;
+      });
+
+      value = escapeHtml(value)
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+          const safeHref = /^(https?:|mailto:|#|\.\.?\/)/i.test(href) ? href : '#';
+          return `<a href="${escapeHtml(safeHref)}">${label}</a>`;
+        });
+
+      for (let i = 0; i < codes.length; i++) {
+        value = value.replace(`@@CODE${i}@@`, codes[i]);
+      }
+      return value;
+    }
+
+    function splitTableRow(line) {
+      let s = line.trim();
+      if (s.startsWith('|')) s = s.slice(1);
+      if (s.endsWith('|')) s = s.slice(0, -1);
+      return s.split('|').map(cell => cell.trim());
+    }
+
+    function isTableDivider(line) {
+      const cells = splitTableRow(line);
+      return cells.length > 0 && cells.every(cell => /^:?-{3,}:?$/.test(cell.replace(/\s/g, '')));
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = normalizeSource(markdown).split('\n');
+      const out = [];
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        if (!trimmed) { i++; continue; }
+
+        if (/^```/.test(trimmed)) {
+          const language = trimmed.slice(3).trim();
+          const code = [];
+          i++;
+          while (i < lines.length && !/^```/.test(lines[i].trim())) {
+            code.push(lines[i]);
+            i++;
+          }
+          if (i < lines.length) i++;
+          out.push(`<pre class="span-all"><code data-language="${escapeHtml(language)}">${escapeHtml(code.join('\n'))}</code></pre>`);
+          continue;
+        }
+
+        const heading = line.match(/^\s*(#{1,6})\s+(.+?)\s*$/);
+        if (heading) {
+          const level = heading[1].length;
+          const text = heading[2];
+          out.push(`<h${level} id="${escapeHtml(slugify(text))}" dir="auto">${inline(text)}</h${level}>`);
+          i++;
+          continue;
+        }
+
+        if (/^\s*(---+|___+|\*\*\*+)\s*$/.test(line)) {
+          out.push('<hr>');
+          i++;
+          continue;
+        }
+
+        if (trimmed.startsWith('>')) {
+          const block = [];
+          while (i < lines.length && lines[i].trim().startsWith('>')) {
+            block.push(lines[i].replace(/^\s*>\s?/, ''));
+            i++;
+          }
+          out.push(`<blockquote dir="auto">${block.map(x => `<p>${inline(x)}</p>`).join('')}</blockquote>`);
+          continue;
+        }
+
+        if (i + 1 < lines.length && line.includes('|') && isTableDivider(lines[i + 1])) {
+          const headers = splitTableRow(line);
+          i += 2;
+          const rows = [];
+          while (i < lines.length && lines[i].includes('|') && lines[i].trim()) {
+            rows.push(splitTableRow(lines[i]));
+            i++;
+          }
+          const width = Math.max(headers.length, ...rows.map(r => r.length));
+          const head = Array.from({length: width}, (_, n) => `<th dir="auto">${inline(headers[n] ?? '')}</th>`).join('');
+          const body = rows.map(row => `<tr>${Array.from({length: width}, (_, n) => `<td dir="auto">${inline(row[n] ?? '')}</td>`).join('')}</tr>`).join('');
+          out.push(`<table class="span-all"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`);
+          continue;
+        }
+
+        const ulMatch = line.match(/^\s*[-+*]\s+(.+)$/);
+        const olMatch = line.match(/^\s*\d+[.)]\s+(.+)$/);
+        if (ulMatch || olMatch) {
+          const ordered = Boolean(olMatch);
+          const tag = ordered ? 'ol' : 'ul';
+          const items = [];
+          while (i < lines.length) {
+            const match = ordered
+              ? lines[i].match(/^\s*\d+[.)]\s+(.+)$/)
+              : lines[i].match(/^\s*[-+*]\s+(.+)$/);
+            if (!match) break;
+            items.push(`<li dir="auto">${inline(match[1])}</li>`);
+            i++;
+          }
+          out.push(`<${tag}>${items.join('')}</${tag}>`);
+          continue;
+        }
+
+        const paragraph = [trimmed];
+        i++;
+        while (i < lines.length) {
+          const next = lines[i];
+          const nt = next.trim();
+          if (!nt) break;
+          if (/^```/.test(nt) || /^\s*#{1,6}\s+/.test(next) || /^\s*>/.test(next) || /^\s*[-+*]\s+/.test(next) || /^\s*\d+[.)]\s+/.test(next) || /^\s*(---+|___+|\*\*\*+)\s*$/.test(next)) break;
+          if (i + 1 < lines.length && next.includes('|') && isTableDivider(lines[i + 1])) break;
+          paragraph.push(nt);
+          i++;
+        }
+        out.push(`<p dir="auto">${inline(paragraph.join(' '))}</p>`);
+      }
+
+      return out.join('\n');
+    }
+
+    async function sha256(text) {
+      const bytes = new TextEncoder().encode(text);
+      const digest = await crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(digest)).map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function showMarkdown(markdown, originLabel, sourceCount = null) {
+      currentMarkdown = normalizeSource(markdown) + '\n';
+      courseEl.classList.remove('empty');
+      courseEl.innerHTML = renderMarkdown(currentMarkdown);
+      downloadBtn.disabled = false;
+      const hash = await sha256(currentMarkdown);
+      statusEl.textContent = `${originLabel} | sources=${sourceCount ?? 'n/a'} | chars=${currentMarkdown.length} | sha256=${hash}`;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    function sourceToUrl(source) {
+      const prefix = 'advanced-orders/';
+      if (!source.startsWith(prefix)) throw new Error(`Unexpected manifest source: ${source}`);
+      return `../${source.slice(prefix.length)}`;
+    }
+
+    async function loadFromManifest() {
+      statusEl.textContent = 'Loading canonical manifest...';
+      try {
+        const manifestResponse = await fetch('../source/manifest.json', { cache: 'no-store' });
+        if (!manifestResponse.ok) throw new Error(`manifest HTTP ${manifestResponse.status}`);
+        const manifest = await manifestResponse.json();
+        if (!Array.isArray(manifest.entries) || manifest.entries.length === 0) throw new Error('manifest.entries is empty');
+
+        const ids = new Set();
+        const sources = new Set();
+        const chunks = [];
+        for (const entry of manifest.entries) {
+          if (entry.status !== 'ready') throw new Error(`Entry ${entry.id} is not ready`);
+          if (ids.has(entry.id)) throw new Error(`Duplicate manifest id: ${entry.id}`);
+          if (sources.has(entry.source)) throw new Error(`Duplicate manifest source: ${entry.source}`);
+          ids.add(entry.id);
+          sources.add(entry.source);
+
+          const response = await fetch(sourceToUrl(entry.source), { cache: 'no-store' });
+          if (!response.ok) throw new Error(`${entry.source}: HTTP ${response.status}`);
+          const text = normalizeSource(await response.text());
+          if (!text.trim()) throw new Error(`${entry.source}: empty source`);
+          chunks.push(text);
+        }
+
+        const separator = manifest.buildPolicy?.insertSingleBlankLineBetweenEntries === true ? '\n\n' : '\n';
+        await showMarkdown(`${chunks.join(separator)}\n`, 'manifest', chunks.length);
+      } catch (error) {
+        statusEl.textContent = `Manifest load failed: ${error.message}. Use “פתח Markdown” or run serve.mjs.`;
+      }
+    }
+
+    function updatePrintSettings() {
+      const size = document.getElementById('paperSize').value;
+      const margin = Number(document.getElementById('marginMm').value || 12);
+      const font = Number(document.getElementById('fontSize').value || 10.5);
+      const line = Number(document.getElementById('lineHeight').value || 1.42);
+      const density = document.getElementById('density').value;
+      const columns = document.getElementById('columns').value;
+
+      pageStyle.textContent = `@page { size: ${size} portrait; margin: ${margin}mm; }`;
+      document.documentElement.style.setProperty('--font-size', `${font}pt`);
+      document.documentElement.style.setProperty('--line-height', line);
+      document.body.dataset.density = density;
+      courseEl.classList.toggle('columns-2', columns === '2');
+
+      const paper = document.querySelector('.paper');
+      if (size === 'A5') {
+        paper.style.width = 'min(148mm, calc(100% - 24px))';
+        paper.style.minHeight = '210mm';
+      } else if (size === 'Letter') {
+        paper.style.width = 'min(216mm, calc(100% - 24px))';
+        paper.style.minHeight = '279mm';
+      } else {
+        paper.style.width = 'min(210mm, calc(100% - 24px))';
+        paper.style.minHeight = '297mm';
+      }
+      paper.style.padding = `${margin}mm`;
+    }
+
+    document.getElementById('loadManifest').addEventListener('click', loadFromManifest);
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+    document.getElementById('fileInput').addEventListener('change', async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      await showMarkdown(await file.text(), `file:${file.name}`);
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      if (!currentMarkdown) return;
+      const blob = new Blob([currentMarkdown], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ADVANCED-ORDER-MASTERY.md';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    for (const id of ['paperSize', 'density', 'fontSize', 'lineHeight', 'marginMm', 'columns']) {
+      document.getElementById(id).addEventListener('input', updatePrintSettings);
+      document.getElementById(id).addEventListener('change', updatePrintSettings);
+    }
+
+    updatePrintSettings();
+    if (location.protocol !== 'file:') loadFromManifest();
+  </script>
+</body>
+</html>
