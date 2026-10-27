@@ -69,8 +69,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     58 — Order and Execution Subtleties
                     59 — Market Data Subtleties
                     60 — Scanner and Ranking Subtleties
+                    60A — Negative Evidence, Veto and Disqualification Engine
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 60A — Negative Evidence, Veto and Disqualification Engine
+Next Segment: 61 — Backtest Subtleties
 Source of Truth: GitHub main
 ```
 
@@ -214,9 +215,10 @@ Baseline
 | `58-ORDER-AND-EXECUTION-SUBTLETIES.md` | `58-ORDER-AND-EXECUTION-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `59-MARKET-DATA-SUBTLETIES.md` | `59-MARKET-DATA-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `60-SCANNER-AND-RANKING-SUBTLETIES.md` | `60-SCANNER-AND-RANKING-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | TBD | `NOT STARTED` |
+| `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `61-BACKTEST-SUBTLETIES.md` | `61-BACKTEST-SUBTLETIES.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 61–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 62–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
