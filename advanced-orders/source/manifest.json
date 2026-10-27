@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R4_IN_PROGRESS",
-  "repairCheckpoint": "R4C_LIQUIDITY_DISPLAY_COMPARISON_COMPLETE",
+  "repairCheckpoint": "R4D_TRIGGER_PROTECTION_COMPARISON_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -104,6 +104,12 @@
       "id": "06A",
       "title": "MIT LIT and Trailing If Touched Trigger Taxonomy",
       "source": "advanced-orders/source/06A-MIT-LIT-AND-TRAILING-TOUCHED-ORDERS.md",
+      "status": "ready"
+    },
+    {
+      "id": "06B",
+      "title": "Trigger and Dynamic Exit Decision Guide",
+      "source": "advanced-orders/source/06B-TRIGGER-AND-DYNAMIC-EXIT-DECISION-GUIDE.md",
       "status": "ready"
     },
     {
