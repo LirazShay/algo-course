@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R9_IN_PROGRESS",
-  "repairCheckpoint": "R9B_ASSEMBLER_CONTRACT_VALIDATED",
+  "repairCheckpoint": "R9C_COMPACT_PRINT_VIEWER_CREATED",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -14,7 +14,7 @@
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
     "assembler": "advanced-orders/build/assemble.mjs",
-    "reason": "R1-R8 course-source work is complete. R9A created the deterministic assembler and R9B validated its runtime contract on an isolated fixture: deterministic write/check, stale-master rejection, duplicate-id rejection, non-ready-entry rejection, and explicit write blocking while buildAllowed=false. The legacy master remains frozen until a later R9 segment explicitly enables generation and replaces it from the canonical sources; print viewer, print verification, and final repository cleanup also remain."
+    "reason": "R1-R8 course-source work is complete. R9A created the deterministic assembler, R9B validated its runtime contract on an isolated fixture, and R9C added the dependency-free compact print viewer. The legacy master remains frozen until a later R9 segment explicitly enables generation and replaces it from the canonical sources. Generated-master verification, print verification, and final repository cleanup still remain."
   },
   "assemblerValidation": {
     "state": "R9B_COMPLETE",
@@ -24,6 +24,26 @@
       "duplicate manifest id is rejected",
       "non-ready manifest entry is rejected",
       "write is rejected while generatedMaster.buildAllowed is false"
+    ]
+  },
+  "printViewer": {
+    "state": "R9C_COMPLETE",
+    "path": "advanced-orders/print/index.html",
+    "server": "advanced-orders/print/serve.mjs",
+    "externalDependencies": false,
+    "loadModes": [
+      "assemble canonical ready sources from source/manifest.json when served locally",
+      "open a generated Markdown file directly through the browser file picker"
+    ],
+    "controls": [
+      "A4/A5/Letter paper size",
+      "compact/normal/comfortable density",
+      "font size",
+      "line height",
+      "print margins",
+      "one/two column layout",
+      "print",
+      "download assembled Markdown"
     ]
   },
   "finalizationPolicy": {
