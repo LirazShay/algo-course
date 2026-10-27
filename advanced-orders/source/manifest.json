@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R2_COMPLETE",
-  "repairCheckpoint": "R2E4_PART10D_COMPLETE",
+  "repairState": "R3_IN_PROGRESS",
+  "repairCheckpoint": "R3A_SWEEP_MTL_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1 source migration and R2 structure/taxonomy normalization are complete. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
+    "reason": "R1 source migration and R2 structure/taxonomy normalization are complete. R3 missing-advanced-order repairs are in progress. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
   },
   "buildPolicy": {
     "requireAllEntriesReady": true,
@@ -44,6 +44,12 @@
       "id": "02",
       "title": "Core Execution",
       "source": "advanced-orders/source/02-CORE-EXECUTION.md",
+      "status": "ready"
+    },
+    {
+      "id": "02A",
+      "title": "Sweep to Fill and Market to Limit",
+      "source": "advanced-orders/source/02A-SWEEP-TO-FILL-AND-MARKET-TO-LIMIT.md",
       "status": "ready"
     },
     {
