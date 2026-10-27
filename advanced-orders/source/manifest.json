@@ -58,30 +58,26 @@
     {
       "id": "06",
       "title": "Stops Trailing Bracket OCA OCO and Conditional",
-      "source": null,
-      "legacyHeading": "חלק 6 — Stops",
-      "status": "pending_split"
+      "source": "advanced-orders/source/06-STOPS-BRACKET-OCA-CONDITIONAL.md",
+      "status": "ready"
     },
     {
       "id": "07",
       "title": "Routing and Broker Algos",
-      "source": null,
-      "legacyHeading": "חלק 7 — Routing",
-      "status": "pending_split"
+      "source": "advanced-orders/source/07-ROUTING-AND-BROKER-ALGOS.md",
+      "status": "ready"
     },
     {
       "id": "08",
       "title": "Cancel Replace and Execution State Machine",
-      "source": null,
-      "legacyHeading": "חלק 8 — Cancel/Replace",
-      "status": "pending_split"
+      "source": "advanced-orders/source/08-CANCEL-REPLACE-STATE-MACHINE.md",
+      "status": "ready"
     },
     {
       "id": "09",
       "title": "IBKR Capability Matrix",
-      "source": null,
-      "legacyHeading": "חלק 9 — IBKR capability matrix",
-      "status": "pending_split"
+      "source": "advanced-orders/source/09-IBKR-CAPABILITY-MATRIX.md",
+      "status": "ready"
     },
     {
       "id": "10A",
