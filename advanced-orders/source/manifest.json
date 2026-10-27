@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R4_IN_PROGRESS",
-  "repairCheckpoint": "R4H_ENTRY_EXIT_ASYMMETRY_COMPLETE",
+  "repairState": "R4_COMPLETE",
+  "repairCheckpoint": "R4I_CLOSEOUT_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1 source migration, R2 structure/taxonomy normalization, and R3 missing-advanced-order repairs are complete. R4 decision/comparison repairs are in progress. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
+    "reason": "R1 source migration, R2 structure/taxonomy normalization, R3 missing-advanced-order repairs, and R4 decision/comparison repairs are complete. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
   },
   "buildPolicy": {
     "requireAllEntriesReady": true,
@@ -182,6 +182,12 @@
       "id": "10E",
       "title": "Entry vs Exit Asymmetry Decision Guide",
       "source": "advanced-orders/source/10E-ENTRY-VS-EXIT-ASYMMETRY-DECISION-GUIDE.md",
+      "status": "ready"
+    },
+    {
+      "id": "10F",
+      "title": "Comparison Closeout Decision Checklist",
+      "source": "advanced-orders/source/10F-COMPARISON-CLOSEOUT-DECISION-CHECKLIST.md",
       "status": "ready"
     }
   ]
