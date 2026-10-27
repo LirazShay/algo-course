@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R8_IN_PROGRESS",
-  "repairCheckpoint": "R8A_BEGINNER_NAVIGATION_PROBLEM_INDEX_COMPLETE",
+  "repairCheckpoint": "R8B_CANONICAL_GLOSSARY_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1-R7 repairs are complete. R8 reference/navigation/final learning cleanup is in progress; R8A beginner navigation and Problem-to-Candidate index are complete. R9 deterministic assembly/print work remains. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented."
+    "reason": "R1-R7 repairs are complete. R8 reference/navigation/final learning cleanup is in progress; R8A beginner navigation and Problem-to-Candidate index and R8B canonical beginner-first glossary are complete. R9 deterministic assembly/print work remains. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented."
   },
   "finalizationPolicy": {
     "goal": "The final advanced-orders area is a clean printable Advanced Orders course, not a workspace dump.",
@@ -51,6 +51,7 @@
     {"id":"00","title":"Front Matter and Course Map","source":"advanced-orders/source/00-FRONT-MATTER.md","status":"ready"},
     {"id":"00B","title":"Beginner Navigation and Problem to Candidate Index","source":"advanced-orders/source/00B-BEGINNER-NAVIGATION-AND-PROBLEM-INDEX.md","status":"ready"},
     {"id":"00A","title":"Canonical Taxonomy and Vocabulary","source":"advanced-orders/source/00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md","status":"ready"},
+    {"id":"00C","title":"Canonical Beginner-First Glossary","source":"advanced-orders/source/00C-CANONICAL-GLOSSARY.md","status":"ready"},
     {"id":"01","title":"Order Language","source":"advanced-orders/source/01-ORDER-LANGUAGE.md","status":"ready"},
     {"id":"02","title":"Core Execution","source":"advanced-orders/source/02-CORE-EXECUTION.md","status":"ready"},
     {"id":"02A","title":"Sweep to Fill and Market to Limit","source":"advanced-orders/source/02A-SWEEP-TO-FILL-AND-MARKET-TO-LIMIT.md","status":"ready"},
