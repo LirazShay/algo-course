@@ -92,8 +92,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     80 — Complete Robot Architecture
                     81 — MVP Design
                     82 — Production v1 Design
+                    83 — Know by Heart vs Reference
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 83 — Know by Heart vs Reference
+Next Segment: 84 — Glossary
 Source of Truth: GitHub main
 ```
 
@@ -260,9 +261,10 @@ Baseline
 | `80-COMPLETE-ROBOT-ARCHITECTURE.md` | `80-COMPLETE-ROBOT-ARCHITECTURE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `81-MVP-DESIGN.md` | `81-MVP-DESIGN.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `82-PRODUCTION-V1-DESIGN.md` | `82-PRODUCTION-V1-DESIGN.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `83-KNOW-BY-HEART-VS-REFERENCE.md` | `83-KNOW-BY-HEART-VS-REFERENCE.md` | TBD | `NOT STARTED` |
+| `83-KNOW-BY-HEART-VS-REFERENCE.md` | `83-KNOW-BY-HEART-VS-REFERENCE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `84-GLOSSARY.md` | `84-GLOSSARY.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 84–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
