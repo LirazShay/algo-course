@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R2_IN_PROGRESS",
-  "repairCheckpoint": "R2E3_PART10C_COMPLETE",
+  "repairState": "R2_COMPLETE",
+  "repairCheckpoint": "R2E4_PART10D_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1 source migration is complete, but rebuilding the master is intentionally deferred until the deterministic assembler is implemented after the repair waves."
+    "reason": "R1 source migration and R2 structure/taxonomy normalization are complete. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining repair waves."
   },
   "buildPolicy": {
     "requireAllEntriesReady": true,
