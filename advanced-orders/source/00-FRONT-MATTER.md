@@ -28,34 +28,27 @@
 
 # ‏איך לקרוא את הקורס
 
-‏לפני Part 1 קוראים את:
+‏אם אתה חדש בתחום, אין צורך להתחיל משינון ה־Taxonomy. אחרי ה־Front Matter עוברים קודם אל:
+
+`00B-BEGINNER-NAVIGATION-AND-PROBLEM-INDEX.md`
+
+‏שם מתחילים מהשאלות הפשוטות: מה אני מנסה להשיג, איזו משפחת פקודות קשורה לבעיה, ומה כדאי ללמוד קודם.
+
+‏הקובץ:
 
 `00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`
 
-‏הוא מגדיר את שכבות ה־abstraction ואת אוצר המילים הקנוני של הקורס. במיוחד הוא מפריד בין:
+‏הוא מקור האמת של המונחים המקצועיים. חוזרים אליו כאשר צריך להבין במדויק לאיזו שכבה שייך מונח כגון `Limit`, ‏`IOC`, ‏`Post Only`, ‏`Bracket`, ‏`SMART`, ‏`Adaptive` או `MARKETABLE_LIMIT_IOC`. הוא Reference חשוב, אבל אינו מבחן כניסה לקורס.
 
-```text
-Broker Order Primitive
-Time / Fill Policy
-Display / Liquidity Attribute
-Trigger Policy
-Composite Structure
-Routing Policy
-Broker Algo
-Application Execution Mode
-Behavior Candidate
-Ownership / Implementation
-Capability / Enablement State
-```
-
-‏ההפרדה הזו חשובה משום שמונחים כמו `Limit`, ‏`IOC`, ‏`Post Only`, ‏`Bracket`, ‏`SMART`, ‏`Adaptive` ו־`MARKETABLE_LIMIT_IOC` אינם מושגים מאותה שכבה.
+‏אם כבר יש לך בעיה מסוימת — למשל “אני רוצה ניסיון ביצוע מיידי בלי להשאיר remainder”, “מי מנהל את הפקודה אחרי disconnect?” או “איך מגינים על Position?” — אפשר להתחיל ישירות ב־Problem → Candidate Index שב־`00B`, להגיע לפרק המשפחה, ואז להמשיך להשוואה, failure/safety ו־engine mapping הרלוונטיים.
 
 ---
 
-## ‏מסלול הליבה
+## ‏מסלול הליבה למתחיל
 
 ```text
-Canonical Taxonomy
+00 Front Matter
+→ 00B Beginner Navigation / Problem Index
 → Part 1: Order Language
 → Part 2: Core Execution
 → Part 3: Time / Fill Policies
@@ -68,11 +61,17 @@ Canonical Taxonomy
 → Part 10D: Full Decision Engine
 ```
 
+‏`00A` נשאר Reference קנוני לאורך כל המסלול.
+
 ‏הפרקים אינם רשימת פקודות בלבד. המטרה היא לעבור בהדרגה מ־semantics של Order בודדת אל מנוע שמסוגל לבחור, לנהל, לבטל, להחליף, לשחזר ולהגן על Orders בצורה עקבית.
 
 ---
 
 # ‏מפת הקורס
+
+## ‏`00B` — Beginner Navigation and Problem → Candidate Index
+
+‏נקודת הכניסה למתחיל: הסברים בסיסיים, prerequisites מינימליים, ושתי דרכי קריאה — מסלול לימוד רציף או התחלה מבעיה מעשית. ה־Index מפנה ממשפחה או צורך לפרקים הנכונים, אך אינו בוחר Order במקום Decision Engine.
 
 ## ‏`00A` — Canonical Taxonomy and Vocabulary
 
@@ -151,6 +150,16 @@ How does it map to our execution engine?
 ```
 
 ‏כאשר נדרשת השוואה, עדיף Decision Example שמכריע בין שתי חלופות על פני דוגמת syntax בלבד.
+
+‏כלל ההוראה הקנוני בתוצר הסופי הוא:
+
+```text
+plain language
+→ simple example
+→ professional term
+→ advanced semantics
+→ engine implication
+```
 
 ---
 
