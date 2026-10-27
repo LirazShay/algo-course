@@ -95,8 +95,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     83 — Know by Heart vs Reference
                     84 — Glossary
                     85 — Readiness Checklist
+                    85A — Market Conduct, Manipulation Prevention, Self-Trade Controls and Automated-Trading Compliance
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 85A — Market Conduct, Manipulation Prevention, Self-Trade Controls and Automated-Trading Compliance
+Next Segment: Cross-Cutting 01 — Recommended MVP
 Source of Truth: GitHub main
 ```
 
@@ -219,7 +220,7 @@ Baseline
 | `37-ADVANCED-ORDER-TACTICS.md` | `37-ADVANCED-ORDER-TACTICS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `38-QUEUE-POSITION-AND-LIMIT-ORDER-SUBTLETIES.md` | `38-QUEUE-POSITION-LIMIT-ORDER-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `39-SMART-ROUTING-VS-DIRECT-ROUTING.md` | `39-SMART-ROUTING-DIRECT-ROUTING.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-AND-ATS.md` | `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-ATS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-ATS.md` | `40-HIDDEN-RESERVE-MIDPOINT-PEGGED-ATS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `41-ADVANCED-BROKER-ALGOS.md` | `41-ADVANCED-BROKER-ALGOS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `42-OPENING-CLOSING-AUCTIONS-AND-AUCTION-ORDER-TYPES.md` | `42-OPENING-CLOSING-AUCTIONS-AUCTION-ORDER-TYPES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `43-HALTS-LULD-AND-FAST-MARKETS.md` | `43-HALTS-LULD-FAST-MARKETS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
@@ -266,13 +267,19 @@ Baseline
 | `83-KNOW-BY-HEART-VS-REFERENCE.md` | `83-KNOW-BY-HEART-VS-REFERENCE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `84-GLOSSARY.md` | `84-GLOSSARY.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `85-READINESS-CHECKLIST.md` | `85-READINESS-CHECKLIST.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` | `85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` | TBD | `NOT STARTED` |
+| `85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` | `85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 
-‏שאר ה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏כל שיעורי הקורס קיבלו כעת Recommendation Sheet. מכאן העבודה עוברת ל־Cross-Cutting packs המחויבים ב־Mandate.
 
 ---
 
 ## ‏8. Cross-Cutting Packs המחויבים ב־Mandate
+
+‏סטטוס ההתקדמות:
+
+| Pack | Recommendation Sheet | Status |
+|---|---|---|
+| Recommended MVP | `CC01-RECOMMENDED-MVP.md` | `NOT STARTED` |
 
 ‏לפני סיום הפרויקט חייבים להיווצר לפחות:
 
