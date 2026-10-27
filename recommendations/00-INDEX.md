@@ -73,8 +73,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     61 — Backtest Subtleties
                     62 — Live Trading Subtleties
                     63 — How Professionals Think About Edge
+                    64 — Professional Checklist Before Real Money
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 64 — Professional Checklist Before Real Money
+Next Segment: 65 — Classic Indicators
 Source of Truth: GitHub main
 ```
 
@@ -222,9 +223,10 @@ Baseline
 | `61-BACKTEST-SUBTLETIES.md` | `61-BACKTEST-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `62-LIVE-TRADING-SUBTLETIES.md` | `62-LIVE-TRADING-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `63-HOW-PROFESSIONALS-THINK-ABOUT-EDGE.md` | `63-HOW-PROFESSIONALS-THINK-ABOUT-EDGE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `64-PROFESSIONAL-CHECKLIST-BEFORE-REAL-MONEY.md` | `64-PROFESSIONAL-CHECKLIST-BEFORE-REAL-MONEY.md` | TBD | `NOT STARTED` |
+| `64-PROFESSIONAL-CHECKLIST-BEFORE-REAL-MONEY.md` | `64-PROFESSIONAL-CHECKLIST-BEFORE-REAL-MONEY.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `65-CLASSIC-INDICATORS.md` | `65-CLASSIC-INDICATORS.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 65–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 66–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
