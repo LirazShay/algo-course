@@ -112,8 +112,9 @@ Completed Cross-Cutting: 01 — Recommended MVP
                          14 — Recommended Observability Stack
                          15 — Recommended Production Safety
                          16 — Recommended Performance Priorities
+                         17 — Recommended Learning Loop
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: Cross-Cutting 17 — Recommended Learning Loop
+Next Segment: Cross-Cutting 18 — Recommended Path from Research to Live
 Source of Truth: GitHub main
 ```
 
@@ -311,7 +312,8 @@ Baseline
 | Recommended Observability Stack | `CC14-RECOMMENDED-OBSERVABILITY-STACK.md` | `COMPLETED` |
 | Recommended Production Safety | `CC15-RECOMMENDED-PRODUCTION-SAFETY.md` | `COMPLETED` |
 | Recommended Performance Priorities | `CC16-RECOMMENDED-PERFORMANCE-PRIORITIES.md` | `COMPLETED` |
-| Recommended Learning Loop | `CC17-RECOMMENDED-LEARNING-LOOP.md` | `NOT STARTED` |
+| Recommended Learning Loop | `CC17-RECOMMENDED-LEARNING-LOOP.md` | `COMPLETED` |
+| Recommended Path from Research to Live | `CC18-RECOMMENDED-PATH-FROM-RESEARCH-TO-LIVE.md` | `NOT STARTED` |
 
 ‏לפני סיום הפרויקט חייבים להיווצר לפחות:
 
