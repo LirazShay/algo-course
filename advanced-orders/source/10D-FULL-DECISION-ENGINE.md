@@ -1,172 +1,78 @@
-# ‏חלק 10D — Full Decision Engine: חיבור Gates, Entry, Exit ו־Protection למנוע אחד
+# ‏חלק 10D — Full Decision Engine: Orchestration, Precedence ו־Single Decision Authority
 
-> ‏מקטע עצמאי לקורס `Advanced Order Mastery`. בסוף הפרויקט הוא יאוחד חזרה למסמך הראשי.
-
----
-
-## ‏10D.1 המטרה: מנוע החלטה אחד, לא שלושה מנועים נפרדים
-
-‏אחרי `10A`, ‏`10B` ו־`10C` יש לנו שלוש שכבות שונות:
-
-```text
-10A = האם מותר לפעול ובאילו גבולות
-10B = איך להיכנס אם Entry מותרת
-10C = איך לנהל Position, Protection ו־Exit
-```
-
-‏הטעות הארכיטקטונית תהיה להפוך אותן לשלוש מערכות שמקבלות החלטות עצמאיות.
-
-‏המטרה של 10D היא לבנות Orchestrator אחד:
-
-```text
-Market State
-+ Signal State
-+ Position State
-+ Order State
-+ Capability State
-+ Risk State
-+ System Health
-→ Decision
-→ Commands
-→ Broker Events
-→ New State
-→ Decision Again
-```
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, חלק 10D מחבר את 10A, ‏10B ו־10C תחת Orchestrator יחיד. הוא מפריד בין `System Operating Mode`, ‏Semantic Decision, ‏`Application Execution Mode`, ‏`Behavior Candidate`, ‏Exit/Protection Authority ו־Broker lifecycle.
 
 ---
 
-## ‏10D.2 `Decision Engine` אינה שולחת Orders ישירות
+## ‏10D.1 המטרה: Orchestrator אחד, לא שלושה מנועים עצמאיים
 
-‏ה־Decision Engine מחזירה Intent תפעולי ברור, למשל:
+‏התפקידים נשארים נפרדים:
+
+```text
+10A = Eligibility, constraints and elimination gates
+10B = Entry mode + behavior selection
+10C = Position, protection and exit decision
+10D = Orchestration, precedence and command authority
+```
+
+‏אבל רק 10D מוסמכת להחליט איזו obligation מקבלת קדימות במחזור הנוכחי.
+
+‏הלולאה הקנונית:
+
+```text
+Events
+→ Normalize Facts
+→ Persist Facts
+→ Reduce State
+→ Build Immutable Decision Snapshot
+→ Orchestrator
+→ Relevant 10A / 10B / 10C pipeline
+→ Semantic Decision
+→ Persist Decision / Command Intent
+→ Command Dispatcher
+→ Broker
+→ New Events
+```
+
+> ‏`ENGINE INVARIANT` — Event אינה Command. ‏Callback, Timer, Scanner ו־Risk Monitor מייצרים Facts/Triggers בלבד; הם אינם שולחים fallback או replacement בעצמם.
+
+---
+
+## ‏10D.2 `Decision Engine` אינה Broker Adapter
+
+‏ה־Decision Engine מחזירה Semantic Decision, למשל:
 
 ```text
 NO_ACTION
+NO_TRADE
+DEFER
 CANCEL_ENTRY
+KEEP_ENTRY
 SUBMIT_ENTRY
-MODIFY_ENTRY
+REEVALUATE_ENTRY
 PROTECT_POSITION
 SUBMIT_EXIT
-MODIFY_EXIT
 CANCEL_EXIT
-EMERGENCY_REDUCE
 RECONCILE_ONLY
 FREEZE_NEW_RISK
 ```
 
-‏רק `Command Dispatcher` מתרגם את ה־Decision לפעולות Broker.
+‏אם נבחרה Entry/Exit לביצוע, ה־Decision נושאת גם:
 
-‏כך Decision נשארת deterministic וניתנת ל־replay, בעוד side effects מרוכזים במקום אחד.
+```text
+application_execution_mode
+behavior_candidate
+constraints
+reason_code
+```
+
+‏רק `Command Dispatcher` וה־Broker Adapter מתרגמים זאת ל־Order primitive, ‏TIF, attributes, route, broker algo ו־API fields.
 
 ---
 
-## ‏10D.3 כלל העל: Risk Reduction גוברת על Opportunity Capture
+## ‏10D.3 `System Operating Mode` אינו Semantic Action
 
-‏כאשר קיימת התנגשות בין:
-
-```text
-new profitable-looking opportunity
-```
-
-‏לבין:
-
-```text
-unknown position
-unprotected position
-cancel race
-broker unreconciled
-exit already in flight
-```
-
-‏ה־precedence היא:
-
-```text
-resolve existing risk first
-```
-
-‏זה אינו אומר לצאת מכל Position בכל תקלה; זה אומר שאסור לקחת Risk חדש לפני שה־Risk הקיים מובן.
-
----
-
-## ‏10D.4 סדר עדיפויות גלובלי
-
-‏נגדיר precedence ראשונית:
-
-```text
-P0  CAPITAL / POSITION SAFETY
-P1  BROKER TRUTH / RECONCILIATION
-P2  PROTECTION OF EXISTING POSITION
-P3  EXIT DECISION
-P4  CANCEL / INVALIDATE STALE ENTRY
-P5  ENTRY DECISION
-P6  OPTIMIZATION / PRICE IMPROVEMENT
-P7  RESEARCH / SHADOW EVALUATION
-```
-
-‏Priority גבוהה יותר יכולה לחסום נמוכה יותר.
-
----
-
-## ‏10D.5 למה Exit מקבלת Priority גבוהה יותר מ־Entry
-
-‏Entry היא Optional Risk.
-
-‏Exit היא ניהול של Risk שכבר קיים.
-
-‏לכן אם באותו Event Loop מופיעים:
-
-```text
-new BUY opportunity
-+
-existing position lost protection
-```
-
-‏המנוע אינו מתלבט איזו Opportunity טובה יותר. הוא קודם מטפל ב־Position הקיימת.
-
----
-
-## ‏10D.6 `DecisionCycle`
-
-‏כל מחזור החלטה עובד עקרונית כך:
-
-```text
-1. read immutable state snapshot
-2. validate snapshot consistency
-3. classify global operating mode
-4. resolve highest-priority obligation
-5. run relevant decision pipeline
-6. emit semantic Decision
-7. persist Decision
-8. dispatch commands
-9. wait for facts/events
-10. repeat
-```
-
-‏אין loop פנימי ששולח שוב ושוב Orders עד Fill.
-
----
-
-## ‏10D.7 Snapshot חייב להיות Immutable בתוך Decision
-
-‏אם Quote משתנה בזמן החישוב, אין משנים את האובייקט שמתחת ל־Decision.
-
-‏כל Decision מקבלת:
-
-```text
-snapshot_id
-snapshot_ts
-policy_version
-market_version
-broker_state_version
-position_version
-```
-
-‏Market חדשה מייצרת Decision חדשה.
-
----
-
-## ‏10D.8 Global Operating Modes
-
-‏נרצה state גלובלי מפורש:
+‏ה־modes הגלובליים הם:
 
 ```text
 BOOTING
@@ -179,160 +85,271 @@ EMERGENCY
 FROZEN
 ```
 
-‏מצב גלובלי קובע איזה סוג Decisions בכלל חוקי.
+‏Mode מגבילה אילו Decisions חוקיות; היא אינה בעצמה Broker command.
+
+‏לדוגמה:
+
+```text
+SystemMode = EXIT_ONLY
+Decision   = SUBMIT_EXIT
+ExitMode   = FAST_EXIT
+Behavior   = MARKETABLE_LIMIT_IOC
+```
+
+‏אלה ארבע שכבות שונות.
 
 ---
 
-## ‏10D.9 `BOOTING`
+## ‏10D.4 כלל העל: Existing Risk קודם ל־Optional Risk
+
+‏כאשר יש התנגשות בין Opportunity חדשה לבין:
+
+```text
+unknown position
+unprotected position
+cancel race
+broker unreconciled
+exit/protection already potentially executable
+```
+
+‏ה־precedence היא:
+
+```text
+resolve or contain existing risk first
+```
+
+‏Entry חדשה היא Optional Risk; Position קיימת היא Risk שכבר קיים.
+
+---
+
+## ‏10D.5 סדר עדיפויות גלובלי קנוני
+
+```text
+P0  CAPITAL / POSITION SAFETY
+P1  BROKER TRUTH / RECONCILIATION
+P2  PROTECTION OF EXISTING POSITION
+P3  EXIT DECISION / RISK REDUCTION
+P4  CANCEL / INVALIDATE STALE ENTRY
+P5  NEW ENTRY DECISION
+P6  EXECUTION OPTIMIZATION / PRICE IMPROVEMENT
+P7  RESEARCH / SHADOW EVALUATION
+```
+
+‏Priority גבוהה יכולה לדכא נמוכה יותר גם אם ה־Signal החדשה אטרקטיבית מאוד.
+
+---
+
+## ‏10D.6 `DecisionCycle`
+
+```text
+1. read immutable state snapshot
+2. validate snapshot consistency
+3. classify System Operating Mode
+4. derive obligations
+5. select highest-priority legal obligation
+6. invoke relevant 10A / 10B / 10C pipeline
+7. emit Semantic Decision
+8. persist Decision
+9. derive and persist CommandIntent if needed
+10. re-check command preconditions
+11. dispatch side effect
+12. wait for new Facts / timer trigger
+13. repeat
+```
+
+‏אין loop פנימי של “שלח שוב עד Fill”.
+
+---
+
+## ‏10D.7 Snapshot חייב להיות Immutable בתוך Decision
+
+```text
+DecisionSnapshot {
+  snapshot_id
+  snapshot_ts
+  policy_version
+  config_snapshot_id
+  market_version
+  broker_state_version
+  position_version
+  capability_snapshot_id
+  risk_version
+}
+```
+
+‏Market או Broker Fact חדשה אינה משנה Decision שכבר רצה; היא יוצרת revision חדשה.
+
+---
+
+## ‏10D.8 `BOOTING`
 
 ‏ב־Boot:
 
 ```text
-no new entry
+new entry = forbidden
 load durable state
 connect broker
 initialize identifiers
 load configuration
 start market data
+begin reconciliation
 ```
 
-‏אין משמעות ל־Signal טוב בזמן שהמערכת עדיין לא יודעת מה קיים אצל Broker.
+‏Signal חדש אינו גובר על חוסר ידיעה לגבי Broker truth.
 
 ---
 
-## ‏10D.10 `RECOVERING`
-
-‏ב־Recovery:
+## ‏10D.9 `RECOVERING`
 
 ```text
 new entries = forbidden
-position-reducing actions = conditionally allowed
-broker state = being reconciled
+position/protection actions = only under recovery policy
+broker/order/position truth = being rebuilt
 ```
 
-‏המטרה היא לעבור מ־unknown local truth ל־consistent broker truth.
+‏Recovery היא `Position-First` ו־`Ownership-First`.
+
+> ‏`ENGINE RULE` — Recovery אינה מחיה Signal או Trade Intent שפגו בזמן שהמערכת הייתה לא זמינה.
 
 ---
 
-## ‏10D.11 `READY`
+## ‏10D.10 `READY` הוא Earned State
 
-‏רק כאשר:
+‏Reconnect לבדו אינו מספיק.
+
+‏`READY` מתקבל רק לאחר שה־required invariants עברו, למשל:
 
 ```text
 broker connected
-broker reconciled
+open orders reconciled
+executions reconciled
 positions reconciled
-market data healthy
+unknown ownership classified
+protection state reconciled
+market data healthy enough
 critical capabilities valid
 risk engine healthy
 persistence healthy
 ```
 
-‏מותר לקבל Entry חדשה.
+> ‏`ENGINE INVARIANT` — `CONNECTED != READY`.
 
 ---
 
-## ‏10D.12 `ENTRY_DISABLED`
+## ‏10D.11 `ENTRY_DISABLED`
 
-‏מצב שבו המערכת בריאה מספיק לניהול Positions, אך policy חוסמת Risk חדש.
-
-‏לדוגמה:
+‏המערכת יכולה להיות בריאה מספיק לניהול Positions ועדיין לחסום Risk חדש, למשל בגלל:
 
 ```text
-session near close
-loss limit reached
+session policy
+loss/risk limit
 capability degradation
-manual risk switch
+manual risk control
+strategy disablement
 ```
 
-‏Existing Positions עדיין מנוהלות כרגיל.
+‏Existing Positions עדיין מקבלות Protection/Exit management.
 
 ---
 
-## ‏10D.13 `EXIT_ONLY`
-
-‏מצב חזק יותר:
+## ‏10D.12 `EXIT_ONLY`
 
 ```text
 no new entries
 no position increase
-only actions that maintain or reduce exposure
+allow actions that preserve or reduce existing exposure
 ```
 
-‏זה mode טבעי בזמן Data degradation או uncertainty שאינה מצדיקה shutdown מוחלט.
+‏זה Mode טבעי כאשר Entry path אינה בטוחה אך Position קיימת עדיין דורשת ניהול.
+
+---
+
+## ‏10D.13 `DEGRADED`
+
+‏`DEGRADED` אינו synonym ל־`UNKNOWN`.
+
+‏הוא System Mode שבו חלק מהיכולות אינן תקינות, אך Policy יודעת אילו actions עדיין מותרות.
+
+‏לדוגמה:
+
+```text
+one research capability disabled
+core exits still healthy
+=> DEGRADED, not necessarily FROZEN
+```
 
 ---
 
 ## ‏10D.14 `EMERGENCY`
 
-‏במצב חירום precedence משתנה:
+‏ב־Emergency:
 
 ```text
-position reduction > price optimization
+risk reduction > ordinary price optimization
 ```
 
-‏אבל גם Emergency אינה אומרת:
+‏אבל עדיין חלים:
 
 ```text
-send unlimited Market orders blindly
+reconciled quantity bounds
+existing-order overlap checks
+duplicate prevention
+session / halt awareness
+explicit emergency Economic Price Bound policy
 ```
 
-‏עדיין יש quantity guards, duplicate prevention, reconciliation ו־known-position bounds.
+‏Emergency אינה `send Market blindly`.
 
 ---
 
 ## ‏10D.15 `FROZEN`
 
-‏כאשר invariant קריטי נכשל ואיננו יודעים לפעול בבטחה:
+‏כאשר invariant קריטי נשבר ואין פעולה רגילה שניתן להצדיק בבטחה:
 
 ```text
-new side effects = blocked
-except explicitly approved safety/recovery actions
+normal new side effects = blocked
+only explicitly authorized safety/recovery actions may remain
 ```
 
-‏המנוע עובר ל־reconciliation/incident handling במקום להמשיך כאילו הכול תקין.
+‏`FROZEN` היא control state. ‏`UNKNOWN` היא epistemic state. אין לערבב ביניהן.
 
 ---
 
 ## ‏10D.16 סדר ההכרעה בתוך Symbol
 
-‏לכל Symbol אפשר להשתמש ב־precedence:
-
 ```text
-1. UNKNOWN / INCONSISTENT STATE?
-2. POSITION EXISTS?
-3. POSITION PROTECTION VALID?
-4. EXIT REQUIRED?
-5. ENTRY ORDER ALREADY LIVE?
+1. MATERIAL UNKNOWN / INCONSISTENT STATE?
+2. RECONCILED POSITION EXISTS?
+3. PROTECTION RESPONSIBILITY SATISFIED?
+4. EXIT / RISK REDUCTION REQUIRED?
+5. ENTRY ORDER ALREADY POTENTIALLY EXECUTABLE?
 6. EXISTING ENTRY STILL VALID?
-7. NEW ENTRY INTENT EXISTS?
+7. NEW / ADD / REENTRY INTENT EXISTS?
 8. RUN 10A
-9. RUN 10B
+9. RUN 10B IF ALLOWED
 ```
 
-‏כך Position קיימת לעולם אינה נבלעת בתוך לוגיקת Scanner חדשה.
+‏Position קיימת אינה נבלעת בלוגיקת Scanner חדשה.
 
 ---
 
 ## ‏10D.17 `Position First`
 
-‏אם:
+‏ה־Position vocabulary הקנוני הוא:
 
 ```text
-confirmed_position_qty > 0
+execution_ledger_position
+broker_reported_position
+reconciled_position
 ```
 
-‏המערכת קודם מריצה את `10C`.
+‏כאשר קיימת `reconciled_position` שאינה Flat, 10C מקבלת precedence לפני Entry חדשה.
 
-‏גם אם קיימת Intent להוסיף Position, ההחלטה על הגדלה מגיעה רק אחרי שה־Position הנוכחית, ה־Protection וה־Exit ownership עקביים.
+‏אם Position truth עדיין אינה reconciled, אין להשתמש ב־local quantity כאילו היא Fact סופית.
 
 ---
 
-## ‏10D.18 Entry חדשה בזמן Position קיימת היא Intent מסוג אחר
-
-‏הגדלת Position אינה אותו use case כמו Entry מ־Flat.
-
-‏נבדיל:
+## ‏10D.18 Entry חדשה, Add ו־Reentry הן Intents שונות
 
 ```text
 OPEN_NEW_POSITION
@@ -340,60 +357,53 @@ ADD_TO_POSITION
 REENTER_AFTER_EXIT
 ```
 
-‏כל אחד יכול לקבל thresholds ו־Risk Policy שונים.
+‏`ADD_TO_POSITION` אינה shortcut של Entry רגילה: היא דורשת Position/Protection/Exit ownership תקינים לפני הגדלת exposure.
+
+‏`REENTER_AFTER_EXIT` דורשת `FLAT_CONFIRMED`, לא רק local quantity אפס.
 
 ---
 
-## ‏10D.19 `Flat` חייב להיות `FLAT_CONFIRMED`
+## ‏10D.19 `FLAT_CONFIRMED` הוא Fact מורכב
 
-‏המנוע אינו מסתפק ב־:
-
-```text
-local_position_qty == 0
-```
-
-‏לפני Entry חדשה לאחר Exit נרצה לוודא שאין:
+‏נרצה לפחות:
 
 ```text
-live exit order
-cancel-pending exit
-unknown broker order
-late execution not yet reconciled
+reconciled_position == 0
+no potentially executable entry contradiction
+no potentially executable exit/protection contradiction
+no material unknown broker order
+executions reconciled
+broker position reconciled
 ```
 
-‏רק אז:
-
-```text
-position_state = FLAT_CONFIRMED
-```
+‏רק אז ניתן להתייחס ל־Symbol כ־Flat מבחינת lifecycle חדש.
 
 ---
 
-## ‏10D.20 Event אינו Command Trigger אוטומטי
+## ‏10D.20 Broker Event אינו Command Trigger אוטומטי
 
 ‏Anti-pattern:
 
 ```text
 onPartialFill -> immediately submit remainder
+onReject      -> immediately send fallback
+onCancelAck   -> immediately submit replacement
 ```
 
-‏נכון יותר:
+‏המסלול הקנוני:
 
 ```text
-onPartialFill
-→ normalize fact
-→ persist fact
-→ reduce state
-→ rerun decision engine
+event
+→ normalize Fact
+→ persist Fact
+→ reduce State
+→ trigger Decision
+→ maybe NO_ACTION
 ```
-
-‏ה־Decision החדשה יכולה לבחור retry, cancel, hold, protect או exit.
 
 ---
 
-## ‏10D.21 כל Event מה־Broker מעורר Re-evaluation
-
-‏אירועים רלוונטיים:
+## ‏10D.21 Events שמעוררים Re-evaluation
 
 ```text
 ORDER_ACK
@@ -407,199 +417,171 @@ CONNECTION_LOST
 CONNECTION_RESTORED
 POSITION_UPDATE
 CAPABILITY_CONFLICT
+MANUAL_ACTIVITY_DETECTED
+TIMER_EXPIRED
+MARKET_STATE_CHANGED
+SIGNAL_CHANGED
 ```
 
-‏אבל re-evaluation אינה בהכרח side effect חדש. לעיתים התוצאה היא `NO_ACTION`.
+‏Re-evaluation אינה הבטחה ל־side effect.
 
 ---
 
-## ‏10D.22 Market Event גם יכול לעורר Decision
-
-‏למשל:
-
-```text
-signal reversal
-quote deterioration
-spread expansion
-hard cap crossed
-market data stale
-signal expiry
-```
-
-‏אבל נרצה coalescing/debounce במקומות המתאימים כדי לא לייצר decision storm על כל tick חסר משמעות.
-
----
-
-## ‏10D.23 `Decision Trigger` ו־`Decision Reason`
+## ‏10D.22 `Decision Trigger` ו־`Decision Reason`
 
 ‏נשמור בנפרד:
 
 ```text
 trigger = BROKER_FILL
-reason = POSITION_CHANGED
+reason  = POSITION_CHANGED
 ```
 
 ‏או:
 
 ```text
-trigger = MARKET_UPDATE
-reason = ENTRY_EDGE_DECAYED
+trigger = TIMER_EXPIRED
+reason  = APPLICATION_ORDER_TTL_EXPIRED
 ```
 
-‏כך telemetry יכולה להראות אילו events באמת גורמות לשינויי execution.
+‏כך אפשר למדוד מה עורר evaluation ומה באמת שינה policy outcome.
 
 ---
 
-## ‏10D.24 Priority Queue של Obligations
-
-‏במקום שכל module שולח command, אפשר לייצר Obligations:
+## ‏10D.23 Priority Queue של Obligations
 
 ```text
 RECONCILE_BROKER
-PROTECT_POSITION
+REPAIR_PROTECTION
 REDUCE_EXPOSURE
 CANCEL_STALE_ENTRY
 MAINTAIN_VALID_EXIT
+MAINTAIN_VALID_ENTRY
 OPEN_NEW_POSITION
 IMPROVE_EXECUTION
+RUN_SHADOW_EVALUATION
 ```
 
-‏ה־Orchestrator מטפל קודם ב־obligation בעלת priority הגבוהה ביותר.
+‏ה־Orchestrator בוחר obligation בעלת precedence הגבוהה ביותר שמותר לבצע כרגע.
 
 ---
 
-## ‏10D.25 Obligation אחת יכולה לדכא אחרת
+## ‏10D.24 Obligation אחת יכולה לדכא אחרת
 
 ‏לדוגמה:
 
 ```text
-PROTECT_POSITION
+REPAIR_PROTECTION
 ```
 
-‏מדכאת זמנית:
+‏מדכאת:
 
 ```text
 OPEN_NEW_POSITION
+IMPROVE_EXECUTION
 ```
 
-‏עד שה־Protection חוזרת למצב תקין.
+‏עד ש־Protection responsibility חוזרת למצב תקין.
 
 ---
 
-## ‏10D.26 `NO_ACTION` היא Decision חוקית
-
-‏אם המצב תקין ואין הצדקה לשינוי:
+## ‏10D.25 `NO_ACTION`, ‏`NO_TRADE` ו־`DEFER` אינם אותו דבר
 
 ```text
 NO_ACTION
+=> no new side effect is required in this cycle
+
+NO_TRADE
+=> evaluated opportunity is not eligible for entry now
+
+DEFER
+=> temporary missing/uncertain fact requires a future fresh decision
 ```
 
-‏עדיף בהרבה על מנוע שמרגיש צורך לעשות Modify בכל update.
-
-‏יציבות היא תכונה מקצועית.
+‏`NO_ACTION` יכולה להיות החלטה נכונה כאשר קיימת Order תקפה שצריך להשאיר ללא שינוי.
 
 ---
 
-## ‏10D.27 `Hold` הוא מצב מפורש ב־Exit
+## ‏10D.26 `HOLD` הוא Exit Disposition מפורש
 
-‏כאשר יש Position, `HOLD` אינו absence of decision.
-
-‏הוא אומר:
+‏כאשר Position קיימת:
 
 ```text
-position remains valid
-protection is acceptable
-no exit condition currently dominates
+HOLD
+=> position remains intentionally open
+=> protection is acceptable
+=> no exit obligation currently dominates
 ```
 
-‏וכדאי לשמור את ה־reason שבגללו Hold עדיין חוקית.
+‏`HOLD` דורשת reason code; היא אינה absence of logic.
 
 ---
 
-## ‏10D.28 Re-evaluation Clock
+## ‏10D.27 Timers אינם Commands
 
-‏חלק מה־Decisions צריכות expiry גם אם אין Event חדש.
-
-‏לכן Output יכולה לכלול:
+‏ארבעת ה־clocks הקנוניים נשארים:
 
 ```text
-reevaluate_at_monotonic
+signal_ttl
+application_order_ttl
+broker_tif
+working_order_age
 ```
 
-‏למשל Passive Entry שמותר להשאיר רק 200ms.
+‏Timer של `application_order_ttl` שפג מפעיל Decision חדשה. הוא אינו מבצע Cancel ישירות מתוך scheduler.
 
 ---
 
-## ‏10D.29 Timers אינם Commands
-
-‏Timer expiry לא אומר:
+## ‏10D.28 Decision Precedence — Skeleton
 
 ```text
-cancel immediately
-```
+if system_mode == FROZEN:
+    return safety_or_recovery_decision(snapshot)
 
-‏אלא:
-
-```text
-timer expired
-→ decision trigger
-→ evaluate current state
-```
-
-‏ייתכן שה־Order כבר התמלאה, Signal השתנתה או Market חדשה מצדיקה Behavior אחר.
-
----
-
-## ‏10D.30 Decision Precedence לדוגמה
-
-```text
-if global_mode == FROZEN:
-    return recovery_or_safety_only
-
-if broker_truth_unknown:
+if material_broker_or_position_truth_unknown(snapshot):
     return RECONCILE_ONLY
 
-if position_exists:
-    if protection_invalid:
-        return PROTECT_POSITION
-    if emergency_exit_required:
-        return EMERGENCY_REDUCE
-    if fast_exit_required:
-        return FAST_EXIT
-    if normal_exit_required:
-        return NORMAL_EXIT
+if reconciled_position_exists(snapshot):
+    exit_decision = run_10C(snapshot)
+    if exit_decision.requires_action_or_hold:
+        return exit_decision
 
-if stale_entry_exists:
-    return CANCEL_ENTRY
+existing_entry_decision = evaluate_existing_entry(snapshot)
+if existing_entry_decision.requires_action:
+    return existing_entry_decision
 
-if new_entry_intent_exists:
-    envelope = run_10A()
-    if envelope.permission == ALLOW_ENTRY:
-        return run_10B(envelope)
+if system_mode != READY:
+    return NO_ACTION
 
-return NO_ACTION
+if no_new_entry_intent(snapshot):
+    return NO_ACTION
+
+envelope = run_10A(snapshot)
+if envelope.disposition != ALLOW_ENTRY:
+    return map_10A_disposition(envelope)
+
+return run_10B(snapshot, envelope)
 ```
 
-‏זה skeleton; המימוש בפועל צריך לעבוד עם state machine ולא עם כמה `if` מפוזרים.
+‏זהו contract ארכיטקטוני, לא המלצה לפזר `if` כאלה בכמה callbacks.
 
 ---
 
-## ‏10D.31 Entry Plan אינה Side Effect עד Commit Point פנימי
-
-‏נרצה flow:
+## ‏10D.29 Entry Plan אינה Side Effect עד Commit Point פנימי
 
 ```text
 decision created
 → invariants checked
-→ command intent persisted
+→ CommandIntent derived
+→ CommandIntent persisted
+→ dispatch preconditions rechecked
 → side effect dispatched
 ```
 
-‏כך crash בין Decision לשליחה ניתן לשחזור.
+‏כך crash בין Decision לשליחה נשאר ניתן לשחזור.
 
 ---
 
-## ‏10D.32 `CommandIntent` מוצע
+## ‏10D.30 `CommandIntent` קנוני
 
 ```text
 CommandIntent {
@@ -609,68 +591,66 @@ CommandIntent {
   command_type
   expected_effect
   max_qty
-  price_boundary
+  economic_price_bound
+  broker_tif
   expires_at
   preconditions
   state_version
 }
 ```
 
-‏Dispatcher שולח command רק אם preconditions עדיין תקפים.
+‏`economic_price_bound` הוא אותו מושג שנקבע ב־10A–10C; אין alias נפרד של `hard cap` ברמת Orchestrator.
 
 ---
 
-## ‏10D.33 Precondition Check רגע לפני Send
-
-‏גם אם Decision התקבלה לפני 15ms, ייתכן שכבר הגיע Fill חדש.
-
-‏לכן לפני side effect:
+## ‏10D.31 Precondition Check רגע לפני Send
 
 ```text
 is state_version still current?
-is qty budget still valid?
-is decision not expired?
-is global mode still compatible?
+is reconciled quantity budget still valid?
+is Decision still unexpired?
+is System Operating Mode still compatible?
+is required capability still enabled?
+is ownership unchanged?
 ```
 
-‏אם לא — command נזרקת וחוזרים ל־Decision חדשה.
+‏אם אחד מהם נכשל, CommandIntent אינה נשלחת ומופעל fresh decision.
 
 ---
 
-## ‏10D.34 זה מונע `Stale Decision Execution`
+## ‏10D.32 `Stale Decision Execution` היא Failure Class
 
 ‏תרחיש:
 
 ```text
-Decision says BUY 100
-before send: old order fills 60
+Decision: BUY 100
+before dispatch: old order fills 60
 ```
 
-‏בלי precondition check נוכל להגיע ל־160.
-
-‏עם version/quantity guard, command הישנה אינה נשלחת.
+‏Command guard חייב לחסום את ה־BUY הישן אם quantity/exposure assumptions השתנו.
 
 ---
 
-## ‏10D.35 Rejection Pipeline
-
-‏Broker rejection עוברת:
+## ‏10D.33 Rejection Pipeline
 
 ```text
 classify rejection
-→ update broker/order state
-→ update capability state if relevant
-→ update risk state if relevant
-→ rerun decision
+→ normalize Fact
+→ update order/broker state
+→ update capability evidence if relevant
+→ update risk/ownership if relevant
+→ fresh Decision
 ```
 
-‏אין `onReject -> send fallback` ישיר.
+‏אין:
+
+```text
+onReject -> sendFallback()
+```
 
 ---
 
-## ‏10D.36 Failure Classes
-
-‏לפחות:
+## ‏10D.34 Failure Classes
 
 ```text
 CAPABILITY_FAILURE
@@ -680,303 +660,322 @@ TEMPORARY_PROCESSING_FAILURE
 CONNECTIVITY_FAILURE
 ROUTE_FAILURE
 ORDER_ALREADY_TERMINAL
+OWNERSHIP_CONFLICT
+STATE_VERSION_CONFLICT
 UNKNOWN_FAILURE
 ```
 
-‏לכל class fallback policy שונה.
+‏כל class מקבלת `failure_destination`; destination יכולה להיות `REDECIDE`, ‏`RECONCILE`, ‏`DISABLE_CANDIDATE`, ‏`EXIT_ONLY`, ‏`FROZEN` או Incident path לפי חומרה.
 
 ---
 
-## ‏10D.37 Fallback אינה Escalation
+## ‏10D.35 `Fallback` אינה `Escalation`
 
-‏אם `MIDPRICE` אינה זמינה, fallback יכולה להיות Passive Limit — כלומר **פחות** אגרסיבית.
+### ‏Fallback
 
-‏המילה fallback פירושה Alternative Implementation, לא בהכרח "תשלם יותר".
+‏Implementation/Capability שנבחרה אינה זמינה או נכשלה; מעדכנים Facts וחוזרים ל־Decision חדשה. החלופה יכולה להיות פחות אגרסיבית, יותר אגרסיבית או `NO_TRADE`.
+
+### ‏Escalation
+
+‏Risk/Urgency/Market state השתנו כך ש־fresh decision מצדיקה Mode אגרסיבי יותר.
+
+> ‏`ENGINE RULE` — Capability failure לבדה אינה authorization ל־Escalation.
 
 ---
 
-## ‏10D.38 Escalation דורשת אישור Economics מחדש
+## ‏10D.36 Escalation דורשת Economics מחדש
 
-‏מעבר:
+‏מעבר כגון:
 
 ```text
-PASSIVE -> ADAPTIVE -> IOC
+PASSIVE_JOIN
+→ ADAPTIVE_LIMIT_URGENT
+→ MARKETABLE_LIMIT_IOC
 ```
 
-‏מותר רק אם כל שלב חדש עבר שוב:
+‏אפשרי רק אחרי fresh evaluation של:
 
 ```text
 signal validity
-remaining edge
-remaining life
-position/exposure state
-hard cap
+remaining signal life
+remaining executable edge
+reconciled position/exposure
+Economic Price Bound
 exit feasibility
+capability state
 ```
 
 ---
 
-## ‏10D.39 Escalation Budget גלובלי ל־Intent
-
-‏נשמור:
+## ‏10D.37 Escalation Budget גלובלי ל־Intent
 
 ```text
 attempt_count
 total_elapsed_ms
 cumulative_price_concession
 cancel_replace_count
-broker_algo_count
+broker_algo_restart_count
 ```
 
-‏כל Decision חדשה רואה את התקציב שכבר נצרך.
+‏כל Decision חדשה רואה את התקציב המצטבר שכבר נצרך.
 
 ---
 
-## ‏10D.40 `Opportunity Supersession`
-
-‏כאשר Scanner מוצא מניה טובה יותר:
+## ‏10D.38 `Opportunity Supersession`
 
 ```text
-new opportunity does not erase old execution risk
+new opportunity != old execution risk disappeared
 ```
 
-‏Flow נכון:
+‏Flow:
 
 ```text
 mark old intent SUPERSEDED
-cancel old entry if needed
-reconcile late fills
+request cancellation if required
+keep old order in exposure budget until terminal evidence
+apply/reconcile any late fills
 protect/exit any resulting position
-release confirmed capital
+release only confirmed-safe capital
 then evaluate new opportunity
 ```
 
 ---
 
-## ‏10D.41 Capital Allocation היא State, לא חישוב רגעי
-
-‏נשמור:
+## ‏10D.39 Capital Allocation היא State
 
 ```text
 confirmed_cash_available
 reserved_for_live_orders
+reserved_for_cancel_requested_orders
 reserved_for_cancel_pending_orders
 reserved_for_unknown_orders
 capital_locked_in_positions
 ```
 
-‏כך "כל ההון למניה המובילה" אינו יוצר double allocation בזמן מעבר בין Symbols.
+‏כך מעבר מהיר בין Symbols אינו יוצר double allocation.
 
 ---
 
-## ‏10D.42 Cross-Symbol Arbitration
+## ‏10D.40 Cross-Symbol Arbitration מגיעה אחרי Eligibility
 
-‏אם כמה Symbols כשירות יחד, arbitration מגיעה **אחרי** שכל אחת עברה Gates.
-
-‏ה־Scanner יכול לבחור את Opportunity המועדפת, אבל Execution Engine עדיין בודקת:
-
-```text
-capital available?
-old exposure released?
-new symbol exit feasible?
-```
-
-‏בחירה יחסית בין מניות אינה עוקפת Safety Gates.
-
----
-
-## ‏10D.43 אין `Score` גלובלי גם בשכבת Arbitration
-
-‏אפשר להשתמש בדירוג Strategy כדי לבחור Opportunity, אך predicates של Risk/Execution אינן נכנסות למשחק סכימה שמאפשר למניה חזקה "לפצות" על state מסוכן.
-
-‏Flow:
+‏הסדר הוא:
 
 ```text
 filter eligible
-then rank survivors
+→ verify capital / exposure / exit feasibility
+→ rank surviving opportunities
 ```
 
 ‏ולא:
 
 ```text
 rank everything
-then hope top candidate is safe
+→ hope the winner is executable and safe
 ```
+
+‏Strategy ranking אינה עוקפת Risk/Execution gates.
 
 ---
 
-## ‏10D.44 Position Protection ו־Exit Ownership משתלבים ב־Orchestrator
+## ‏10D.41 `Single Decision Authority`
 
-‏אם Broker Stop חיה והמנוע רוצה Dynamic Exit:
+‏Scanner, Broker Adapter, Timer, Market Data handler ו־Risk Monitor מייצרים Events/Facts.
+
+‏רק Decision Engine/Orchestrator מייצרת Semantic Action.
+
+> ‏`ENGINE INVARIANT` — אין callback שמחליטה בעצמה `cancel`, ‏`replace`, ‏`retry`, ‏`fallback` או `escalate`.
+
+---
+
+## ‏10D.42 `Single Exit Authority`
+
+‏בכל רגע יש authority אחת בלבד שיוזמת **intentional position reduction**:
 
 ```text
-10C defines handoff protocol
-10D decides when handoff is allowed
+ExitAuthority =
+  NONE
+  LOCAL_ENGINE
+  RECOVERY_CONTROLLER
 ```
 
-‏Orchestrator אינה שולחת Exit חדשה לפני ש־ownership rules מאפשרות זאת.
-
----
-
-## ‏10D.45 `EXIT_OWNER`
-
-‏נחזיק state מפורש:
+‏Protection Authority נשמרת בנפרד:
 
 ```text
-BROKER_PROTECTION
-LOCAL_DYNAMIC_EXIT
-HANDOFF_TO_LOCAL
-HANDOFF_TO_BROKER
-EMERGENCY_CONTROLLER
-NONE_FLAT
-UNKNOWN
+ProtectionAuthority =
+  NONE
+  BROKER_PROTECTION
+  BROKER_BRACKET
+  LOCAL_PROTECTION
 ```
 
-‏`UNKNOWN` חוסמת כל פעולה שעלולה ליצור double exit עד reconciliation.
+‏Broker Protection עדיין יכולה להיות physically executable בזמן Handoff; לכן `Single Exit Authority` אינה טענה שרק Order אחת יכולה להתבצע.
 
 ---
 
-## ‏10D.46 Handoff היא Transaction לוגית
+## ‏10D.43 Handoff בין Exit ו־Protection Authorities אינו Atomic
 
-‏מעבר Broker → Local יכול להיות:
+‏ה־protocol:
 
 ```text
-1. decide local exit required
-2. compute potentially executable broker protection
-3. cancel/resize protection as policy requires
-4. treat pending-cancel as still executable
-5. submit only safe local qty
-6. reconcile fills from both paths
-7. confirm final position
+1. decide local exit is required
+2. inspect reconciled position
+3. inspect potentially executable protection/exits
+4. derive safe overlap/quantity budget
+5. request cancel/resize if policy requires
+6. treat pending cancel as still executable
+7. submit only quantity that remains safe under worst case
+8. reconcile executions from all paths
+9. earn FLAT_CONFIRMED or establish new protection state
 ```
 
-‏הפרטים תלויים Mode, אבל לעולם אין assumption שה־Stop "כבר לא קיימת" רק כי ביקשנו לבטל.
+‏אין רגע קסום שבו `cancel requested` הופך Protection ללא־קיימת.
 
 ---
 
-## ‏10D.47 `Emergency` יכולה לשנות Handoff Policy
+## ‏10D.44 Emergency יכולה לשנות Handoff Policy — לא את Invariants
 
-‏במצב רגיל אפשר לחכות יותר ל־cancel confirmation.
+‏ב־Emergency Policy יכולה להרשות `OVERLAPPED_REPLACEMENT`/overlap מוגבל אם קיים quantity budget מפורש.
 
-‏במצב Emergency ייתכן שה־Risk Policy תאפשר overlap מוגבל ומחושב, אבל רק תחת bound מפורש:
+‏אבל:
 
 ```text
-worst_case_exit_fill <= known_position + allowed_emergency_tolerance
+worst_case_total_exit_qty
 ```
 
-‏זו capability מתקדמת, לא V1 default.
+‏עדיין חייב להיות תחום מול `reconciled_position` וה־risk policy.
 
 ---
 
-## ‏10D.48 Reconciliation יכולה לקטוע כל Decision
+## ‏10D.45 Reconciliation יכולה לקטוע כל Plan
 
-‏אם במהלך Decision cycle מתגלה mismatch:
+‏אם מופיעה evidence כגון:
 
 ```text
 position mismatch
-unknown order
+unknown broker order
 execution correction
+manual activity
 broker reconnect
+ownership conflict
 ```
 
-‏ה־current plan מתבטלת ומצב עובר ל־reconciliation.
+‏Plan קיימת יכולה להפוך invalid ומצב עובר ל־reconciliation.
 
-‏Correctness גוברת על completion של Plan קודמת.
+‏Completion של Plan ישנה אינה חשובה יותר מ־current truth.
 
 ---
 
-## ‏10D.49 `Decision Invalidation`
-
-‏לכל Decision יהיו conditions שמבטלות אותה לפני send או במהלך working state:
+## ‏10D.46 `Decision Invalidation`
 
 ```text
 signal invalidated
-hard cap violated
+Economic Price Bound invalidated
 state revision changed
 position changed
 capability changed
-system mode changed
-market data stale
+System Operating Mode changed
+market data became stale
+ownership changed
+application_order_ttl expired
 ```
 
-‏זה עדיף מ־Decision שחיה עד timeout בלבד.
+‏Decision יכולה להתבטל לפני dispatch או בזמן working lifecycle.
 
 ---
 
-## ‏10D.50 Full Decision Matrix
+## ‏10D.47 Full Decision Matrix
 
-| Global/Position State | Signal | Protection | Action Class |
+| System / Position State | Signal / Obligation | Protection | Semantic Decision |
 |---|---|---|---|
-| `RECOVERING` | כל מצב | לא ידוע | `RECONCILE_ONLY` |
+| `RECOVERING` | כל מצב | לא ידוע/לא reconciled | `RECONCILE_ONLY` או safety action לפי Risk |
 | `FROZEN` | כל מצב | כל מצב | Safety/Recovery בלבד |
-| `READY`, Flat | אין Signal | N/A | `NO_ACTION` |
-| `READY`, Flat | Signal תקף | N/A | `10A -> 10B` |
-| Flat + stale live entry | Signal מת | N/A | `CANCEL_ENTRY` |
-| Position קיימת | Signal חיובי | תקינה | `HOLD` או Add Policy נפרדת |
-| Position קיימת | weakening | תקינה | `NORMAL_EXIT` candidate |
-| Position קיימת | reversal | תקינה | `FAST_EXIT` candidate |
-| Position קיימת | emergency risk | כל מצב | `EMERGENCY_REDUCE` |
-| Position קיימת | כל Signal | protection חסרה | `PROTECT_POSITION` לפני Entry חדשה |
-| Position קיימת | כל מצב | ownership unknown | `RECONCILE_ONLY` |
-| `EXIT_ONLY` | Signal Entry חדש | N/A | Reject Entry |
-| `ENTRY_DISABLED` | Signal Entry חדש | N/A | Reject Entry |
+| `READY`, `FLAT_CONFIRMED` | אין Entry Intent | N/A | `NO_ACTION` |
+| `READY`, `FLAT_CONFIRMED` | Entry Intent תקף | N/A | `10A → 10B` |
+| Flat + stale live entry | Signal פג/בוטל | N/A | `CANCEL_ENTRY` |
+| Position קיימת | Hold condition | תקינה | `HOLD` / `NO_ACTION` |
+| Position קיימת | normal exit condition | תקינה | `EXECUTE_EXIT + NORMAL_EXIT` |
+| Position קיימת | fast exit condition | תקינה | `EXECUTE_EXIT + FAST_EXIT` |
+| Position קיימת | hard risk / emergency | כל מצב | `EXECUTE_EXIT + EMERGENCY_REDUCE` |
+| Position קיימת | Protection חסרה | חסרה | `PROTECT_POSITION` / risk reduction |
+| Position קיימת | ownership materially unknown | לא ידוע | `RECONCILE_ONLY` |
+| `EXIT_ONLY` | Entry Intent חדש | N/A | `NO_TRADE` / Entry denied by mode |
+| `ENTRY_DISABLED` | Entry Intent חדש | N/A | `NO_TRADE` / Entry denied by policy |
 
 ---
 
-## ‏10D.51 מטריצת Entry Behavior בתוך ה־Engine
+## ‏10D.48 Entry Modes ו־Behavior Candidates בתוך Orchestrator
 
-| Context | Behavior candidates |
-|---|---|
-| ‏Spread צר + urgency גבוהה | `MARKETABLE_LIMIT_IOC`, `ADAPTIVE_URGENT` |
-| ‏Spread רחב + זמן קיים | `MIDPRICE`, `SNAP_MIDPOINT`, Passive |
-| ‏Passive intent + Quotes זזות | `RELATIVE_PRIMARY` |
-| ‏Passive בלבד | `POST_ONLY` אם capability מאומתת |
-| ‏Signal כמעט פג | `IOC` או `NO_TRADE` |
-| ‏Depth חלשה | Size reduction / partial policy / `NO_TRADE` |
+‏דוגמאות בלבד, לאחר ש־10A כבר אישרה Entry:
 
-‏ה־matrix אינה עוקפת 10A; היא מופעלת רק אחרי Gates.
-
----
-
-## ‏10D.52 מטריצת Exit Behavior בתוך ה־Engine
-
-| Exit State | Behavior candidate |
-|---|---|
-| ‏Signal נחלש אבל Risk נשלט | `NORMAL_EXIT` |
-| ‏Reversal ברור / time budget קצר | `FAST_EXIT` |
-| ‏Risk חריג / protection failure | `EMERGENCY_REDUCE` |
-| ‏Process survivability נדרשת | `STOP_BACKSTOP` |
-| ‏Static broker-managed plan מתאים | `BROKER_BRACKET` |
-| ‏Dynamic exit + broker backstop | `HYBRID_PROTECTION` |
-
-‏הבחירה תמיד מתייחסת ל־actual position ול־potentially executable exits.
+| Context | Application Execution Mode | Behavior Candidates אפשריות |
+|---|---|---|
+| ‏Spread צר + urgency גבוהה | `AGGRESSIVE_CAPPED` | `MARKETABLE_LIMIT_IOC` |
+| ‏Spread רחב + זמן קיים | `MIDPOINT_SEEKING` | `MIDPRICE`, `SNAP_MIDPOINT`, `PEGGED_MIDPOINT_DIRECT` |
+| ‏Passive intent + quote migration | `BROKER_MANAGED` / `PASSIVE` | `RELATIVE_PRIMARY`, `PASSIVE_JOIN` |
+| ‏Passive-only economics | `PASSIVE` | `PASSIVE_POST_ONLY` אם capability מאומתת |
+| ‏Signal כמעט פג | `AGGRESSIVE_CAPPED` או none | `MARKETABLE_LIMIT_IOC` או `NO_TRADE` |
+| ‏Depth חלשה | לפי survivors | size reduction / partial policy / `NO_TRADE` |
 
 ---
 
-## ‏10D.53 Pseudocode מלא — Top Level
+## ‏10D.49 Exit Modes, Behaviors ו־Protection Architectures אינם אותה Matrix
+
+### ‏Exit Execution Modes
+
+```text
+NORMAL_EXIT
+FAST_EXIT
+EMERGENCY_REDUCE
+```
+
+### ‏Behavior Candidates אפשריות
+
+```text
+PASSIVE_JOIN
+RELATIVE_PRIMARY
+MIDPRICE
+ADAPTIVE_LIMIT_NORMAL
+ADAPTIVE_LIMIT_URGENT
+MARKETABLE_LIMIT_IOC
+```
+
+### ‏Protection Architectures / Mechanisms
+
+```text
+CLIENT_MANAGED_EXIT
+BROKER_BRACKET
+HYBRID_PROTECTION
+STOP_BACKSTOP
+```
+
+‏10C מחברת ביניהם לפי Position, Risk, Capability ו־Authority. אין enum יחיד שמערבב את שלושת הצירים.
+
+---
+
+## ‏10D.50 Pseudocode — Top Level
 
 ```text
 function decide(snapshot):
     validate_snapshot(snapshot)
 
-    mode = classify_global_mode(snapshot)
+    system_mode = classify_system_mode(snapshot)
 
-    if mode == FROZEN:
-        return decide_frozen_actions(snapshot)
+    if system_mode == FROZEN:
+        return decide_safety_or_recovery(snapshot)
 
     if requires_reconciliation(snapshot):
         return RECONCILE_ONLY
 
-    if snapshot.position.exists:
-        exit_decision = run_exit_pipeline(snapshot)
-        if exit_decision.requires_action:
+    if has_reconciled_position(snapshot):
+        exit_decision = run_10C(snapshot)
+        if exit_decision.requires_action_or_hold:
             return exit_decision
 
-    stale_entry_action = evaluate_existing_entry(snapshot)
-    if stale_entry_action.requires_action:
-        return stale_entry_action
+    existing_entry = evaluate_existing_entry(snapshot)
+    if existing_entry.requires_action:
+        return existing_entry
 
-    if mode not in [READY]:
+    if system_mode != READY:
         return NO_ACTION
 
     if not snapshot.intent.new_entry:
@@ -984,43 +983,43 @@ function decide(snapshot):
 
     envelope = run_10A(snapshot)
 
-    if envelope.permission != ALLOW_ENTRY:
-        return map_permission_to_decision(envelope)
+    if envelope.disposition != ALLOW_ENTRY:
+        return map_10A_disposition(envelope)
 
     return run_10B(snapshot, envelope)
 ```
 
 ---
 
-## ‏10D.54 Pseudocode — Exit Pipeline
+## ‏10D.51 Pseudocode — Exit Pipeline
 
 ```text
-function run_exit_pipeline(snapshot):
-    if exit_ownership_unknown(snapshot):
+function run_10C(snapshot):
+    if exit_or_protection_ownership_unknown(snapshot):
         return RECONCILE_ONLY
 
-    if protection_missing(snapshot):
-        return PROTECT_POSITION
+    if protection_responsibility_unsatisfied(snapshot):
+        return PROTECT_POSITION_OR_REDUCE
 
     if emergency_condition(snapshot):
-        return plan_emergency_reduce(snapshot)
+        return plan_exit(EMERGENCY_REDUCE, snapshot)
 
     if fast_exit_condition(snapshot):
-        return plan_fast_exit(snapshot)
+        return plan_exit(FAST_EXIT, snapshot)
 
     if normal_exit_condition(snapshot):
-        return plan_normal_exit(snapshot)
+        return plan_exit(NORMAL_EXIT, snapshot)
 
     return HOLD
 ```
 
 ---
 
-## ‏10D.55 Pseudocode — Existing Entry
+## ‏10D.52 Pseudocode — Existing Entry
 
 ```text
 function evaluate_existing_entry(snapshot):
-    if no_live_entry(snapshot):
+    if no_potentially_executable_entry(snapshot):
         return NO_ACTION
 
     if signal_invalid(snapshot):
@@ -1029,17 +1028,17 @@ function evaluate_existing_entry(snapshot):
     if entry_constraints_violated(snapshot):
         return CANCEL_ENTRY
 
-    if ttl_expired(snapshot):
+    if application_order_ttl_expired(snapshot):
         return REEVALUATE_ENTRY
 
     return KEEP_ENTRY
 ```
 
-‏`REEVALUATE_ENTRY` אינה `MODIFY_ENTRY` אוטומטית; היא חוזרת ל־10A/10B.
+‏`REEVALUATE_ENTRY` אינה `MODIFY_ENTRY`; היא חוזרת ל־fresh 10A/10B decision.
 
 ---
 
-## ‏10D.56 Pseudocode — Command Guard
+## ‏10D.53 Pseudocode — Command Guard
 
 ```text
 function dispatch(command_intent, latest_state):
@@ -1049,8 +1048,14 @@ function dispatch(command_intent, latest_state):
     if command_intent.state_version != latest_state.version:
         reject_locally(STATE_CHANGED)
 
+    if ownership_changed(command_intent, latest_state):
+        reject_locally(OWNERSHIP_CHANGED)
+
     if violates_quantity_budget(command_intent, latest_state):
         reject_locally(EXPOSURE_CHANGED)
+
+    if capability_no_longer_enabled(command_intent, latest_state):
+        reject_locally(CAPABILITY_CHANGED)
 
     persist_command_intent(command_intent)
     send_to_broker(command_intent)
@@ -1058,77 +1063,48 @@ function dispatch(command_intent, latest_state):
 
 ---
 
-## ‏10D.57 Invariants גלובליים
+## ‏10D.54 Global Invariants
 
 ```text
-never increase risk while broker truth is unknown
-never apply the same execution twice
+never increase risk while material broker/position truth is unknown
+never apply the same execution fact twice
 never assume pending cancel is dead
-never submit entry beyond current exposure budget
-never submit exit beyond safe position/ownership bounds
-never allow hard price boundary to widen implicitly
+never submit entry beyond current exposure/capital budget
+never submit exit beyond safe position/authority budget
+never widen Economic Price Bound implicitly
 never let expired signal create new entry
 never let capability failure auto-escalate aggression
-never call FLAT until broker/execution state is reconciled
+never call FLAT_CONFIRMED before reconciliation
+never let callback/timer/adapter bypass Single Decision Authority
 ```
 
 ---
 
-## ‏10D.58 Invariant של `Single Decision Authority`
+## ‏10D.55 `No Hidden Escalation`
 
-‏Scanner, Broker Adapter, Timer ו־Risk Monitor יכולים לייצר Events.
+‏שינוי מ־Passive ל־Aggressive, הגדלת Size, הרחבת `Economic Price Bound`, שינוי ל־immediate TIF או מעבר ל־different broker algo חייבים להופיע ב־Decision Trace כבחירה חדשה.
 
-‏רק Decision Engine מייצרת semantic action.
-
-‏כך נמנע:
-
-```text
-Timer sends cancel
-Broker callback sends replacement
-Scanner sends new entry
-Risk module sends exit
-```
-
-‏במקביל ללא תיאום.
+‏Adapter אינו רשאי “לעזור” על דעת עצמו.
 
 ---
 
-## ‏10D.59 Invariant של `Single Exit Authority`
-
-‏בכל רגע:
-
-```text
-exactly one authority controls intentional position reduction
-```
-
-‏Broker protection יכולה עדיין להיות physically executable בזמן handoff, ולכן state יכולה להיות transitional — אבל intentional ownership נשאר מפורש.
-
----
-
-## ‏10D.60 Invariant של `No Hidden Escalation`
-
-‏שינוי מ־Passive ל־Aggressive, הגדלת Size, הרחבת Cap או החלפת TIF למיידית חייבים להופיע ב־Decision Trace כבחירה חדשה.
-
-‏אסור שהם להתרחש בתוך Adapter או error handler בלי Decision חדשה.
-
----
-
-## ‏10D.61 Decision Trace מלאה
+## ‏10D.56 `DecisionTrace`
 
 ```text
 DecisionTrace {
   decision_id
   parent_decision_id
   trigger
-  reason
+  reason_code
   snapshot_id
   policy_version
-  global_mode
+  system_mode
   obligations_considered
-  gates
-  candidates
-  selected_action
-  selected_behavior
+  gate_results
+  candidates_considered
+  selected_disposition
+  application_execution_mode
+  selected_behavior_candidate
   constraints
   rejected_alternatives
   command_ids
@@ -1136,27 +1112,23 @@ DecisionTrace {
 }
 ```
 
-‏כך אפשר לחקור שרשרת של Decisions, לא רק Order בודדת.
+‏כך ניתן לשחזר שרשרת Decisions ולא רק Order בודדת.
 
 ---
 
-## ‏10D.62 Parent Decision ID
-
-‏Fallback או re-evaluation יכולה להיות מקושרת ל־Decision הקודמת:
+## ‏10D.57 Parent Decision ו־Revision Chain
 
 ```text
-D101 passive entry
-D102 cancel after TTL, parent=D101
-D103 IOC retry after fresh gates, parent=D102
+D101 = PASSIVE_JOIN attempt
+D102 = CANCEL_ENTRY after application TTL, parent=D101
+D103 = fresh MARKETABLE_LIMIT_IOC decision, parent=D102
 ```
 
-‏זה מאפשר לראות אם execution הידרדרה דרך יותר מדי שלבים לפני Fill.
+‏D103 אינה “שלב של D101”; היא Decision חדשה המקושרת היסטורית אליה.
 
 ---
 
-## ‏10D.63 Decision Outcome
-
-‏לאחר שה־lifecycle מתקדם נשמור Outcome:
+## ‏10D.58 Decision Outcome
 
 ```text
 FILLED_FULL
@@ -1171,11 +1143,37 @@ EMERGENCY_EXITED
 UNKNOWN_RECOVERED
 ```
 
-‏ומקשרים אותו ל־Decision שהולידה את ה־Command.
+‏Partial Fill אינה terminal continuation instruction; היא Fact שמייצרת Position/remaining-intent state חדשה.
 
 ---
 
-## ‏10D.64 Metrics ברמת Decision Engine
+## ‏10D.59 Execution Quality ו־Trade Outcome הם שני מדדים שונים
+
+### ‏Execution Quality
+
+```text
+time_to_useful_fill
+price_improvement
+slippage_vs_bound
+partial_fill_quality
+cancel_latency
+stale_fill_incidence
+exit_completion_latency
+```
+
+### ‏Trade Outcome
+
+```text
+subsequent_price_move
+holding_period_result
+net_pnl_or_edge_realization
+```
+
+‏Order יכולה לקבל Execution Quality טובה ועדיין להשתייך ל־Trade גרועה, ולהפך.
+
+---
+
+## ‏10D.60 Metrics ברמת Decision Engine
 
 ```text
 decisions_per_signal
@@ -1189,78 +1187,80 @@ entry_to_exit_transition_ms
 protection_repair_count
 fallback_count
 escalation_count
-NO_ACTION rate
-NO_TRADE rate
+NO_ACTION_rate
+NO_TRADE_rate
+DEFER_rate
 ```
 
-‏יותר Decisions אינן בהכרח טובות יותר; churn הוא משהו שצריך למדוד.
+‏Decision churn הוא metric שצריך למדוד, לא מטרה.
 
 ---
 
-## ‏10D.65 Metrics של Quality
+## ‏10D.61 Safety / Correctness Metrics
 
 ```text
-net_edge_by_selected_behavior
-missed_move_by_NO_TRADE_reason
-fill_quality_by_entry_regime
-exit_quality_by_exit_mode
 unprotected_time_ms
 late_fill_incidents
 double_exit_prevented_count
+double_exit_incidents
+orphan_order_incidents
 state_mismatch_incidents
 recovery_time_ms
+ready_reentry_failures
+capability_runtime_conflicts
 ```
-
-‏כך Decision Engine נמדדת גם בכלכלה וגם ב־correctness.
 
 ---
 
-## ‏10D.66 Acceptance Tests — Orchestrator
+## ‏10D.62 Acceptance Tests — Orchestrator
 
 ```text
-1. healthy flat + valid signal -> 10A then 10B
-2. expired signal -> no entry
-3. open position + new signal -> exit/protection precedence first
-4. unprotected position -> protection before new risk
+1. healthy FLAT_CONFIRMED + valid signal -> 10A then 10B
+2. expired signal -> no new entry
+3. open position + new signal -> position/protection precedence first
+4. unprotected position -> protection/risk reduction before new risk
 5. broker unreconciled -> reconcile only
 6. stale entry -> cancel before replacement
-7. partial entry fill -> protect position + re-evaluate remainder
+7. partial entry fill -> protect/reconcile position + fresh decision for remainder
 8. IOC zero fill -> fresh re-decision, no blind retry
 9. broker reject -> capability/reason update, no direct fallback
-10. cancel pending old entry blocks unsafe new entry
-11. superseded symbol waits for safe capital release
-12. dynamic exit with broker stop follows ownership handoff
-13. late stop fill during local exit is reconciled
-14. connection loss during entry -> freeze new risk
+10. cancel-pending old entry blocks unsafe new entry
+11. superseded symbol waits for confirmed-safe capital release
+12. dynamic exit with broker protection follows authority handoff
+13. late protection fill during local exit is reconciled
+14. connection loss during entry -> no new risk
 15. reconnect with live orders -> recovery before READY
 16. state changes between decision and send -> command blocked
 17. timer fires after order already filled -> no stale cancel side effect
-18. duplicate broker event -> no duplicate decision side effect
-19. kill switch -> no new entries, exits still allowed by policy
-20. emergency mode -> risk reduction outranks price improvement
+18. duplicate broker event -> no duplicate business side effect
+19. kill switch -> no new entries; safety exits remain policy-controlled
+20. emergency mode -> risk reduction outranks price optimization
+21. manual activity -> ownership/reconciliation before automated mutation
+22. capability failure -> candidate disabled/redecision, not hidden aggression
 ```
 
 ---
 
-## ‏10D.67 Property Tests
+## ‏10D.63 Property Tests
 
 ```text
 unknown broker truth must never increase allowed exposure
 invalidating a signal must never produce a new entry
 reducing capability set must never create hidden aggressive fallback
-increasing confirmed position must not increase allowed new entry qty under fixed limit
-adding pending-cancel qty must not increase free exposure budget
-hard cap must never widen without a new economic decision
-FROZEN mode must never emit normal entry command
-EXIT_ONLY mode must never increase position
-FLAT_CONFIRMED requires no potentially executable exit/entry contradiction
+adding potentially executable qty must not increase free exposure budget
+Economic Price Bound must never widen without fresh economic decision
+FROZEN must never emit normal entry command
+EXIT_ONLY must never increase position
+FLAT_CONFIRMED requires reconciled zero position and no material executable contradiction
+partial fill must always produce a new decision state
+manual ownership change must invalidate incompatible automation decisions
 ```
 
 ---
 
-## ‏10D.68 Simulation / Replay Test
+## ‏10D.64 Deterministic Replay
 
-‏נרצה להזין stream היסטורי של:
+‏נרצה להזין:
 
 ```text
 market events
@@ -1270,63 +1270,57 @@ partial fills
 cancel races
 rejections
 connection events
+manual activity events
+capability changes
 ```
 
 ‏ולדרוש:
 
 ```text
-same event stream + same config
-=> same decisions + same command intents
+same normalized event stream
++ same config/policy versions
+=> same reduced state
+=> same semantic decisions
+=> same command intents
 ```
-
-‏זה תנאי חשוב ליכולת לבצע RCA אמיתי.
 
 ---
 
-## ‏10D.69 Fault Injection
-
-‏לפני Production נרצה להזריק בכוונה:
+## ‏10D.65 Fault Injection
 
 ```text
 delayed ack
-duplicate fill callback
-out-of-order-like observations
-lost connection
+duplicate execution callback
 late fill after cancel
-rejected child
+child rejection
+broker disconnect/reconnect
 stale market data
 position mismatch
+unknown broker order
 capability rejection
 persistence failure
+manual position change during automation
 ```
 
-‏ולוודא שהמנוע נכנס ל־safe state במקום לאלתר.
+‏המטרה היא להוכיח safe state transitions, לא Happy Path בלבד.
 
 ---
 
-## ‏10D.70 V1 — מה באמת צריך לממש קודם
+## ‏10D.66 V1 — Core קטן בכוונה
 
-‏למרות כל העומק, V1 יכולה להיות פשוטה יחסית אם נשמור את הגבולות הנכונים:
+‏V1 אינה צריכה להפעיל כל advanced order שלמדנו.
 
 ```text
-Global modes
-10A gates
-4 entry behaviors
-3 exit modes
-broker stop backstop
-single state reducer
+System Operating Modes
+10A elimination gates
+single reducer
+single orchestrator
 single command dispatcher
 reconciliation service
 durable decision/command/execution log
 ```
 
-‏לא צריך לממש כל Order Type ביום הראשון.
-
----
-
-## ‏10D.71 V1 Entry Behaviors
-
-‏כמו ב־10B:
+### ‏Entry Behaviors ראשוניות
 
 ```text
 PASSIVE_JOIN
@@ -1335,159 +1329,164 @@ ADAPTIVE_LIMIT_URGENT
 MARKETABLE_LIMIT_IOC
 ```
 
-‏מספיקות כדי להשוות ארבע פילוסופיות שונות בלי להעמיס יותר מדי complexity.
-
----
-
-## ‏10D.72 V1 Exit Behaviors
+### ‏Exit Modes
 
 ```text
-NORMAL_EXIT_CAPPED
-FAST_EXIT_CAPPED
+NORMAL_EXIT
+FAST_EXIT
 EMERGENCY_REDUCE
+```
+
+### ‏Exit Behaviors ראשוניות
+
+```text
+PASSIVE_JOIN where still legal
+ADAPTIVE_LIMIT_URGENT
+MARKETABLE_LIMIT_IOC
+```
+
+### ‏Protection בסיסית
+
+```text
 STOP_BACKSTOP
 ```
 
-‏עם Hybrid רק לאחר שה־handoff tests מוכחים.
+‏`BROKER_BRACKET` ו־`HYBRID_PROTECTION` אינן נכנסות ל־Production רק משום שהן עשירות יותר; הן דורשות acceptance evidence ל־partial fills, ownership, reconnect ו־handoff.
 
 ---
 
-## ‏10D.73 למה `Bracket` לא חייבת להיות V1 למרות החשיבות שלה
+## ‏10D.67 Decision Engine אינה Strategy
 
-‏Bracket היא capability חשובה מאוד להגנה, אבל אם partial-fill semantics, reconnect ו־ownership עדיין לא עברו acceptance tests, עדיף לא להכניס אותה ל־Production רק משום שהיא עשירה יותר.
+‏היא אינה מחליטה איזו מניה צפויה לעלות הכי מהר.
 
-‏אפשר להתחיל ב־protective Stop ברורה ופשוטה יותר ולפתח Bracket/Hybrid לאחר שה־state machine יציבה.
-
----
-
-## ‏10D.74 Decision Engine אינה Strategy
-
-‏המנוע אינו מחליט איזו מניה צפויה לעלות הכי מהר.
-
-‏הוא מחליט:
+‏היא מקבלת Strategy Intent ושואלת:
 
 ```text
-Given this strategy intent,
-what execution risk is allowed,
-what action is legal now,
-and which execution behavior best expresses the intent?
+what action is legal now?
+what existing risk must be handled first?
+what execution constraints apply?
+which behavior best expresses the current intent?
 ```
 
-‏ההפרדה הזו מאפשרת להחליף Scanner בלי לשכתב Broker lifecycle.
+---
+
+## ‏10D.68 Decision Engine אינה Capability Resolver
+
+‏Capability Resolver עונה:
+
+```text
+which candidates are eligible in this product/route/API/account/session scope?
+```
+
+‏הוא **מסנן** Candidates; הוא אינו בוחר winner.
+
+‏Decision Engine בוחרת רק מתוך survivors.
 
 ---
 
-## ‏10D.75 Decision Engine אינה Broker Adapter
+## ‏10D.69 Decision Engine אינה Broker Adapter
 
-‏היא גם אינה יודעת איך בדיוק IBKR מייצגת כל field.
-
-‏ה־Adapter אחראי ל־:
+‏Broker Adapter אחראי ל־:
 
 ```text
-IBKR order construction
+concrete broker order construction
 API calls
-callbacks
-error normalization
-capability discovery
+callback normalization
+broker error normalization
+runtime capability evidence
 ```
 
-‏וה־Decision Engine פועלת בשפה עסקית של Execution.
+‏ה־Adapter אינו מחליט Strategy, escalation או fallback.
 
 ---
 
-## ‏10D.76 Architecture מלאה
+## ‏10D.70 Architecture מלאה — Orchestrator במרכז
 
 ```text
 Scanner / Strategy
       ↓
 Trade Intent
       ↓
-Decision Context Builder
-      ↓
-10A Eligibility + Gates
-      ↓
-10B Entry Selector / 10C Exit Selector
-      ↓
-10D Orchestrator + Precedence
-      ↓
-Semantic Decision
-      ↓
-Command Intent
-      ↓
-Command Dispatcher
-      ↓
-IBKR Adapter
-      ↓
-Broker / Venues
-      ↓
-Normalized Events
-      ↓
-Event Store + Reducer
-      ↓
-Position / Order / Risk State
-      └──────────────→ Decision Context Builder
+Normalized Facts + Reducer ───────────────┐
+      ↓                                   │
+Immutable Decision Snapshot              │
+      ↓                                   │
+10D Orchestrator                          │
+      ├── 10A Eligibility / Gates         │
+      ├── 10B Entry Selection             │
+      └── 10C Exit / Protection Decision  │
+      ↓                                   │
+Semantic Decision                         │
+      ↓                                   │
+Command Intent                            │
+      ↓                                   │
+Command Dispatcher                        │
+      ↓                                   │
+Broker Adapter                            │
+      ↓                                   │
+Broker / Venues                           │
+      ↓                                   │
+Normalized Events ────────────────────────┘
 ```
 
-‏זו הלולאה השלמה.
+‏כך 10D אינה “אחרי” 10A/10B/10C; היא ה־authority שמחליטה מתי ואיזו מהן להפעיל.
 
 ---
 
-## ‏10D.77 Practitioner Secrets — Full Decision Engine
+## ‏10D.71 Practitioner Rules — Full Decision Engine
 
 ### ‏1. רוב הבאגים המסוכנים אינם בחירת Order Type
 
-‏הם Ownership, timing, stale state ו־duplicate side effects.
+‏הם ownership, timing, stale state, overlap ו־duplicate side effects.
 
-### ‏2. `NO_ACTION` היא אחת ההחלטות החשובות ביותר
+### ‏2. `NO_ACTION` היא Decision חשובה
 
-‏מנוע טוב אינו משנה Orders רק כי הגיע tick חדש.
+‏מנוע טוב אינו משנה Order רק מפני שהגיע tick חדש.
 
 ### ‏3. Priority גוברת על Optimization
 
-‏Protection ו־Reconciliation באות לפני price improvement.
+‏Reconciliation, Protection ו־Risk reduction קודמות ל־price improvement.
 
 ### ‏4. Event אינה הוראה
 
-‏Event משנה Facts; Decision Engine מחליטה מה לעשות עם העובדות החדשות.
+‏Event משנה Facts; Decision Engine מחליטה.
 
 ### ‏5. Timer אינה הוראה
 
-‏Expiry מעורר re-evaluation, לא side effect עיוור.
+‏Expiry מעורר re-evaluation.
 
-### ‏6. Fallback אינה בהכרח Aggression
+### ‏6. Fallback אינה Aggression
 
 ‏Alternative יכולה להיות פחות אגרסיבית או `NO_TRADE`.
 
 ### ‏7. Decision יכולה להתיישן לפני Send
 
-‏לכן state-version precondition היא guard קריטי.
+‏לכן state-version, quantity, ownership ו־capability preconditions קריטיים.
 
-### ‏8. Flat היא עובדה שדורשת Reconciliation
+### ‏8. Flat הוא State שצריך להרוויח
 
-‏לא ערך Boolean שמישהו בקוד איפס.
+‏לא Boolean מקומי.
 
-### ‏9. Capital Reservation חייבת לראות Orders לא־סופיות
+### ‏9. Capital Reservation רואה גם Orders לא־סופיות
 
-‏אחרת מעבר מהיר בין מניות יוצר double allocation.
+‏אחרת transition בין Symbols יוצר double allocation.
 
-### ‏10. Single Decision Authority מפחיתה Race Conditions
+### ‏10. `Single Decision Authority` מפחיתה Race Conditions
 
 ‏Modules מדווחים Facts; Orchestrator אחד מחליט.
 
-### ‏11. Complexity צריכה להיכנס רק עם Evidence
+### ‏11. `Single Exit Authority` אינה מבטלת Broker Protection
 
-‏State Machine טובה עם ארבע Behaviors עדיפה על עשרים Order Types שלא ניתן להסביר או לשחזר.
+‏היא מגדירה מי יוזם intentional reduction; Protection Authority ו־potentially executable Orders עדיין מנוהלות בנפרד.
 
-### ‏12. Production Engine היא מערכת שמצליחה גם כאשר היא אינה יודעת
+### ‏12. Production Engine צריכה לדעת לומר `UNKNOWN`
 
-‏`UNKNOWN` מוביל ל־reconciliation/freeze, לא לניחוש.
+‏`UNKNOWN` מוביל ל־reconciliation, degraded policy או freeze בהתאם לחומרה — לא לניחוש.
 
 ---
 
 # ‏Checkpoint — סוף חלק 10D
 
-‏ב־10D חיברנו את `10A`, ‏`10B` ו־`10C` למנוע החלטה אחד: Global Operating Modes, precedence של Risk/Recovery/Protection/Exit/Entry, immutable snapshots, semantic Decisions, command preconditions, re-evaluation במקום blind retry, capital reservation, cross-symbol arbitration, exit ownership, decision traces, pseudocode, matrices, invariants, acceptance tests ו־fault injection.
+‏10D מאחדת את 10A, ‏10B ו־10C תחת Orchestrator יחיד עם precedence ברור: Safety ו־Broker Truth לפני Protection, ‏Exit לפני Entry, ו־Optimization רק לאחר שכל החובות הגבוהות יותר סגורות. ‏System Operating Mode, Semantic Decision, ‏Execution Mode, ‏Behavior Candidate, ‏Exit Authority, ‏Protection Authority ו־Broker lifecycle נשארים dimensions נפרדים.
 
-‏העיקרון המרכזי הוא: **Event משנה את המציאות; Reducer מעדכן State; Decision Engine מחליטה; Dispatcher מבצע. אף שכבה אחרת אינה שולחת fallback או escalation באופן עצמאי.**
-
-‏עם החלק הזה, חלק 10 הושלם מבחינת התכנון המקצועי. השלב הבא בפרויקט יהיה `Final Full-Course Review` בקובץ נפרד: מעבר שיטתי על הקורס כולו כדי לזהות חוסרים, כפילויות, הסברים לא ברורים, מקומות שחסר בהם `Why / When / Why Not`, השוואות שחסרות ודוגמאות שצריך להוסיף לפני האיחוד הסופי.
+‏העיקרון המסכם: **Events משנים Facts; Reducer בונה State; Orchestrator מחליט; Dispatcher מבצע. שום callback, timer, capability failure או broker rejection אינם רשאים לעקוף את Single Decision Authority.**
