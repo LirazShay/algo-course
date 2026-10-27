@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R5_IN_PROGRESS",
-  "repairCheckpoint": "R5A_ENGINE_MAPPING_REGISTRY_COMPLETE",
+  "repairCheckpoint": "R5B_FAILURE_OUTCOME_CONTRACTS_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -158,6 +158,12 @@
       "id": "09B",
       "title": "Engine Mapping and Candidate Registry",
       "source": "advanced-orders/source/09B-ENGINE-MAPPING-AND-CANDIDATE-REGISTRY.md",
+      "status": "ready"
+    },
+    {
+      "id": "09C",
+      "title": "Failure Destinations and Outcome Contracts",
+      "source": "advanced-orders/source/09C-FAILURE-DESTINATIONS-AND-OUTCOME-CONTRACTS.md",
       "status": "ready"
     },
     {
