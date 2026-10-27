@@ -80,8 +80,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     68 — Market Regimes and Context
                     69 — News, Events and Corporate Actions
                     70 — Short Selling and Borrow
+                    71 — Account Mechanics and Regulations
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 71 — Account Mechanics and Regulations
+Next Segment: 72 — Fees, Tax and Accounting Awareness
 Source of Truth: GitHub main
 ```
 
@@ -236,9 +237,10 @@ Baseline
 | `68-MARKET-REGIMES-AND-CONTEXT.md` | `68-MARKET-REGIMES-AND-CONTEXT.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `69-NEWS-EVENTS-AND-CORPORATE-ACTIONS.md` | `69-NEWS-EVENTS-AND-CORPORATE-ACTIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `70-SHORT-SELLING-AND-BORROW.md` | `70-SHORT-SELLING-AND-BORROW.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | TBD | `NOT STARTED` |
+| `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `72-FEES-TAX-AND-ACCOUNTING-AWARENESS.md` | `72-FEES-TAX-AND-ACCOUNTING-AWARENESS.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 72–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 73–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
