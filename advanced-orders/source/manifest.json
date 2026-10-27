@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R4_IN_PROGRESS",
-  "repairCheckpoint": "R4F_ROUTING_POLICY_COMPARISON_COMPLETE",
+  "repairCheckpoint": "R4G_MODIFY_REPLACE_REPRICING_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -134,6 +134,12 @@
       "id": "08",
       "title": "Cancel Replace and Execution State Machine",
       "source": "advanced-orders/source/08-CANCEL-REPLACE-STATE-MACHINE.md",
+      "status": "ready"
+    },
+    {
+      "id": "08A",
+      "title": "Modify Replace and Repricing Decision Guide",
+      "source": "advanced-orders/source/08A-MODIFY-REPLACE-AND-REPRICING-DECISION-GUIDE.md",
       "status": "ready"
     },
     {
