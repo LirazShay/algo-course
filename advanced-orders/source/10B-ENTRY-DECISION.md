@@ -1,58 +1,84 @@
-## ‏10B — Entry Decision: בחירת התנהגות הביצוע בפועל
+## ‏10B — Entry Decision: בחירת `Execution Mode` ו־`Behavior Candidate`
+
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, חלק 10B אינו בוחר "Order Type" מתוך רשימה שטוחה. הוא מקבל `EntryEnvelope` מ־10A, בוחר `Application Execution Mode`, בוחר מתוכו `Behavior Candidate`, ורק לאחר מכן נבנה `Concrete Broker Order Plan`.
+
+---
 
 ## ‏10B.1 הקלט של 10B הוא `EntryEnvelope`, לא Signal גולמי
 
-‏10B מתחילה רק אחרי ש־10A כבר קבעה שה־Opportunity כשירה עקרונית ל־Entry. הקלט כולל גבולות שכבר אסור ל־Entry Selector לשבור:
+‏10B מתחילה רק אחרי ש־10A כבר קבעה שה־Opportunity כשירה עקרונית ל־Entry.
 
 ```text
 EntryEnvelope {
-  permission
+  disposition              // ALLOW_ENTRY
   side
   max_qty
-  hard_price_boundary
-  max_wait_ms
+  economic_price_bound
+  max_application_order_ttl_ms
   remaining_signal_life_ms
   partial_fill_policy
   required_protection
-  allowed_capabilities
+  allowed_behavior_candidates
+  capability_requirements
   economic_constraints
   liquidity_constraints
 }
 ```
 
-‏10B אינה רשאית "להתרשם" מחדש ממומנטום ולחרוג מה־cap, מה־size או מה־Risk שהוגדרו ב־10A.
+> ‏`ENGINE RULE` — 10B אינה רשאית לחרוג מ־`economic_price_bound`, ‏`max_qty`, ‏Risk או Capability constraints שנקבעו ב־10A.
 
 ---
 
 ## ‏10B.2 הפלט הוא `EntryPlan`, לא Broker Order אחת
 
-‏נרצה Output ברמה סמנטית:
-
 ```text
 EntryPlan {
-  behavior
+  application_execution_mode
+  behavior_candidate
   quantity
+  economic_price_bound
   price_policy
   liquidity_intent
-  routing_policy
-  broker_algo_policy
-  tif_policy
-  application_ttl_ms
+  routing_plan
+  broker_algo_plan
+  broker_tif
+  application_order_ttl_ms
   partial_fill_policy
   escalation_policy
   cancel_conditions
   protection_policy
-  selection_reason
+  selection_reason_code
 }
 ```
 
-‏רק Adapter מאוחר יותר מתרגם את ה־Plan לשדות הספציפיים של IBKR.
+‏ה־Adapter מתרגם את ה־Plan ל־Broker Primitive, attributes, TIF, route ו־algo parameters.
+
+‏דוגמה:
+
+```text
+ApplicationExecutionMode = AGGRESSIVE_CAPPED
+BehaviorCandidate        = MARKETABLE_LIMIT_IOC
+Broker Primitive         = LMT
+Broker TIF               = IOC
+Routing Policy           = SMART
+Limit                    = Economic Price Bound
+```
 
 ---
 
-## ‏10B.3 Candidate Set ראשוני
+## ‏10B.3 `Application Execution Mode` ו־`Behavior Candidate` אינם אותו דבר
 
-‏ל־core research שלנו רשימת behaviors אפשרית יכולה להיות:
+‏ה־Mode מתאר את אופי הביצוע ברמה סמנטית:
+
+```text
+PASSIVE
+PRICE_IMPROVING
+MIDPOINT_SEEKING
+BROKER_MANAGED
+AGGRESSIVE_CAPPED
+```
+
+‏ה־Behavior Candidate מתאר דרך קונקרטית יותר לממש את ה־Mode:
 
 ```text
 PASSIVE_JOIN
@@ -67,24 +93,15 @@ ADAPTIVE_LIMIT_NORMAL
 MARKETABLE_LIMIT_IOC
 ```
 
-‏זו אינה רשימת העדפה. זו רשימת כלים שכל אחד פותר trade-off אחר.
+‏לדוגמה, `MIDPOINT_SEEKING` יכול להתממש באמצעות `MIDPRICE`, ‏`SNAP_MIDPOINT` או `PEGGED_MIDPOINT_DIRECT` בהתאם ל־Context ול־Capabilities.
 
 ---
 
-## ‏10B.4 10B גם היא Elimination-first
+## ‏10B.4 Candidate Set אינו Ranking
 
-‏לא נחשב:
+‏הרשימה לעיל אינה סדר עדיפויות. כל Candidate פותרת trade-off אחר.
 
-```text
-PASSIVE = 74 points
-MIDPRICE = 81 points
-IOC = 83 points
-=> IOC
-```
-
-‏קודם נסיר behaviors שאינם מתאימים ל־Context.
-
-‏לדוגמה:
+‏10B נשארת elimination-first:
 
 ```text
 remaining life too short
@@ -96,17 +113,15 @@ passive-only economics required
 midpoint capability unavailable
 => remove midpoint candidates
 
-hard cap already below current ask
+economic_price_bound cannot reach executable ask
 => remove immediately marketable candidates
 ```
 
-‏רק לאחר מכן נבחר מבין survivors.
+‏רק לאחר elimination בוחרים מבין survivors.
 
 ---
 
 ## ‏10B.5 שלושת צירי הבחירה המרכזיים
-
-‏כמעט כל Entry behavior ממוקמת על שלושה צירים:
 
 ```text
 1. PRICE IMPROVEMENT DESIRE
@@ -114,49 +129,67 @@ hard cap already below current ask
 3. CONTROL DELEGATION
 ```
 
-‏לדוגמה:
+‏דוגמה:
 
 ```text
 PASSIVE_JOIN
+mode = PASSIVE
 price improvement = high
 urgency = low
 control = client
 
 MARKETABLE_LIMIT_IOC
+mode = AGGRESSIVE_CAPPED
 price improvement = low
 urgency = very high
 control = explicit/client-defined
 
 ADAPTIVE_LIMIT_URGENT
+mode = BROKER_MANAGED
 price improvement = medium
 urgency = high
 control = partially delegated to broker
 ```
 
-‏הבחירה היא שילוב של הצירים, לא שם הפקודה.
+---
+
+## ‏10B.6 ארבעת ה־clocks נשארים נפרדים
+
+‏ב־Entry selection אסור לערבב:
+
+```text
+signal_ttl
+application_order_ttl
+broker_tif
+working_order_age
+```
+
+‏`signal_ttl` קובע כמה זמן ה־Alpha תקפה.
+
+‏`application_order_ttl` קובע כמה זמן Behavior/Order מסוימת רשאית להישאר חיה לפני re-decision.
+
+‏`broker_tif` היא semantics כגון `DAY` או `IOC`.
+
+‏`working_order_age` היא מדידה של כמה זמן Order כבר עובדת בפועל.
 
 ---
 
-## ‏10B.6 `Remaining Signal Life` הוא Budget של זמן
-
-‏נגדיר:
+## ‏10B.7 `Remaining Signal Life` הוא Budget עליון — לא TTL של Order
 
 ```text
 entry_time_budget_ms = min(
-    envelope.max_wait_ms,
+    envelope.max_application_order_ttl_ms,
     envelope.remaining_signal_life_ms - safety_reserve_ms
 )
 ```
 
-‏Behavior שאין לה סיכוי סביר לתת תוצאה בתוך ה־budget יוצאת מה־Candidate Set.
+‏Behavior שאין לה סיכוי סביר לתת Useful Fill בתוך ה־budget נפסלת.
 
-‏לכן אותו `MidPrice` יכול להיות Candidate כאשר נשארו 2 שניות, ולהיעלם כאשר נשארו 120ms.
+‏אבל כל Candidate יכולה לקבל `application_order_ttl` קצר יותר מה־budget הכולל.
 
 ---
 
-## ‏10B.7 לא כל הזמן שנותר מיועד ל־Entry
-
-‏אם Signal צפויה לחיות 1,000ms, לא בהכרח נכון לתת ל־Entry לחכות 999ms.
+## ‏10B.8 לא כל הזמן שנותר מיועד ל־Entry
 
 ‏צריך להשאיר זמן ל־:
 
@@ -167,13 +200,13 @@ exit observation
 cancel/reconciliation
 ```
 
-‏לכן `safety_reserve_ms` הוא חלק אמיתי מה־Execution Policy.
+‏לכן `safety_reserve_ms` הוא חלק מה־Execution Policy ולא slack מקרי.
 
 ---
 
-## ‏10B.8 `Expected Time to Fill` הוא Feature מחקרי
+## ‏10B.9 `Expected Time to Useful Fill` הוא Feature מחקרי
 
-‏לכל Behavior נרצה בעתיד model אמפירי:
+‏לכל Candidate נרצה להעריך:
 
 ```text
 expected_time_to_first_fill
@@ -181,25 +214,25 @@ expected_time_to_useful_fill
 probability_of_useful_fill_within_budget
 ```
 
-‏המודל יילמד לפי:
+‏לפי לפחות:
 
 ```text
 symbol/activity regime
 spread
 queue/depth
 quote velocity
-behavior
-route
+behavior candidate
+routing policy
 session
 ```
 
-‏לא צריך Machine Learning מורכב ביום הראשון; histogram אמין עדיף על ניחוש מתוחכם.
+‏Histogram אמין עדיף על model מורכב ללא Evidence.
 
 ---
 
-## ‏10B.9 Candidate שאינה יכולה לתת `Useful Fill` בזמן — נפסלת
+## ‏10B.10 Candidate שאינה יכולה לתת `Useful Fill` בזמן — נפסלת
 
-‏השאלה אינה רק:
+‏השאלה אינה:
 
 ```text
 can it fill anything?
@@ -209,20 +242,20 @@ can it fill anything?
 
 ```text
 can it plausibly produce at least minimum_useful_fill
-within entry_time_budget?
+within its application_order_ttl
+and within the remaining signal life?
 ```
-
-‏אם לא, אין טעם לבחור אותה רק מפני שהמחיר התיאורטי יפה.
 
 ---
 
-## ‏10B.10 `PASSIVE_JOIN` — ה־baseline הפסיבי הפשוט
-
-‏בקנייה:
+## ‏10B.11 `PASSIVE_JOIN` — ה־baseline הפסיבי
 
 ```text
-join existing best bid
+ApplicationExecutionMode = PASSIVE
+BehaviorCandidate = PASSIVE_JOIN
 ```
+
+‏בקנייה, הכוונה היא להצטרף ל־best bid קיים בלי ליצור אוטומטית רמת מחיר חדשה.
 
 ‏היא מתאימה כאשר:
 
@@ -234,48 +267,41 @@ signal is not escaping rapidly
 passive markout history is acceptable
 ```
 
-‏והיא פחות מתאימה כאשר missed-move cost גבוה מאוד.
+‏והיא נחלשת כאשר missed-move cost גבוה.
 
 ---
 
-## ‏10B.11 מדיניות ה־"להיצמד למוביל" שלנו הופכת ל־Policy מפורשת
+## ‏10B.12 `JOIN_EXISTING_LEVEL` היא Placement Policy, לא Order Type
 
-‏העדפה לא ליצור Price Level חדש יכולה להיות מיוצגת כ־:
+‏העדפה לא ליצור Price Level חדש מיוצגת למשל כ־:
 
 ```text
 placement_policy = JOIN_EXISTING_LEVEL
-```
-
-‏זו העדפה שנבדוק אמפירית, לא חוק שוק.
-
-‏נשמור גם:
-
-```text
 avoid_being_sole_displayed_order = true/false
 ```
 
-‏אבל אם התנאי הזה פוגע שוב ושוב ב־fill probability או net edge, הנתונים צריכים להיות מסוגלים לערער עליו.
+‏זו Policy שנבדוק אמפירית, לא חוק שוק.
 
----
-
-## ‏10B.12 להיות לבד ברמה אינו Hard Reject אוטומטי
-
-‏אם best bid נעלמה ורק Order שלנו נשארה, יש כמה אפשרויות:
+‏אם אנחנו נשארים לבד ברמה, האפשרויות הן למשל:
 
 ```text
 keep briefly
 cancel
-move to next existing level
-switch behavior
+move to another existing level
+switch behavior after fresh decision
 ```
 
-‏ההחלטה תלויה ב־Signal וב־economics. עצם העובדה שאנחנו היחידים אינה הוכחה שהמחיר רע.
+‏עצם היותנו היחידים אינה Hard Reject אוטומטי.
 
 ---
 
-## ‏10B.13 `PASSIVE_POST_ONLY` — כאשר Passive היא Constraint, לא Preference
+## ‏10B.13 `PASSIVE_POST_ONLY` — כאשר Passive היא Constraint
 
-‏אם ה־Trade כלכלית רק בתנאי שאיננו לוקחים נזילות, Candidate של Post Only מתאימה יותר מ־plain Limit.
+```text
+ApplicationExecutionMode = PASSIVE
+BehaviorCandidate = PASSIVE_POST_ONLY
+Liquidity Attribute / Constraint = POST_ONLY
+```
 
 ‏ה־semantic intent:
 
@@ -283,41 +309,30 @@ switch behavior
 add liquidity or do not execute
 ```
 
-‏היא צריכה להגיע רק כאשר route-specific capability כבר עברה Gate.
+‏היא Candidate רק לאחר route-specific capability validation.
 
 ---
 
 ## ‏10B.14 Plain Passive Limit ו־Post Only אינן אותו דבר
 
-‏Plain Limit שהייתה Passive בזמן ההחלטה יכולה להפוך marketable בזמן arrival.
+‏Plain Limit שהייתה Passive בזמן Decision יכולה להגיע marketable.
 
-‏Post Only נועדה לשמור על passive intent לפי semantics של route/venue.
+‏Post Only מנסה לשמור על passive intent לפי semantics של route/venue.
 
-‏לכן כאשר Crossing מקרי יהרוס את economics, Post Only היא Guardrail משמעותי.
+‏כאשר accidental crossing יהרוס את economics, Post Only היא guardrail. כאשר taking liquidity כבר מוצדקת, Candidate של Post Only צריכה להיעלם ולא "להתכופף".
 
 ---
 
-## ‏10B.15 Post Only נפסלת כאשר Taking Liquidity כבר מוצדקת
-
-‏אם:
+## ‏10B.15 `IMPROVE_ONE_TICK` — `PRICE_IMPROVING`, לא Modify סמוי
 
 ```text
-missed_move_cost > passive_savings
+ApplicationExecutionMode = PRICE_IMPROVING
+BehaviorCandidate = IMPROVE_ONE_TICK
 ```
 
-‏אין היגיון לבחור Post Only רק בגלל fee/rebate או מתוך הרגל.
+‏שיפור מחיר ב־tick קונה עדיפות פוטנציאלית במחיר של concession.
 
-‏Candidate צריכה להיעלם כאשר ה־Intent כבר אינו `PASSIVE_ONLY`.
-
----
-
-## ‏10B.16 `IMPROVE_ONE_TICK` היא Decision נפרדת
-
-‏שיפור Bid ב־tick אחד אינו maintenance של `PASSIVE_JOIN`.
-
-‏אנחנו קונים Priority במחיר של ויתור על חלק מה־spread.
-
-‏לכן נחשב לפחות:
+‏נבחן:
 
 ```text
 price_paid_for_priority
@@ -325,53 +340,63 @@ estimated_queue_improvement
 remaining_edge_after_improvement
 ```
 
-‏אם ה־tick הנוסף גדול מדי ביחס ל־Edge, Candidate נפסלת.
+‏אם concession פוגעת ב־Economic Price Bound או מוחקת Edge, Candidate נפסלת.
 
 ---
 
-## ‏10B.17 `RELATIVE_PRIMARY` — כאשר רוצים Passive Repricing מתמשך
-
-‏Relative מתאימה כאשר:
+## ‏10B.16 `RELATIVE_PRIMARY` — Broker-managed Repricing בתוך Bound
 
 ```text
-we still want to provide liquidity
-quote is moving enough that static join becomes stale quickly
+ApplicationExecutionMode = BROKER_MANAGED
+BehaviorCandidate = RELATIVE_PRIMARY
+```
+
+‏Candidate רלוונטית כאשר:
+
+```text
+we still want liquidity-providing behavior
+quote moves enough that static join becomes stale
 client-side cancel/replace churn is undesirable
-hard cap is clear
+economic_price_bound is clear
 signal has enough life
 ```
 
-‏היתרון הוא delegation של repricing. הסיכון הוא שה־Broker יכולה להמשיך לבצע את pricing rule גם כשה־Alpha שלנו כבר נחלש.
+‏היתרון הוא delegation של repricing. החיסרון הוא שה־Broker אינה יודעת שה־Signal שלנו נחלשה.
 
 ---
 
-## ‏10B.18 `Relative` דורשת Local Validity Watchdog
+## ‏10B.17 Broker-managed Repricing דורשת Local Validity Watchdog
 
-‏גם כאשר המחיר מנוהל חיצונית:
+‏גם כאשר המחיר מנוהל אצל Broker:
 
 ```text
 signal invalidated
 quote stale
 remaining edge below floor
-hard cap reached
+economic price bound no longer valid
 system degraded
+application_order_ttl expired
 ```
 
-‏צריכים לגרום ל־cancel/re-evaluation.
+‏מפעילים fresh decision / cancel path.
 
-‏Broker-managed repricing אינו Broker-managed strategy.
-
----
-
-## ‏10B.19 SMART Relative מקבלת Guard נוסף
-
-‏כיוון שכבר למדנו שה־SMART semantics שלה אינן בהכרח סימטריות כאשר reference נסוג, Entry Selector צריכה להתייחס ל־deterioration מפורש כ־cancel condition ולא להניח שהפקודה תמיד תחזור אוטומטית למחיר פחות אגרסיבי.
+> ‏`ENGINE RULE` — Broker-managed repricing אינה Broker-managed strategy.
 
 ---
 
-## ‏10B.20 משפחת Midpoint היא Trade על זמן מול Spread
+## ‏10B.18 SMART Relative מקבלת Guard נוסף
 
-‏המשפחה כוללת אצלנו בעיקר:
+‏כיוון ש־SMART Relative יכולה לקבל route-specific/asymmetric repricing semantics, deterioration של Intent או economics צריך להיות cancel/re-decision condition מפורש. אין להניח שה־Order תמיד תחזור לבדה למחיר פחות אגרסיבי.
+
+---
+
+## ‏10B.19 משפחת Midpoint היא Trade על זמן מול Spread
+
+```text
+ApplicationExecutionMode = MIDPOINT_SEEKING
+```
+
+‏Candidates מרכזיות:
 
 ```text
 MIDPRICE
@@ -379,47 +404,43 @@ SNAP_MIDPOINT
 PEGGED_MIDPOINT_DIRECT
 ```
 
-‏המשותף הוא ניסיון לקבל execution בתוך ה־spread.
-
-‏העלות היא uncertainty ב־fill probability וב־time-to-fill.
+‏המטרה היא price improvement בתוך ה־spread; המחיר הוא uncertainty ב־fill probability וב־time-to-fill.
 
 ---
 
-## ‏10B.21 מתי `MIDPRICE` שורדת את הסינון
+## ‏10B.20 `MIDPRICE`
 
-‏Candidate טובה כאשר:
+‏Candidate שורדת כאשר:
 
 ```text
 spread is economically meaningful
-remaining life is not tiny
+remaining life is sufficient
 half-spread saving matters
-SMART is acceptable
+SMART path is allowed
 historical midpoint fill probability is non-trivial
 ```
 
-‏והיא נפסלת כאשר הזמן שנותר קצר מדי ביחס ל־midpoint fill behavior שנמדד.
+‏היא נפסלת כאשר expected useful-fill time אינו מתאים ל־`application_order_ttl`/Signal life.
 
 ---
 
-## ‏10B.22 `SNAP_MIDPOINT` — כשאנחנו רוצים מחיר פתיחה חכם אבל לא Auto-Chase
+## ‏10B.21 `SNAP_MIDPOINT`
 
-‏Snap Midpoint מתאימה כאשר:
+‏מתאימה כאשר:
 
 ```text
 midpoint-derived initial price is attractive
 continuous repricing is undesirable
-we can enforce a short TTL
+short application_order_ttl can be enforced
 ```
 
-‏היתרון הוא determinism גבוה יותר אחרי creation.
-
-‏הסיכון הוא stale fixed price.
+‏היתרון הוא יותר determinism לאחר creation; הסיכון הוא fixed price שמתיישן.
 
 ---
 
-## ‏10B.23 `PEGGED_MIDPOINT_DIRECT` — כשאנחנו מוכנים לשלם Complexity עבור Control
+## ‏10B.22 `PEGGED_MIDPOINT_DIRECT`
 
-‏Candidate זו שורדת רק כאשר:
+‏Candidate שורדת רק כאשר:
 
 ```text
 direct destination is validated
@@ -428,81 +449,66 @@ midpoint opportunity is meaningful
 remaining life supports waiting
 ```
 
-‏אם אין hypothesis ל־Venue מסוים, `MIDPRICE` דרך SMART היא בדרך כלל baseline פשוט יותר למחקר.
+‏אם אין Venue hypothesis מוכחת, `MIDPRICE` יכולה להישאר baseline פשוטה יותר למחקר.
 
 ---
 
-## ‏10B.24 `MidPrice` ו־`Pegged Mid` לא מתחרות תמיד על אותו תפקיד
+## ‏10B.23 `MIDPRICE` ו־`PEGGED_MIDPOINT_DIRECT` אינן aliases
 
-‏`MIDPRICE` בודקת:
+‏`MIDPRICE` בודקת Broker-managed midpoint-oriented execution דרך path מתאים.
+
+‏`PEGGED_MIDPOINT_DIRECT` בודקת mechanism directed ו־destination-specific.
+
+‏לכן הן מושוות רק ב־contexts שבהם שתיהן חוקיות.
+
+---
+
+## ‏10B.24 `ADAPTIVE_LIMIT_URGENT`
 
 ```text
-Can IBKR's SMART midpoint-oriented policy find a good fill?
+ApplicationExecutionMode = BROKER_MANAGED
+BehaviorCandidate = ADAPTIVE_LIMIT_URGENT
+BrokerAlgo = Adaptive(Urgent)
+EconomicPriceBound = required
 ```
 
-‏`PEGGED_MIDPOINT_DIRECT` בודקת:
+‏היא מעניינת כאשר רוצים price improvement אם אפשר, אבל אין הרבה זמן ורוצים שה־Broker ינהל חלק מה־search.
+
+‏היא אינה synonym ל־IOC.
+
+---
+
+## ‏10B.25 `ADAPTIVE_LIMIT_NORMAL`
+
+‏Candidate שורדת רק כאשר signal life ו־time budget גדולים מספיק ביחס להתנהגות שנמדדה.
+
+‏`Adaptive Patient` נשארת כרגע `REFERENCE / RESEARCH ONLY` עבור ה־core horizon שלנו, אלא אם Evidence עתידי מצדיק פתיחתה.
+
+---
+
+## ‏10B.26 `MARKETABLE_LIMIT_IOC` — אגרסיביות תחומה
 
 ```text
-Can a specific directed midpoint mechanism outperform that delegated search?
+ApplicationExecutionMode = AGGRESSIVE_CAPPED
+BehaviorCandidate = MARKETABLE_LIMIT_IOC
+BrokerPrimitive = LMT
+BrokerTIF = IOC
 ```
 
-‏לכן נשווה ביניהן רק בתוך Regimes שבהם שתיהן חוקיות ורלוונטיות.
-
----
-
-## ‏10B.25 `ADAPTIVE_LIMIT_URGENT` — Delegated Aggressiveness תחת Cap
-
-‏זו Candidate מעניינת כאשר:
+‏ה־intent:
 
 ```text
-we want a better price than immediate crossing if possible
-but cannot wait long
-we want IBKR to manage some of the search
-hard economic cap remains mandatory
-```
-
-‏היא אינה תחליף ל־IOC; היא experiment אחר על speed/price trade-off.
-
----
-
-## ‏10B.26 `ADAPTIVE_LIMIT_NORMAL` — רק אם הזמן באמת מאפשר
-
-‏Normal יכולה לקבל מקום כאשר:
-
-```text
-remaining_signal_life is materially larger
-spread is worth working
-historical no-fill/missed-move cost is acceptable
-```
-
-‏אם Signal חי מאות מילישניות בלבד, Candidate יכולה להיפסל מראש בלי לנסות אותה.
-
----
-
-## ‏10B.27 `Adaptive Patient` אינה Core Candidate כרגע
-
-‏לא מפני שהיא כלי חלש, אלא מפני שה־time horizon הטבעי של סבלנות מוגברת אינו מתאים כברירת מחדל ל־Alpha שחיה שניות.
-
-‏אם מחקר עתידי יראה Regime איטי יותר, אפשר לפתוח אותה מחדש דרך Capability/Research config.
-
----
-
-## ‏10B.28 `MARKETABLE_LIMIT_IOC` — Candidate של Urgency גבוהה עם גבול כלכלי
-
-‏ה־semantic intent:
-
-```text
-execute whatever is available now
-within hard price cap
+execute available liquidity now
+within Economic Price Bound
 accept allowed partial
-leave no stale remainder
+leave no resting remainder from this attempt
 ```
 
-‏זו Candidate מרכזית כאשר missed-move cost גבוה וה־visible/expected liquidity בתוך cap מספיקה.
+‏זו Candidate מרכזית כאשר missed-move cost גבוה ויש נזילות מספקת בתוך ה־Bound.
 
 ---
 
-## ‏10B.29 למה `MARKETABLE_LIMIT_IOC` היא לא תמיד Winner
+## ‏10B.27 `MARKETABLE_LIMIT_IOC` אינה תמיד Winner
 
 ‏גם אם היא מהירה:
 
@@ -513,122 +519,105 @@ quote may move before arrival
 partial fill may be too small
 ```
 
-‏לכן Urgency גבוהה אינה פוטרת אותה מ־economic/depth constraints של ה־Envelope.
+‏Urgency אינה מבטלת economics, depth או exit-feasibility constraints.
 
 ---
 
-## ‏10B.30 `Market` רגילה אינה Core Entry Candidate
+## ‏10B.28 `Market` רגילה אינה Core Entry Candidate
 
-‏ב־Entry אנחנו בדרך כלל יכולים לבחור `NO TRADE`, ולכן price certainty חשובה מאוד כאשר Edge קטן.
+‏Entry יכולה להסתיים ב־`NO_TRADE`, ולכן כאשר Edge קטן אנו מעדיפים baseline אגרסיבי עם `Economic Price Bound` על פני intent ללא client-defined price boundary.
 
-‏לכן baseline שלנו מעדיף אגרסיביות תחומה:
-
-```text
-MARKETABLE_LIMIT_IOC
-```
-
-‏על פני client-side intent ללא hard price boundary.
-
-‏`Market` נשארת כלי מקצועי חשוב, במיוחד בעולם Exit/Risk, אבל לא Entry default במנוע הזה.
+‏`Market` נשארת primitive מקצועית חשובה, בעיקר בהקשר Exit/Risk; היא אינה Entry default במנוע הזה.
 
 ---
 
-## ‏10B.31 `Spread-to-Edge Ratio`
-
-‏מדד שימושי למחקר:
+## ‏10B.29 `Spread-to-Edge Ratio`
 
 ```text
 spread_to_edge_ratio = spread_cost / expected_gross_edge
 ```
 
-‏כאשר היחס גבוה, behaviors שמנסות midpoint/passive improvement מקבלות יותר הצדקה — אם הזמן מאפשר.
+‏כאשר היחס גבוה, price-improving/midpoint/passive candidates עשויות לקבל הצדקה אם הזמן מאפשר.
 
-‏כאשר היחס נמוך מאוד ו־missed-move cost גבוה, aggressive candidate יכולה להיות הגיונית יותר.
+‏כאשר היחס נמוך ו־missed-move cost גבוה, `AGGRESSIVE_CAPPED` יכולה לקבל עדיפות.
 
-‏זה Feature, לא threshold אוניברסלי.
+‏זה Feature למחקר, לא threshold אוניברסלי.
 
 ---
 
-## ‏10B.32 `Qty-to-Depth Ratio`
-
-‏נחשב למשל:
+## ‏10B.30 `Qty-to-Depth Ratio`
 
 ```text
-qty_to_visible_cap_depth = requested_qty / visible_qty_within_cap
+qty_to_visible_bound_depth = requested_qty / visible_qty_within_economic_bound
 ```
 
-‏Ratio גבוה יכול לגרום ל־:
+‏Ratio גבוה יכול להוביל ל־:
 
 ```text
 reduce size
-prefer partial IOC
-avoid immediate full-size aggression
+allow partial IOC
+remove full-size aggressive candidate
 NO_TRADE
 ```
 
-‏הוא לא אמור לגרום אוטומטית ל־wider cap.
+‏הוא לעולם אינו מרחיב אוטומטית את Economic Price Bound.
 
 ---
 
-## ‏10B.33 `Quote Velocity` משנה את ערך ה־Passive Wait
+## ‏10B.31 `Quote Velocity` משנה את ערך ה־Passive Wait
 
-‏אם Bid/Ask זזות מהר יותר מה־cancel/replace loop שלנו, Static Passive יכולה להתיישן כמעט מייד.
+‏אם ה־Book נע מהר יותר מה־client repricing loop, Static Passive יכולה להתיישן כמעט מיד.
 
-‏אז אפשר לשקול:
+‏אז אפשר לשקול, לאחר Gates:
 
 ```text
 RELATIVE_PRIMARY
-broker-managed algo
-or
-immediate capped execution
+ADAPTIVE_LIMIT_URGENT
+MARKETABLE_LIMIT_IOC
 ```
 
-‏תלוי בכיוון התנועה, spread ו־remaining life.
+‏הבחירה תלויה בכיוון, spread, remaining life, economics ו־Capabilities.
 
 ---
 
-## ‏10B.34 `Fill Probability` אינה Objective יחידה
+## ‏10B.32 Fill Probability אינה Objective יחידה
 
-‏Behavior עם 95% Fill Rate יכולה להיות גרועה אם היא מתמלאת בעיקר לפני adverse move.
+‏Behavior עם Fill Rate גבוה יכולה להיות גרועה אם היא מתמלאת בעיקר לפני adverse move.
 
-‏Behavior עם 50% Fill Rate יכולה להיות טובה יותר אם no-fills חוסכות כניסות רעילות.
-
-‏לכן selection research משווה:
+‏נשווה:
 
 ```text
 fill probability
-×
-conditional net outcome
-+
+conditional execution quality
+post-fill markout
 no-fill opportunity outcome
+missed-move cost
 ```
 
-‏ולא Fill Rate לבד.
+‏ולא Fill Rate לבדה.
 
 ---
 
-## ‏10B.35 Pairwise Dominance במקום Master Score
+## ‏10B.33 Pairwise Dominance במקום Master Score
 
-‏אחרי elimination אפשר להשתמש בכלל חזק יותר מציון מעורב:
-
-‏Candidate A `dominates` את B אם, תחת אותו Context, היא אינה גרועה יותר בממדים הקריטיים ומובהקת טוב יותר לפחות באחד:
+‏לאחר elimination, Candidate A יכולה להוציא את B אם היא אינה גרועה יותר בממדים הקריטיים וטובה יותר לפחות באחד:
 
 ```text
-price boundary
+economic price bound preservation
 expected net edge
-time budget
+useful-fill time
 risk
 capability confidence
 state complexity
 ```
 
-‏אם A dominates B, B יוצאת בלי שנצטרך להמציא weights שרירותיים.
+‏כך נמנעים ממשקלים שרירותיים בין safety, economics וזמן.
 
 ---
 
-## ‏10B.36 כאשר אין Dominance — משתמשים ב־Policy Priority מפורשת
+## ‏10B.34 כשאין Dominance — משתמשים ב־Policy Priority מפורשת
 
-‏למשל Regime יכול להגדיר סדר:
+‏לדוגמה מחקרית:
 
 ```text
 WIDE_SPREAD_WITH_TIME:
@@ -638,7 +627,7 @@ MIDPRICE
 → MARKETABLE_LIMIT_IOC
 ```
 
-‏בעוד Regime אחר:
+‏לעומת:
 
 ```text
 FAST_BREAKOUT_SHORT_LIFE:
@@ -647,13 +636,11 @@ MARKETABLE_LIMIT_IOC
 → NO_TRADE
 ```
 
-‏אלה Policies למחקר; הנתונים יחליטו אם הן נשארות.
+‏הסדר הוא `POLICY DEFAULT / RESEARCH HYPOTHESIS`, לא Fact על השוק.
 
 ---
 
-## ‏10B.37 Regime אינו Label קסם
-
-‏נעדיף Regime שנגזרת מתנאים מפורשים:
+## ‏10B.35 Regime חייבת להיות נגזרת מ־Inputs מפורשים
 
 ```text
 spread_bucket
@@ -664,11 +651,25 @@ volatility_bucket
 urgency_bucket
 ```
 
-‏כך אפשר לשחזר למה Candidate קיבלה priority ולא להסתפק ב־`regime = FAST` לא מוסבר.
+‏כך Decision ניתנת לשחזור.
 
 ---
 
-## ‏10B.38 Escalation אינה Timer שמעלה מחיר אוטומטית
+## ‏10B.36 `Fallback` ו־`Escalation` אינם אותו דבר
+
+### ‏`Fallback`
+
+‏ה־path שנבחר נכשל, נדחה או אינו זמין; מעדכנים Facts/Capability ומריצים Decision חדשה כדי למצוא חלופה.
+
+### ‏`Escalation`
+
+‏Urgency/Risk/Market state השתנו ולכן Decision חדשה עשויה לבחור Mode אגרסיבי יותר.
+
+> ‏`ENGINE RULE` — אף אחד מהם אינו shortcut של `send a more aggressive order`.
+
+---
+
+## ‏10B.37 Escalation אינה Timer שמעלה מחיר אוטומטית
 
 ‏Anti-pattern:
 
@@ -678,25 +679,20 @@ then midpoint 200ms
 then IOC automatically
 ```
 
-‏הבעיה: אחרי 400ms כבר יש Market/Signal חדשים.
-
-‏נכון יותר:
+‏המסלול הנכון:
 
 ```text
-attempt ends or checkpoint occurs
-→ update fills
+attempt/checkpoint ends
+→ update fills and order state
 → fresh market snapshot
-→ run 10A gates
-→ run 10B selection again
+→ run 10A
+→ run 10B
+→ produce a new EntryPlan or NO_ACTION/NO_TRADE
 ```
-
-‏אם יצא Behavior אגרסיבי יותר — זו Decision חדשה, לא continuation עיוור.
 
 ---
 
-## ‏10B.39 אפשר לבנות `Escalation Budget`
-
-‏גם כאשר כל שלב עובר re-evaluation, נרצה bounds מצטברים:
+## ‏10B.38 `Escalation Budget` הוא Bound מצטבר
 
 ```text
 max_attempts_per_signal
@@ -706,11 +702,11 @@ max_cancel_replace_count
 max_broker_algo_restarts
 ```
 
-‏כך Sequence של Decisions חוקיות בנפרד לא הופכת יחד ל־chase אינסופי.
+‏כך סדרה של Decisions חוקיות בנפרד אינה הופכת ל־chase בלתי מוגבל.
 
 ---
 
-## ‏10B.40 `Price Concession` צריכה להימדד מה־Reference המקורי
+## ‏10B.39 `Price Concession` נמדדת מה־Reference המקורי
 
 ‏לא רק:
 
@@ -726,24 +722,24 @@ current_limit - original_bid_or_ask
 current_limit - original_midpoint
 ```
 
-‏כך עשרה צעדים קטנים אינם מסתירים ויתור מצטבר גדול.
+‏עשרה צעדים קטנים עדיין יכולים ליצור concession מצטברת גדולה.
 
 ---
 
-## ‏10B.41 Hard Cap נשאר Hard גם אחרי כמה ניסיונות
+## ‏10B.40 `Economic Price Bound` נשאר Hard בכל ניסיון
 
-‏אין מצב שבו:
+‏אין:
 
 ```text
 we already tried three times
-so allow one more tick beyond cap
+=> allow one more tick beyond bound
 ```
 
-‏אם ה־cap השתנתה, זה חייב להגיע מ־Economic Model חדש ב־Decision חדשה — לא מ־frustration counter.
+‏Bound חדשה יכולה להגיע רק מ־fresh economic decision ב־10A, לא מ־retry counter.
 
 ---
 
-## ‏10B.42 `No Chase after Signal Decay`
+## ‏10B.41 `No Chase after Signal Decay`
 
 ‏אם Signal עוברת:
 
@@ -751,7 +747,7 @@ so allow one more tick beyond cap
 VALID -> WEAKENING
 ```
 
-‏Policy יכולה עדיין להשאיר Behavior פסיבית לזמן קצר, אבל לא בהכרח לאשר escalation.
+‏Policy יכולה לאפשר KEEP מוגבל ל־Order פסיבית, אך אינה חייבת לאשר escalation.
 
 ‏אם:
 
@@ -759,47 +755,42 @@ VALID -> WEAKENING
 VALID -> INVALIDATED
 ```
 
-‏התגובה היא Cancel/Reconcile, לא price improvement נוסף.
+‏התגובה היא cancel/reconcile. אין price concession נוספת.
 
 ---
 
-## ‏10B.43 Quote שמתרחקת מאיתנו אינה לבדה סיבה לרדוף
+## ‏10B.42 Quote שמתרחקת אינה כשלעצמה אישור לרדוף
 
-‏אם Ask עולה:
-
-```text
-20.00 -> 20.01 -> 20.02
-```
-
-‏צריך לשאול:
+‏אם Ask עולה, בודקים מחדש:
 
 ```text
-Did expected exit rise too?
-Is remaining edge still sufficient?
-Is the move signal-confirming or exhaustion?
-Can we still exit safely?
+expected exit
+remaining edge
+signal validity
+exit feasibility
+Economic Price Bound
 ```
 
-‏רק אחר כך מחיר Entry יכול להשתנות.
+‏רק fresh decision יכולה לשנות price policy.
 
 ---
 
-## ‏10B.44 `Partial Fill` מחלקת את Entry לשתי בעיות
+## ‏10B.43 `Partial Fill` היא Decision State חדשה
 
-‏אחרי Fill חלקית יש:
+‏אחרי Fill חלקית יש שתי בעיות נפרדות:
 
 ```text
 A. Position already owned
 B. Remaining desired entry
 ```
 
-‏אלה כבר לא אותה Decision.
+‏ה־Position הקיימת עוברת מיד ל־Protection/Exit responsibility; ה־remainder חוזרת ל־10A/10B.
 
-‏ה־Position הקיימת עוברת מיד לעולם ההגנה/Exit, בעוד יתרת ה־Entry חוזרת ל־Gates.
+> ‏`ENGINE RULE` — אין "continue filling the original order" כפעולה סמנטית אוטומטית לאחר Partial Fill.
 
 ---
 
-## ‏10B.45 ארבע מחלקות של Partial Fill
+## ‏10B.44 ארבע מחלקות של Partial Fill
 
 ```text
 FULL_FILL
@@ -808,15 +799,13 @@ SUBMINIMUM_PARTIAL
 DUST_PARTIAL
 ```
 
-‏הסיווג תלוי economics ולא במספר קבוע של מניות.
+‏הסיווג תלוי economics, protection ו־minimum useful position — לא במספר קבוע של מניות.
 
-‏`USEFUL_PARTIAL` יכולה להישאר Position תקפה.
-
-‏`SUBMINIMUM_PARTIAL` יכולה להצדיק החלטה לא להוסיף עוד ואף לשקול יציאה ב־10C.
+‏`USEFUL_PARTIAL` יכולה להישאר Position תקפה; ‏`SUBMINIMUM_PARTIAL` או `DUST_PARTIAL` יכולות להצדיק אי־הוספה ואף Exit decision נפרדת.
 
 ---
 
-## ‏10B.46 Retry של Remainder אינו אוטומטי
+## ‏10B.45 Retry של Remainder אינו אוטומטי
 
 ‏נניח:
 
@@ -835,187 +824,177 @@ retry 37 immediately
 ‏יש:
 
 ```text
-update position = 63
+apply execution fact
+update/reconcile position
+verify protection responsibility
 recompute remaining safe qty
 refresh signal/market/capabilities
-run gates
-select behavior for remainder if still justified
+run 10A
+run 10B if entry remains allowed
 ```
 
 ---
 
-## ‏10B.47 `Zero Fill` הוא Observation עשיר
+## ‏10B.46 `Zero Fill` ו־`Rejection` אינם אותו Outcome
 
-‏Zero Fill ב־IOC יכולה לומר:
+‏Zero Fill אומרת שה־attempt לא יצר execution בתנאים הנתונים.
+
+‏Rejection אומרת שה־Order לא נכנסה למסלול execution כפי שהתכוונו.
+
+‏לכן:
 
 ```text
-market moved beyond cap
-visible liquidity vanished
-cap was too conservative
-latency was too high
-route had no executable liquidity
+NO_FILL
+=> update market/outcome evidence
+
+REJECTED
+=> update capability/validation evidence
 ```
 
-‏Zero Fill ב־Passive אומר משהו אחר לגמרי.
-
-‏לכן `no_fill_reason` צריך להיות behavior-specific.
+‏בשני המקרים fallback, אם בכלל, עובר דרך fresh decision.
 
 ---
 
-## ‏10B.48 Broker Rejection אינה `No Fill`
+## ‏10B.47 Capability Conflict מסירה Candidate — לא בוחרת אחרת
 
-‏Rejection אומרת שה־Order לא נכנסה למסלול הביצוע כפי שהתכוונו.
+```text
+MIDPRICE -> capability conflict
+```
 
-‏No Fill אומרת שה־Order התקבלה אך לא מצאה execution בתנאים הרלוונטיים.
+‏התגובה:
 
-‏Fallback אחרי Rejection צריכה לכלול Capability update; fallback אחרי No Fill צריכה לכלול Market/Signal update.
+```text
+record scoped capability evidence
+remove MIDPRICE from eligible candidates
+run 10A/10B again
+```
+
+‏לא שולחים Candidate אגרסיבית יותר מתוך error handler.
 
 ---
 
-## ‏10B.49 Capability Conflict מסירה Candidate בזמן אמת
+## ‏10B.48 Broker-managed Behavior עדיין מקבלת `application_order_ttl`
 
-‏אם:
+‏`Relative`, ‏`MidPrice` ו־`Adaptive` יכולות להמשיך לעבוד אצל Broker ללא local repricing.
 
-```text
-MIDPRICE -> rejected as unavailable for current contract/context
-```
-
-‏אנחנו:
+‏לכן נשמור:
 
 ```text
-mark capability conflict
-remove MIDPRICE
-re-run 10A/10B
-```
-
-‏לא שולחים Candidate אגרסיבית יותר ישירות מתוך error handler.
-
----
-
-## ‏10B.50 Broker-Managed Behavior עדיין מקבלת Local TTL
-
-‏`Relative`, ‏`MidPrice` ו־`Adaptive` יכולות להמשיך לעבוד אצל Broker כאשר המנוע המקומי אינו משנה מחיר.
-
-‏לכן לכל אחת נשמור:
-
-```text
-application_ttl_ms
-signal_expiry
+signal_ttl
+application_order_ttl
+working_order_age
 cancel_conditions
 ```
 
-‏Delegation מצמצמת micro-management; היא לא מבטלת ownership של lifecycle.
+‏Delegation של HOW אינה delegation של WHETHER.
 
 ---
 
-## ‏10B.51 TTL לפי Behavior ולא רק לפי Signal
+## ‏10B.49 TTL הוא Behavior-specific
 
 ‏אותו Signal יכול לתת TTL שונה ל־Candidates:
 
 ```text
-PASSIVE_JOIN = short
-MIDPRICE = short-to-medium
-ADAPTIVE_URGENT = short
-MARKETABLE_LIMIT_IOC = immediate by TIF
+PASSIVE_JOIN             = short
+MIDPRICE                 = short-to-medium
+ADAPTIVE_LIMIT_URGENT    = short
+MARKETABLE_LIMIT_IOC     = immediate broker_tif attempt
 ```
 
-‏אבל אף TTL אינה יכולה לעבור את Signal lifetime או את `EntryEnvelope.max_wait_ms`.
+‏אבל `application_order_ttl` לא יכולה לעבור את Signal lifetime או את ה־Envelope bound.
 
 ---
 
-## ‏10B.52 Queue Age היא Benefit עם Expiry
+## ‏10B.50 Queue Age היא Economic Context, לא זכות להמשיך
 
-‏אם Passive Order כבר צברה זמן בתור, ניתן לתת לכך משקל בהחלטת `KEEP` מול `CANCEL`.
+‏אם Passive Order צברה queue context, הדבר יכול להשפיע על `KEEP` מול `CANCEL`.
 
 ‏אבל:
 
 ```text
 signal validity
-hard cap
-economic edge
+Economic Price Bound
+expected net edge
+risk/protection state
 ```
 
-‏תמיד גוברים על Queue Age.
-
-‏אין `sunk-cost exception`.
+‏גוברים עליה תמיד. אין `sunk-cost exception`.
 
 ---
 
-## ‏10B.53 Modify מול Cancel/New נכנס לבחירת Behavior
+## ‏10B.51 Repricing Mechanism חייב להיות מפורש
 
-‏אם ה־Behavior נשאר אותה משפחה ורק price/qty/TIF מתעדכנים באופן בטוח, אפשר לשקול Modify.
-
-‏אם עוברים למשל:
+‏אם אותה Behavior נשארת תקפה ורק allowed fields משתנים, ה־Adapter יכול לבחור:
 
 ```text
-PASSIVE_LIMIT
-→
-MIDPRICE
+MODIFY_IN_PLACE
 ```
 
-‏זו בדרך כלל החלפת Behavior, ולכן מתייחסים אליה כ־Cancel/Reconcile/New בהתאם ל־Broker Adapter ולא כ־mutation שרירותית של Order קיימת.
+‏מעבר למשפחה אחרת בדרך כלל דורש:
+
+```text
+CANCEL_THEN_NEW
+```
+
+‏ורק Policy מחקרית מפורשת עם exposure budget יכולה להשתמש ב־:
+
+```text
+OVERLAPPED_REPLACEMENT
+```
+
+‏`BROKER_MANAGED_REPRICE` הוא mechanism אחר לגמרי ואינו local Modify loop.
 
 ---
 
-## ‏10B.54 Candidate אחת בלבד אינה מחייבת Submit
+## ‏10B.52 Candidate אחת בלבד אינה מחייבת Submit
 
-‏אם אחרי elimination נשארה רק:
-
-```text
-MARKETABLE_LIMIT_IOC
-```
-
-‏אבל current market השתנה כך שה־cap אינה marketable עוד, ה־Selector יכול להחזיר:
+‏גם אם נשארה Candidate יחידה, ה־Selector רשאי להחזיר:
 
 ```text
-DEFER
-or
 NO_TRADE
+DEFER
+NO_ACTION
 ```
 
-‏"נשאר Candidate אחד" אינה חובה להשתמש בה.
+‏לפי מצב ה־Intent וה־Order הקיים.
+
+‏"Candidate survived" אינה הוראת שליחה.
 
 ---
 
-## ‏10B.55 לא שולחים כמה Entry Candidates במקביל רק כדי לראות מי תתמלא
+## ‏10B.53 לא מריצים כמה Entry Candidates חיות כדי לראות מי תתמלא
 
-‏זה anti-pattern מסוכן:
+‏אם target היא 100, המצב הבא מסוכן:
 
 ```text
-PASSIVE 100 shares
+PASSIVE 100
 +
-MIDPRICE 100 shares
+MIDPRICE 100
 +
-IOC 100 shares
+IOC 100
 ```
 
-‏כאשר target position היא 100.
-
-‏כל שלושתן potentially executable ויכולות לייצר 300.
-
-‏Research comparison נעשית ב־shadow/simulation או תחת quantity budget מפורש, לא באמצעות uncontrolled live race.
+‏Research comparison נעשית ב־shadow/simulation או תחת exposure budget מפורש; לא באמצעות uncontrolled live race.
 
 ---
 
-## ‏10B.56 Global Capital Lock חשוב במיוחד למודל שלנו
+## ‏10B.54 Capital Reservation כוללת Exposure פוטנציאלית
 
-‏אם המערכת מקצה את רוב ההון ל־Opportunity המובילה, Entry intent אחת יכולה לחסום אחרות גם לפני Fill:
+‏נשמור:
 
 ```text
 capital_reserved_for_potential_fill
 ```
 
-‏צריך לכלול גם Orders ב־submit/cancel uncertainty.
+‏ונכלול Orders ב־submit/cancel/modify uncertainty.
 
-‏אחרת Scanner יכול לבחור מניה חדשה בזמן שההון עדיין עלול להיתפס על ידי Order הישנה.
+‏Capital אינה משתחררת רק מפני שה־Intent המקומית כבר רוצה Candidate אחרת.
 
 ---
 
-## ‏10B.57 `Superseded Opportunity`
+## ‏10B.55 `Superseded Opportunity`
 
-‏אם Scanner מוצא Opportunity חדשה שהאסטרטגיה מעדיפה על הקודמת, לא קופצים אליה כאילו הראשונה נעלמה.
-
-‏נרצה state:
+‏כאשר Opportunity חדשה מועדפת:
 
 ```text
 old_intent = SUPERSEDED
@@ -1024,74 +1003,76 @@ old_intent = SUPERSEDED
 ‏ואז:
 
 ```text
-cancel old entry
+cancel old entry if required
 reconcile possible late fill
-release only confirmed-safe capital/exposure
+release only confirmed-safe exposure/capital
 then evaluate new intent
 ```
 
-‏זה קריטי כאשר משתמשים באותו הון שוב ושוב במהירות.
+‏Opportunity חדשה אינה מוחקת Broker state ישן.
 
 ---
 
-## ‏10B.58 `Entry Ownership` — מי רשאי להחליט עכשיו
+## ‏10B.56 `Entry Ownership` — Single Decision Authority
 
-‏לכל Intent יהיה owner יחיד של Entry lifecycle:
+‏לכל Entry Intent יש owner אחד של lifecycle decision:
 
 ```text
-ENTRY_SELECTOR
+ENTRY_SELECTOR / DECISION ENGINE
 ```
 
-‏Scanner יכול supersede/expire את Intent, Broker Adapter יכול לדווח facts, אבל שום callback לא אמורה להחליט עצמאית "לנסות Order אחרת".
+‏Scanner יכול ליצור/expire/supersede Intent. Broker Adapter מדווח Facts. Error handler אינו מחליט עצמאית על fallback Order.
 
-‏כך נמנעים retries מפוזרים בכמה שכבות קוד.
+> ‏`ENGINE RULE` — side-effect callback לא בוחר Behavior חדשה; הוא מעדכן Facts ומפעיל re-decision.
 
 ---
 
-## ‏10B.59 מטריצת התאמה לפי Regime
+## ‏10B.57 מטריצת התאמה ראשונית לפי Regime
 
 | מצב | Candidates טבעיות | מה נחלש |
 |---|---|---|
-| ‏Spread צר מאוד + urgency גבוהה | `MARKETABLE_LIMIT_IOC`, `ADAPTIVE_URGENT` | ‏Passive savings קטנה |
-| ‏Spread רחב + Signal עדיין צעיר | `MIDPRICE`, `SNAP_MIDPOINT`, Passive | ‏Immediate crossing יקר |
+| ‏Spread צר מאוד + urgency גבוהה | `MARKETABLE_LIMIT_IOC`, `ADAPTIVE_LIMIT_URGENT` | ‏Passive savings קטנה |
+| ‏Spread רחב + Signal צעיר | `MIDPRICE`, `SNAP_MIDPOINT`, `PASSIVE_JOIN` | ‏Immediate crossing יקר |
 | ‏Quote זזה מהר + Passive intent | `RELATIVE_PRIMARY` | ‏Static join מתיישנת מהר |
-| ‏רוצים price improvement בלי continual reprice | `SNAP_MIDPOINT` | ‏Relative/Peg פחות deterministic |
-| ‏Direct midpoint hypothesis מוכחת | `PEGGED_MIDPOINT_DIRECT` | ‏SMART פחות deterministic |
+| ‏Price improvement בלי continual reprice | `SNAP_MIDPOINT` | ‏Continuous pegging פחות רצוי |
+| ‏Direct midpoint hypothesis מוכחת | `PEGGED_MIDPOINT_DIRECT` | ‏SMART path פחות deterministic |
 | ‏Signal כמעט פג | `MARKETABLE_LIMIT_IOC` או `NO_TRADE` | ‏Waiting families |
-| ‏Depth דקה בתוך cap | ‏Size reduction / partial IOC / `NO_TRADE` | ‏Full-size aggression |
+| ‏Depth דקה בתוך Bound | ‏Size reduction / partial IOC / `NO_TRADE` | ‏Full-size aggression |
 
-‏המטריצה היא starting policy למחקר, לא חוק Live סופי.
+> ‏`RESEARCH HYPOTHESIS` — זו starting policy למחקר, לא חוק Production סופי.
 
 ---
 
-## ‏10B.60 Decision Tree ראשוני ללא Score
+## ‏10B.58 Decision Tree ראשוני ללא Score
 
 ```text
-if envelope.permission != ALLOW_ENTRY:
-    return no_entry
+if envelope.disposition != ALLOW_ENTRY:
+    return no_new_entry
 
-candidates = enabled_and_allowed_behaviors
+candidates = envelope.allowed_behavior_candidates
 
 remove candidates that cannot fit time budget
 remove candidates that violate liquidity intent
-remove candidates that cannot respect hard cap
-remove candidates with unacceptable expected fill size
-remove candidates with insufficient capability confidence
+remove candidates that cannot respect Economic Price Bound
+remove candidates with unacceptable expected useful-fill size
+remove candidates whose capabilities are not enabled for this scope
 remove candidates that exceed complexity/risk policy
 
 if no candidates:
     return NO_TRADE
 
-apply dominance elimination
-apply regime-specific explicit priority
+apply pairwise dominance
+apply explicit regime policy
+
+if no side effect is currently required:
+    return NO_ACTION
+
 return EntryPlan
 ```
 
-‏זו skeleton ברורה שאפשר ליישם ולבדוק.
-
 ---
 
-## ‏10B.61 `Selection Reason` הוא חלק מהתוצאה
+## ‏10B.59 `Selection Reason Code` הוא חלק מהתוצאה
 
 ‏לדוגמה:
 
@@ -1104,137 +1085,138 @@ reason = WIDE_SPREAD_WITH_TIME_FOR_MIDPOINT_SEARCH
 
 ```text
 selected = MARKETABLE_LIMIT_IOC
-reason = SHORT_REMAINING_LIFE_AND_SUFFICIENT_DEPTH_WITHIN_CAP
+reason = SHORT_REMAINING_LIFE_AND_SUFFICIENT_DEPTH_WITHIN_BOUND
 ```
 
-‏זה חשוב ל־debug ולמחקר הרבה יותר מ־`selectedBecauseScore=0.84`.
+‏Reason code יציב עדיף על טקסט חופשי או score בלתי מוסבר.
 
 ---
 
-## ‏10B.62 Telemetry של Candidate Elimination
-
-‏לכל Decision נשמור:
+## ‏10B.60 Telemetry של Candidate Elimination
 
 ```text
 candidate_id
+application_execution_mode
 initially_allowed
 eliminated
-elimination_reason
+elimination_reason_code
 expected_time_to_useful_fill
 expected_useful_fill_probability
 expected_entry_cost_bps
 expected_price_improvement_bps
 expected_missed_move_cost_bps
-hard_cap_distance_bps
+economic_bound_distance_bps
 qty_to_depth_ratio
-route
+routing_policy
+broker_algo
 implementation_owner
 ```
 
-‏גם Candidates שלא נבחרו צריכות להישמר למחקר.
+‏גם Candidates שלא נבחרו נשמרות למחקר.
 
 ---
 
-## ‏10B.63 Shadow Evaluation
+## ‏10B.61 Shadow Evaluation
 
-‏ב־Live/Paper אפשר לבחור Behavior אחת לביצוע אבל לחשב במקביל מה ה־Selector היה חושב על האחרות:
+‏ב־Paper/Live אפשר לבצע Candidate אחת ולחשב אחרות כ־shadow:
 
 ```text
 chosen_behavior = A
 shadow_candidates = B,C,D
 ```
 
-‏אין שולחים Orders אמיתיות ל־shadow candidates.
-
-‏כך ניתן לאסוף Decision comparison בלי לייצר exposure כפול.
+‏Shadow candidate אינה שולחת Broker Order ואינה צורכת exposure budget אמיתי.
 
 ---
 
-## ‏10B.64 Outcome Attribution
+## ‏10B.62 Outcome Attribution
 
-‏אחרי סיום Entry attempt נשייך Outcome ל־Decision המקורית:
+‏לאחר Entry attempt נשייך Outcome ל־Decision המקורית:
 
 ```text
+application_execution_mode
 selected_behavior
-selection_reason
+selection_reason_code
 fill_result
 fill_latency
+execution_quality
 entry_cost
 markout
 missed_move_if_no_fill
 subsequent_exit_cost
 ```
 
-‏כך אפשר לשפר Policy לפי Outcome אמיתי ולא לפי תחושת "הפקודה נראתה טובה".
+‏`Execution Quality` ו־`Trade Outcome` נשמרים כמדדים שונים: ביצוע מצוין יכול להשתייך לעסקה שה־Signal שלה הפסידה, ולהפך.
 
 ---
 
-## ‏10B.65 A/B Test הוגן חייב להשוות Opportunity-level Outcome
+## ‏10B.63 A/B Test הוגן הוא Opportunity-level
 
-‏לא:
+‏לא משווים רק fills של Candidate A מול fills של B.
 
-```text
-all fills from MIDPRICE
-vs
-all fills from IOC
-```
-
-‏אלא:
+‏משווים את כל ה־eligible opportunities שהוקצו לכל Policy, כולל:
 
 ```text
-all eligible opportunities assigned to each policy
-including no-fills and missed moves
+full fills
+partial fills
+no fills
+missed moves
+rejections
+execution costs
+subsequent trade outcomes
 ```
 
-‏אחרת Candidate עם no-fill גבוה יכולה להיראות מצוינת כי העסקאות הרעות פשוט לא נכנסו לסטטיסטיקה.
+‏אחרת Candidate עם no-fill גבוה יכולה להיראות טובה באופן מלאכותי.
 
 ---
 
-## ‏10B.66 Acceptance Tests ל־Entry Selector
+## ‏10B.64 Acceptance Tests ל־Entry Selector
 
 ```text
-1. wide spread + long enough life => midpoint/passive candidates survive
+1. wide spread + sufficient life => midpoint/passive candidates survive
 2. very short life => waiting candidates eliminated
 3. passive-only economics => taker candidate eliminated
 4. post-only unavailable => only post-only candidate removed
-5. hard cap below executable ask => IOC not falsely treated as executable
+5. Economic Price Bound below executable ask => IOC not falsely treated as executable
 6. thin depth => size reduced or aggressive candidate removed
-7. quote velocity high => static passive policy can lose priority
-8. Relative chosen only with cap + TTL
+7. quote velocity high => static passive can be eliminated
+8. Relative chosen only with Bound + local TTL
 9. MidPrice chosen only when time budget permits
 10. Snap expires without automatic chase
-11. IOC partial => remainder goes through new decision
+11. IOC partial => remainder becomes new decision state
 12. zero-fill IOC => classified, not blindly retried
-13. broker reject => capability conflict + re-decision
-14. signal invalidates during passive wait => cancel
-15. signal invalidates during Adaptive => cancel
+13. broker reject => capability evidence + re-decision
+14. signal invalidates during passive wait => cancel/reconcile
+15. signal invalidates during Adaptive => cancel/reconcile
 16. old entry cancel-pending prevents unsafe new entry
-17. superseding symbol waits for safe exposure reconciliation
+17. superseding opportunity waits for safe exposure reconciliation
 18. cumulative escalation never exceeds concession budget
-19. hard cap never violated across retries
+19. Economic Price Bound never violated across retries
 20. identical replay snapshot => same EntryPlan
+21. fallback never bypasses 10A
+22. OVERLAPPED_REPLACEMENT impossible without explicit exposure budget
 ```
 
 ---
 
-## ‏10B.67 Property Tests חשובים
+## ‏10B.65 Property Tests
 
 ```text
 shorter remaining life must never make a slower-only candidate newly eligible
-lower hard buy cap must never permit a higher executable price
+lower buy Economic Price Bound must never permit a higher executable price
 higher potential exposure must never increase allowed entry qty
 removing post-only capability must never create an automatic taker order
 signal INVALIDATED must never produce a new entry plan
 cumulative concession must never exceed configured maximum
+capability rejection must never directly create a more aggressive order
+partial fill must always change the next decision context
 ```
-
-‏אלה מגינים על המבנה גם אחרי שנוסיף עוד Order Types בעתיד.
 
 ---
 
-## ‏10B.68 Recommendation ל־V1 של Entry Engine
+## ‏10B.66 V1 — Mode קטן, Candidate set קטן
 
-‏כדי לא לבנות מערכת ענקית לפני שיש Evidence, V1 המחקרית יכולה להתחיל עם ארבעה behaviors מבוצעים היטב:
+> ‏`POLICY DEFAULT` — כדי לא לבנות מערכת ענקית לפני Evidence, V1 המחקרית יכולה להתחיל עם ארבע Candidates מבוצעות היטב:
 
 ```text
 PASSIVE_JOIN
@@ -1243,7 +1225,7 @@ ADAPTIVE_LIMIT_URGENT
 MARKETABLE_LIMIT_IOC
 ```
 
-‏ולהוסיף לאחר מכן:
+‏ואחר כך להוסיף:
 
 ```text
 PASSIVE_POST_ONLY
@@ -1252,93 +1234,123 @@ SNAP_MIDPOINT
 PEGGED_MIDPOINT_DIRECT
 ```
 
-‏הסיבה אינה שהקבוצה השנייה פחות חשובה; הקבוצה הראשונה נותנת ארבע פילוסופיות שונות מאוד עם implementation surface סביר להתחלה.
+‏הסיבה היא כיסוי ארבע פילוסופיות execution שונות, לא טענה שהקבוצה השנייה פחות מקצועית.
 
 ---
 
-## ‏10B.69 אבל Research Harness צריך להיות Extensible מהיום הראשון
+## ‏10B.67 Candidate lifecycle נפרד מ־Capability enablement
 
-‏ה־Selector לא יכיל:
+‏לכל Candidate מחקרית אפשר להחזיק:
 
 ```text
-if orderType == ...
+DISABLED
+SHADOW_ONLY
+LIVE_ENABLED
 ```
 
-‏בכל מקום.
+‏זה אינו מחליף את Capability enablement:
 
-‏נרצה interface כמו:
+```text
+DOC_ONLY
+RUNTIME_CONFIRMED
+PAPER_ACCEPTED
+LIVE_SMALL_ACCEPTED
+PRODUCTION_ENABLED
+```
+
+‏Capability אומרת האם ה־implementation path חוקי/מאומת; Candidate lifecycle אומרת האם Policy המחקר שלנו רשאית להשתמש בו בפועל.
+
+---
+
+## ‏10B.68 Research Harness צריך להיות Extensible
 
 ```text
 EntryBehaviorCandidate {
   id
+  application_execution_mode
   eligibility(context, envelope)
   derive_constraints(context, envelope)
   estimate_outcome(context)
   materialization_requirements
+  failure_destination
   cancel_policy
 }
 ```
 
-‏כך אפשר להוסיף Order Family בלי לשכתב את Decision Engine.
+‏`failure_destination` אומר האם failure מובילה למשל ל־`DEFER`, ‏`NO_TRADE`, ‏fresh candidate selection, ‏`EXIT_ONLY` או recovery — ולא לאיזה Broker Order לשלוח אוטומטית.
 
 ---
 
-## ‏10B.70 Practitioner Secrets — Entry Selection
+## ‏10B.69 Practitioner Insights — Entry Selection
 
-### ‏1. הפקודה המהירה ביותר אינה תמיד Entry המהירה ביותר כלכלית
+### ‏1. Order Name אינה Execution Behavior מלאה
 
-‏Fill מיידית במחיר שמוחק את ה־Edge היא execution מהירה לעסקה שלא הייתה צריכה להתבצע.
+‏אותו `LMT` יכול להיות Passive או Marketable; Routing, TIF, attributes ו־market state משנים את ההתנהגות.
 
-### ‏2. Passive אינה ברירת מחדל חסכונית
+### ‏2. הפקודה המהירה ביותר אינה תמיד Entry הכלכלית הטובה ביותר
+
+‏Fill מיידית במחיר שמוחק את ה־Edge אינה הצלחה.
+
+### ‏3. Passive אינה ברירת מחדל חסכונית
 
 ‏No-fill ו־adverse selection יכולים לעלות יותר מה־spread שנחסך.
 
-### ‏3. Midpoint אינה "חצי Spread בחינם"
+### ‏4. Midpoint אינה "חצי Spread בחינם"
 
-‏צריך לשלם עליה ב־fill uncertainty ובזמן.
+‏משלמים ב־fill uncertainty ובזמן.
 
-### ‏4. `Post Only` היא Constraint
+### ‏5. `Post Only` היא Constraint
 
-‏כאשר urgency עולה, ייתכן שה־Candidate עצמה צריכה להיעלם במקום לנסות לכופף אותה.
+‏כאשר urgency משתנה, Candidate יכולה להיעלם במקום לשנות משמעות.
 
-### ‏5. `Relative` חוסכת Reprice Loop — לא Signal Monitoring
+### ‏6. `Relative` חוסכת Client Reprice Loop — לא Signal Monitoring
 
-‏Validity נשארת אצלנו.
+‏Validity ו־TTL נשארות אצלנו.
 
-### ‏6. `Snap` פותרת Auto-Chase, לא Staleness
+### ‏7. `Snap` מפחיתה Auto-Chase — לא Staleness
 
-‏TTL עדיין חובה.
+‏`application_order_ttl` עדיין חובה.
 
-### ‏7. `Adaptive` היא Delegation מבוקרת
+### ‏8. `Adaptive` היא Delegation מבוקרת
 
-‏ה־Broker יכולה לייעל HOW; אנחנו עדיין קובעים cap, time ו־WHETHER.
+‏ה־Broker יכולה לייעל HOW; אנחנו מחזיקים WHETHER, Bound ו־TTL.
 
-### ‏8. `IOC` היא ניסיון סגור ונקי יחסית
+### ‏9. `IOC` היא Attempt תחומה, לא Trade lifecycle מלא
 
-‏אבל Partial Fill משנה מיד את State ועלולה להפוך את יתרת ה־Intent ללא רלוונטית.
+‏Partial Fill משנה מיד Position ו־remaining intent.
 
-### ‏9. Escalation היא Series של Decisions
+### ‏10. Escalation היא סדרה של Decisions
 
-‏לא staircase שממשיך אוטומטית עד Fill.
+‏לא staircase אוטומטי עד Fill.
 
-### ‏10. Chase נמדד מצטבר
+### ‏11. Chase נמדד מצטבר
 
-‏עשרה ticks של concession קטנה הם עדיין עשרה ticks.
+‏צעדים קטנים אינם מעלימים concession כוללת.
 
-### ‏11. Better Opportunity אינה מוחקת Exposure ישנה
+### ‏12. Queue position היא Asset מותנה
 
-‏הון ו־Risk משתחררים רק אחרי reconciliation.
+‏היא בעלת ערך רק כל עוד Signal, economics ו־Risk עדיין מצדיקים אותה.
 
-### ‏12. Candidate שלא נבחרה עדיין חשובה למחקר
+### ‏13. Better Opportunity אינה מוחקת Exposure ישנה
 
-‏בלי shadow telemetry לא נדע אם ה־Policy שלנו מפספסת חלופה טובה יותר.
+‏Capital/Risk משתחררים רק לאחר reconciliation.
+
+### ‏14. No Fill יכולה להיות Outcome טובה
+
+‏אם האלטרנטיבה הייתה Fill רעילה או מעבר ל־Bound, אי־ביצוע שמר על ה־Edge/Risk.
+
+### ‏15. Candidate שלא נבחרה עדיין חשובה למחקר
+
+‏Shadow telemetry מאפשרת להשוות Policies בלי exposure כפול.
 
 ---
 
 # ‏Checkpoint — סוף חלק 10B
 
-‏בחלק הזה תרגמנו את ה־`EntryEnvelope` של 10A למנגנון בחירה ממשי בין Passive, Post Only, Relative, Midpoint/Snap/Pegged, Adaptive ו־Marketable Limit + IOC. הבחירה נשארה elimination-first: קודם מסירים Behaviors שלא עומדים בזמן, liquidity intent, cap, size, capability ו־risk; אחר כך משתמשים ב־pairwise dominance וב־explicit regime priorities במקום Master Score שרירותי.
+‏10B מקבלת `EntryEnvelope` מ־10A ובוחרת בשתי שכבות נפרדות: `Application Execution Mode` ואחריה `Behavior Candidate`. רק לאחר הבחירה נוצר `Concrete Broker Order Plan` שמכיל Primitive, TIF, Routing, Broker Algo ו־attributes.
 
-‏הגדרנו Time Budget, Behavior-specific TTL, cumulative escalation budget, anti-chase invariants, partial-fill re-decision, no-fill/rejection classification, global capital reservation, superseded intents, shadow evaluation, telemetry ו־acceptance/property tests. העיקרון המכריע הוא ש־**כל escalation, retry או fallback היא Decision חדשה על Market/Signal/Position חדשים — לא המשך אוטומטי של הפקודה הקודמת.**
+‏הבחירה נשארת elimination-first: זמן, liquidity intent, ‏`Economic Price Bound`, ‏size, capability ו־risk מסירים Candidates; אחר כך pairwise dominance ו־explicit regime policy בוחרים survivor. ‏`Fallback`, ‏`Escalation`, ‏retry ו־Partial Fill תמיד חוזרים ל־fresh decision. ‏`application_order_ttl`, ‏`signal_ttl`, ‏`broker_tif` ו־`working_order_age` נשארים clocks שונים.
 
-‏השלב הבא יהיה **חלק 10C — Exit Decision**: נפריד `NORMAL_EXIT`, ‏`FAST_EXIT`, ‏`EMERGENCY_REDUCE`, ‏`STOP_BACKSTOP`, ‏`BROKER_BRACKET` ו־`HYBRID_PROTECTION`, ונגדיר מי מחזיק ownership על היציאה בכל רגע, כיצד Partial Position משנה את ה־Exit, ואיך לא נותנים ל־client exit ול־broker protection לבצע Double Exit.
+‏העיקרון המכריע הוא: **Order attempt אינה הבטחה להמשיך עד Fill. כל שינוי מהותי ב־Market, Signal, Position, Capability או lifecycle מחזיר את המנוע להחלטה חדשה תחת אותם safety/economic bounds.**
+
+‏השלב הבא יהיה **חלק 10C — Exit Decision**: ננרמל את Exit modes, ‏Protection ownership, ‏Position truth ו־handoff semantics מול אותו vocabulary קנוני.
