@@ -57,8 +57,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     46 — Adverse Selection Deep Dive
                     47 — Price Impact / Capacity
                     48 — Latency Edge without pretending to be HFT
+                    49 — Quant Research Best Practices
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 49 — Quant Research Best Practices
+Next Segment: 50 — Scanner Best Practices
 Source of Truth: GitHub main
 ```
 
@@ -190,9 +191,10 @@ Baseline
 | `46-ADVERSE-SELECTION-DEEP-DIVE.md` | `46-ADVERSE-SELECTION-DEEP-DIVE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `47-PRICE-IMPACT-AND-CAPACITY.md` | `47-PRICE-IMPACT-CAPACITY.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `48-LATENCY-EDGE-WITHOUT-PRETENDING-TO-BE-HFT.md` | `48-LATENCY-EDGE-WITHOUT-PRETENDING-TO-BE-HFT.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `49-QUANT-RESEARCH-BEST-PRACTICES.md` | `49-QUANT-RESEARCH-BEST-PRACTICES.md` | TBD | `NOT STARTED` |
+| `49-QUANT-RESEARCH-BEST-PRACTICES.md` | `49-QUANT-RESEARCH-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `50-SCANNER-BEST-PRACTICES.md` | `50-SCANNER-BEST-PRACTICES.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 50–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 51–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
