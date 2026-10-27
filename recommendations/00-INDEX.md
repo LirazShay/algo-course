@@ -107,8 +107,9 @@ Completed Cross-Cutting: 01 — Recommended MVP
                          09 — Recommended Execution Policy
                          10 — Recommended Risk Controls
                          11 — Recommended Backtest Policy
+                         12 — Recommended Replay Policy
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: Cross-Cutting 12 — Recommended Replay Policy
+Next Segment: Cross-Cutting 13 — Recommended Testing Strategy
 Source of Truth: GitHub main
 ```
 
@@ -301,7 +302,8 @@ Baseline
 | Recommended Execution Policy | `CC09-RECOMMENDED-EXECUTION-POLICY.md` | `COMPLETED` |
 | Recommended Risk Controls | `CC10-RECOMMENDED-RISK-CONTROLS.md` | `COMPLETED` |
 | Recommended Backtest Policy | `CC11-RECOMMENDED-BACKTEST-POLICY.md` | `COMPLETED` |
-| Recommended Replay Policy | `CC12-RECOMMENDED-REPLAY-POLICY.md` | `NOT STARTED` |
+| Recommended Replay Policy | `CC12-RECOMMENDED-REPLAY-POLICY.md` | `COMPLETED` |
+| Recommended Testing Strategy | `CC13-RECOMMENDED-TESTING-STRATEGY.md` | `NOT STARTED` |
 
 ‏לפני סיום הפרויקט חייבים להיווצר לפחות:
 
