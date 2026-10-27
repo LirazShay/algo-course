@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "courseId": "advanced-order-mastery",
+  "migrationState": "R1_IN_PROGRESS",
+  "legacyMaster": {
+    "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
+    "blobSha": "ab823e9b14c798016942619c496013cf523fb7bc",
+    "policy": "read-only migration source until R1 is complete"
+  },
+  "generatedMaster": {
+    "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
+    "buildAllowed": false,
+    "reason": "Do not rebuild the master until every manifest entry is ready and verified."
+  },
+  "buildPolicy": {
+    "requireAllEntriesReady": true,
+    "rejectPendingEntries": true,
+    "preserveManifestOrder": true,
+    "insertSingleBlankLineBetweenEntries": true
+  },
+  "entries": [
+    {
+      "id": "00",
+      "title": "Front Matter and Course Map",
+      "source": "advanced-orders/source/00-FRONT-MATTER.md",
+      "status": "ready"
+    },
+    {
+      "id": "01",
+      "title": "Order Language",
+      "source": "advanced-orders/source/01-ORDER-LANGUAGE.md",
+      "status": "ready"
+    },
+    {
+      "id": "02",
+      "title": "Core Execution",
+      "source": null,
+      "legacyHeading": "חלק 2 — Core Execution",
+      "status": "pending_split"
+    },
+    {
+      "id": "03",
+      "title": "Time in Force and Immediate Execution",
+      "source": null,
+      "legacyHeading": "חלק 3 — Time in Force",
+      "status": "pending_split"
+    },
+    {
+      "id": "04",
+      "title": "Liquidity Control",
+      "source": null,
+      "legacyHeading": "חלק 4 — Liquidity",
+      "status": "pending_split"
+    },
+    {
+      "id": "05",
+      "title": "Pegged Relative Midpoint and Snap",
+      "source": null,
+      "legacyHeading": "חלק 5 — Pegged",
+      "status": "pending_split"
+    },
+    {
+      "id": "06",
+      "title": "Stops Trailing Bracket OCA OCO and Conditional",
+      "source": null,
+      "legacyHeading": "חלק 6 — Stops",
+      "status": "pending_split"
+    },
+    {
+      "id": "07",
+      "title": "Routing and Broker Algos",
+      "source": null,
+      "legacyHeading": "חלק 7 — Routing",
+      "status": "pending_split"
+    },
+    {
+      "id": "08",
+      "title": "Cancel Replace and Execution State Machine",
+      "source": null,
+      "legacyHeading": "חלק 8 — Cancel/Replace",
+      "status": "pending_split"
+    },
+    {
+      "id": "09",
+      "title": "IBKR Capability Matrix",
+      "source": null,
+      "legacyHeading": "חלק 9 — IBKR capability matrix",
+      "status": "pending_split"
+    },
+    {
+      "id": "10A",
+      "title": "Decision Inputs and Elimination Gates",
+      "source": null,
+      "legacyHeading": "10A",
+      "status": "pending_split"
+    },
+    {
+      "id": "10B",
+      "title": "Entry Decision and Execution Behavior Selection",
+      "source": null,
+      "legacyHeading": "10B",
+      "status": "pending_split"
+    },
+    {
+      "id": "10C",
+      "title": "Exit Decision Protection and Ownership",
+      "source": "advanced-orders/parts/10C-EXIT-DECISION.md",
+      "status": "ready_existing"
+    },
+    {
+      "id": "10D",
+      "title": "Full Decision Engine",
+      "source": "advanced-orders/parts/10D-FULL-DECISION-ENGINE.md",
+      "status": "ready_existing"
+    }
+  ]
+}
