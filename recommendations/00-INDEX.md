@@ -70,8 +70,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     59 — Market Data Subtleties
                     60 — Scanner and Ranking Subtleties
                     60A — Negative Evidence, Veto and Disqualification Engine
+                    61 — Backtest Subtleties
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 61 — Backtest Subtleties
+Next Segment: 62 — Live Trading Subtleties
 Source of Truth: GitHub main
 ```
 
@@ -216,9 +217,10 @@ Baseline
 | `59-MARKET-DATA-SUBTLETIES.md` | `59-MARKET-DATA-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `60-SCANNER-AND-RANKING-SUBTLETIES.md` | `60-SCANNER-AND-RANKING-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `61-BACKTEST-SUBTLETIES.md` | `61-BACKTEST-SUBTLETIES.md` | TBD | `NOT STARTED` |
+| `61-BACKTEST-SUBTLETIES.md` | `61-BACKTEST-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `62-LIVE-TRADING-SUBTLETIES.md` | `62-LIVE-TRADING-SUBTLETIES.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 62–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 63–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
