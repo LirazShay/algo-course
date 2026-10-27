@@ -1,61 +1,152 @@
-# ‏חלק 9 — `IBKR` Capability Matrix: מתיעוד ל־Production Enablement
+# ‏חלק 9 — `IBKR` Capability Matrix: מ־Availability ל־Production Enablement
 
-## ‏9.1 מטרת החלק: להפסיק לשאול `Supported = Yes/No`
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, ‏Capability אינה `Supported = Yes/No`. היא צירוף של **feature category + product/contract + route/destination + adapter/API + account/legal entity + session + implementation path + evidence + enablement state**. בנוסף, `Research Priority` היא החלטה שלנו ואינה הוכחה שה־feature זמינה או מותרת ב־Production.
 
-‏אחרי שמונה חלקים ברור שהשאלה "האם IBKR תומך ב־Order X?" צרה מדי. תמיכה אמיתית היא צירוף של כמה ממדים:
+## ‏9.1 מטרת החלק: להפסיק להשתמש ב־`Supported` בלי qualifier
+
+‏השאלה:
 
 ```text
-product
-region
-contract
-account permissions
-legal entity
-platform
-API
-route / destination
-session
-order-type combination
-native vs broker-managed behavior
-observed acceptance and fill semantics
+Does IBKR support X?
 ```
 
-‏לכן Capability אצלנו אינה `boolean`. היא Record מתועד, ניתן לאימות ועם רמת אמון.
+‏צרה מדי.
+
+‏בפועל צריך לדעת לפחות:
+
+```text
+what capability?
+for which product / contract?
+through which adapter / API?
+through which route / destination?
+for which account / legal entity / permissions?
+in which session?
+where is the behavior implemented?
+what evidence do we have?
+is it merely available for research or actually production-enabled?
+```
+
+‏לכן:
+
+```text
+AVAILABLE
+!=
+RESEARCH_CANDIDATE
+!=
+PRODUCTION_ENABLED
+```
+
+> ‏`ENGINE RULE` — המילה `supported` לבדה אינה verdict קנוני. יש לציין תמיד **באיזה scope**, **על סמך איזה evidence**, ובאיזו רמת enablement.
 
 ---
 
-## ‏9.2 ארבע קטגוריות שאסור לערבב במטריצה
+## ‏9.2 Capability categories — לא כל מה שמופיע ב־Order Ticket הוא אותו סוג
 
-‏לא כל דבר שאנחנו מכנים "פקודה" הוא אותו סוג capability:
+‏ה־Capability Matrix משתמשת באותן שכבות של `00A`:
 
 ```text
-PRICE ORDER TYPE      -> Market, Limit, Stop, MidPrice...
-ORDER ATTRIBUTE / TIF -> IOC, AON, MinQty, Hidden, Post Only...
-COMPOSITE STRUCTURE   -> Bracket, OCA/OCO relationships
-ROUTING / BROKER ALGO -> SMART, Direct, Adaptive, ATS...
+BROKER ORDER PRIMITIVE
+TIME / FILL POLICY
+DISPLAY / LIQUIDITY ATTRIBUTE
+TRIGGER / PREDICATE
+COMPOSITE / DEPENDENCY RELATIONSHIP
+ROUTING POLICY
+BROKER ALGO
+APPLICATION BEHAVIOR CANDIDATE
 ```
 
-‏ההפרדה חשובה משום ש־`Marketable Limit` היא למשל **התנהגות של `LMT` ביחס לשוק**, לא Order Type נפרדת; `Bracket` היא מערכת של Orders קשורות; ו־`Adaptive` היא Broker Algo שמקבלת Order בסיסית ומנהלת חלק מה־execution.
+‏דוגמאות:
+
+```text
+Limit                 -> Broker Order Primitive
+IOC                   -> Time / Fill Policy
+Post Only             -> Liquidity Attribute
+Bracket               -> Composite Structure
+OCA                    -> Coordination Relationship
+SMART / Direct        -> Routing Policy
+Adaptive / MidPrice   -> Broker-managed execution mechanism / Algo
+MARKETABLE_LIMIT_IOC  -> Behavior Candidate של המנוע
+```
+
+‏`Marketable Limit` נשארת לפי ההגדרה הקנונית **Limit שנמצאת כרגע במצב marketable**, לא Broker enum נפרד.
 
 ---
 
-## ‏9.3 תאריך וגבולות האימות
+## ‏9.3 Capability היא Tuple, לא Checkbox
 
-> ‏אימות מטריצת המקור: `2026-10-27`.
-
-‏המטריצה להלן מבוססת על תיעוד רשמי עדכני של IBKR. היא אומרת מה IBKR מתעדת ברמת המוצר והפלטפורמה — **לא** שהחשבון הספציפי שלנו כבר עבר acceptance test לכל שילוב.
-
-‏במיוחד, אין להסיק מכאן:
+‏Capability key מקצועי נראה רעיונית כך:
 
 ```text
-IBKR global docs say supported
-=> our account + stock + route + API accepts it
+(
+  capability_id,
+  product,
+  contract,
+  region,
+  adapter,
+  route,
+  destination,
+  session,
+  account_scope,
+  legal_entity,
+  permissions,
+  parameter_combination
+)
+```
+
+‏לכן:
+
+```text
+RELATIVE + SMART
+```
+
+‏אינה אותה Capability כמו:
+
+```text
+RELATIVE + DIRECT(destination)
+```
+
+‏ו־:
+
+```text
+PEGGED_MIDPOINT + DIRECT(destination)
+```
+
+‏אינה alias של:
+
+```text
+MIDPRICE + SMART
 ```
 
 ---
 
-## ‏9.4 מקרא רמות האישור שלנו
+## ‏9.4 שלושה צירים שונים: Availability, Evidence, Enablement
 
-‏כל capability במנוע תקבל `enablement_state`:
+### ‏`Availability`
+
+‏האם feature מתועדת או נראית זמינה ב־scope מסוים.
+
+```text
+DOCUMENTED_AVAILABLE
+DOCUMENTED_UNAVAILABLE
+DOCUMENTED_CONDITIONAL
+UNKNOWN
+```
+
+### ‏`Evidence`
+
+‏מה ראינו בפועל:
+
+```text
+DOC_EVIDENCE
+RUNTIME_EVIDENCE
+PAPER_EVIDENCE
+LIVE_EVIDENCE
+REJECTION_EVIDENCE
+```
+
+### ‏`Enablement`
+
+‏מה המערכת שלנו מרשה:
 
 ```text
 DOC_ONLY
@@ -65,165 +156,227 @@ LIVE_SMALL_ACCEPTED
 PRODUCTION_ENABLED
 ```
 
-### ‏`DOC_ONLY`
+‏אלה אינם synonyms.
 
-‏קיימת בתיעוד, אבל עדיין לא הוכחנו אותה אצלנו.
+‏לדוגמה:
 
-### ‏`RUNTIME_CONFIRMED`
+```text
+documented_availability = DOCUMENTED_AVAILABLE
+runtime_state            = RUNTIME_CONFIRMED
+enablement_state         = PAPER_ACCEPTED
+```
 
-‏Contract/API runtime metadata מצביעים שהשילוב רלוונטי, או שה־Broker קיבל validation/preview מתאים.
-
-### ‏`PAPER_ACCEPTED`
-
-‏Happy Path ו־failure cases שה־Paper environment מסוגלת לייצג עברו.
-
-### ‏`LIVE_SMALL_ACCEPTED`
-
-‏נבדקה בכמות קטנה ובסיכון מוגבל בסביבה אמיתית, כולל callbacks ו־reconciliation.
-
-### ‏`PRODUCTION_ENABLED`
-
-‏רק לאחר שה־semantics, telemetry, recovery ו־risk invariants הוכחו.
-
-‏אין קיצור דרך מ־`DOC_ONLY` ל־`PRODUCTION_ENABLED`.
+‏משמעותו: ה־feature קיימת ונראית חוקית, אבל עדיין **אינה** Production capability של המערכת שלנו.
 
 ---
 
-## ‏9.5 מטריצת Core Price + Time/Fill Policy
+## ‏9.5 `Research Role` היא החלטת Product/Research נפרדת
 
-| Capability | מניות US | UI מתועד | Routing | צורת API / הערה | Implementation / Caveat | התאמה למנוע |
-|---|---|---|---|---|---|---|
-| `Market` | ‏כן | `TWS`, Desktop, Mobile, Client Portal | Smart, Directed | `orderType=MKT` ב־TWS API | ‏IBKR יכולה להפעיל price-protection/simulation | `Medium`; בעיקר Exit דחופה |
-| `Limit` | ‏כן | כל הפלטפורמות המרכזיות | Smart, Directed | `LMT` + `lmtPrice` | ‏Fill לא מובטח | `High/Baseline` |
-| `Marketable Limit` | ‏כן | דרך `Limit` | Smart, Directed | ‏אין primitive נפרד; `LMT` שחוצה/פוגש שוק | ‏יכולה להפוך resting אם אין `IOC` | `High/Baseline` |
-| `DAY` | ‏כן | רחב | לפי Order | `tif=DAY` | ‏לא תחליף ל־TTL אפליקטיבי | `High` עם TTL מקומי |
-| `GTC` | ‏כן | כל הפלטפורמות המרכזיות | Smart, Directed | `tif=GTC` | ‏Recovery/stale-order risk | `Low` ל־core entry |
-| `GTD` | ‏כן | `TWS`, Desktop | Smart, Directed | `tif=GTD` + expiration | ‏לא מיועד בהכרח ל־sub-second TTL | `Low/Medium` |
-| `IOC` | ‏כן | `TWS`, Desktop | Smart, Directed | `tif=IOC` | ‏Partial now, cancel remainder | `High/Baseline Challenger` |
-| `FOK` | ‏לא כ־stock baseline | `TWS`, Desktop | Smart, Directed | ‏תלוי מוצר | ‏בתיעוד הנוכחי: US Options only | `Not Core` |
-| `AON` | ‏כן | TWS, Desktop, Mobile, Client Portal | Smart | `allOrNone` | ‏עשויה להיות broker-simulated | `Low/Advanced` |
-| `MinQty` | ‏תלוי Contract/Route | API-oriented capability | תלוי Venue | `minQty` ב־TWS API | ‏נדרש runtime/acceptance validation | `Advanced Challenger` |
-| `Market-to-Limit` | ‏כן | TWS, Desktop, Mobile | Smart, Directed | ‏Order family נפרדת | ‏remainder חוזרת כ־Limit במחיר ה־fill | `Research/Medium` |
+‏נשתמש ב־classification כגון:
+
+```text
+CORE_BASELINE
+CORE_SAFETY
+RESEARCH_CHALLENGER
+SPECIALIST_CONDITIONAL
+REFERENCE_ONLY
+OUT_OF_SCOPE
+```
+
+‏זהו ציר אחר לחלוטין מ־enablement.
+
+‏אפשר לקבל:
+
+```text
+research_role    = CORE_BASELINE
+enablement_state = PAPER_ACCEPTED
+```
+
+‏כלומר חשוב לנו מאוד לחקור אותו, אך עדיין אסור להפעילו Production.
+
+‏ואפשר לקבל:
+
+```text
+research_role    = REFERENCE_ONLY
+enablement_state = RUNTIME_CONFIRMED
+```
+
+‏כלומר Broker עשוי לתמוך בו, אבל הוא אינו חלק מה־roadmap של המנוע.
 
 ---
 
-## ‏9.6 למה `FOK` מסומנת אצלנו במפורש כלא־Baseline למניות
+## ‏9.6 תאריך וגבולות האימות
 
-‏זה בדיוק סוג הטעות שמטריצה מונעת. `FOK` היא מושג מוכר בעולם המסחר, אך בקטלוג IBKR הנוכחי היא מתועדת ל־`Options Only` בארה״ב.
+> ‏`FACT` — אימות מטריצת המקור: `2026-10-27`.
 
-‏לכן Adapter של מניות לא יציע:
+‏העובדות המוצריות בפרק מבוססות על התיעוד הרשמי שכבר נאסף בקורס. הן אומרות מה IBKR מתעדת ברמת Product/Platform/API — **לא** שהחשבון, ה־contract, ה־route וה־adapter שלנו עברו acceptance test לכל combination.
+
+‏אין להסיק:
+
+```text
+IBKR global docs say available
+=> our account + contract + route + API accepts it
+=> production safe
+```
+
+---
+
+## ‏9.7 Core Price + Time/Fill Matrix
+
+| Capability | שכבה קנונית | מניות US לפי התיעוד שנבדק | Routing / Scope | Caveat מרכזי | Research Role |
+|---|---|---|---|---|---|
+| `Market` | Broker Primitive | ‏כן | SMART / Direct לפי scope | ‏Price certainty נמוכה יותר; broker protections יכולים להשפיע | `SPECIALIST_CONDITIONAL` |
+| `Limit` | Broker Primitive | ‏כן | SMART / Direct | ‏Fill אינו מובטח | `CORE_BASELINE` |
+| `Marketable Limit` | Limit behavior | ‏כן דרך `Limit` | SMART / Direct | ‏אינה primitive נפרדת; remainder יכולה לנוח בלי `IOC` | `CORE_BASELINE` |
+| `DAY` | TIF | ‏כן | לפי Order/path | ‏אינה `application_order_ttl` | `CORE_BASELINE` |
+| `GTC` | TIF | ‏כן | לפי scope | ‏stale/recovery risk | `REFERENCE_ONLY` ל־core entry |
+| `GTD` | TIF | ‏כן לפי scope | לפי Order/path | ‏Broker expiry אינה sub-second app TTL | `SPECIALIST_CONDITIONAL` |
+| `IOC` | TIF / Fill Policy | ‏כן | SMART / Direct לפי scope | ‏Partial-now + cancel remainder | `CORE_BASELINE` |
+| `FOK` | Fill Policy | ‏לא baseline למניות US לפי התיעוד שנבדק | Product-dependent | ‏לא להניח stock availability בגלל enum כללי | `OUT_OF_SCOPE` כרגע |
+| `AON` | Fill/Quantity Constraint | ‏כן לפי scope | SMART בתרחיש המתועד | ‏יכולה להיות Broker-Simulated | `SPECIALIST_CONDITIONAL` |
+| `MinQty` | Fill/Quantity Constraint | ‏תלוי Contract/Route | Venue/path-dependent | ‏דורש runtime + acceptance validation | `RESEARCH_CHALLENGER` |
+| `Market-to-Limit` | Broker Primitive / Transforming behavior | ‏כן לפי התיעוד שנבדק | SMART / Direct לפי scope | ‏remainder הופכת ל־Limit לאחר execution ראשוני | `RESEARCH_CHALLENGER` |
+
+---
+
+## ‏9.8 `FOK` — Concept יכול להיות מקצועי גם אם Product path אינו Core
+
+‏הטעות היא להפוך:
+
+```text
+concept exists
+```
+
+‏ל־:
+
+```text
+US-stock adapter may use it
+```
+
+‏לכן Adapter מניות לא יציע:
 
 ```text
 stock_execution_mode = FOK
 ```
 
-‏רק מפני שה־enum או מונח כללי מוכרים לנו.
+‏רק מפני שהמונח או enum קיימים בעולם המסחר.
+
+‏ה־concept נשאר בקורס; Product capability עוברת Gate נפרד.
 
 ---
 
-## ‏9.7 `AON` — תמיכה אינה אומרת Native
+## ‏9.9 `AON` — Availability אינה אומרת Venue-Native
 
-‏IBKR מתעדת `AON` למניות אמריקאיות דרך `SMART`, אבל כאשר ה־primary exchange אינו תומך בה Native, IBKR יכולה להחזיק את ה־Order ולדמות אותה.
+‏בתרחיש המתועד למניות US, IBKR יכולה לנהל/לדמות `AON` כאשר ה־primary exchange אינה מספקת native behavior מתאים.
 
-‏במצב המתועד למניות US, ה־NBBO צריך להתאים ל־Limit וגודל ה־NBBO צריך להיות לפחות:
+‏לכן Capability Record חייב לשמור בנפרד:
 
 ```text
-order size + 1000 shares
+available = true
+implementation_owner = BROKER_MANAGED_OR_SIMULATED
+venue_native = false_or_unknown
 ```
 
-‏לפני ניסיון ביצוע simulated.
-
-‏מכאן שעמודת `Supported` בלי עמודת `Implementation Path` הייתה מטעה.
+‏עמודת `Supported` יחידה הייתה מוחקת מידע קריטי על failure domain, latency ו־market-data dependency.
 
 ---
 
-## ‏9.8 מטריצת Liquidity / Price-Adaptive Capabilities
+## ‏9.10 Liquidity / Price-Adaptive Matrix
 
-| Capability | מניות US | UI מתועד | Routing | מי מנהל | Caveat מרכזי | התאמה לנו |
-|---|---|---|---|---|---|---|
-| `Post Only` | ‏תלוי route | בעיקר API/route-specific | Route-specific | Broker/Venue | ‏field קיים אינו הוכחת support לכל destination | `High` כ־guardrail אחרי validation |
-| `Hidden` | ‏כן | `TWS Only` | Smart, Directed | Native או IBKR simulated | ‏priority/latency יכולים להשתנות | `Low/Advanced` |
-| `Iceberg / Reserve` | ‏כן | `TWS Only` | Smart, Directed | Broker/Venue | ‏slice/replenishment semantics | `Low/Advanced` |
-| `Relative / Pegged-to-Primary` | ‏כן | `TWS`, Desktop | Smart, Directed, IBKR ATS | Broker/Venue | ‏SMART asymmetry לעומת Directed | `High/Challenger` |
-| `Pegged-to-Midpoint` | ‏כן | `TWS`, Desktop | Directed / IBKR ATS | Venue/Broker path | ‏US stock דורשת Direct route | `High/Challenger` |
-| `MidPrice` | ‏כן | TWS, Desktop, Mobile, Client Portal | Smart | IBKR | ‏execution path יכול להשתנות | `High/Challenger` |
-| `Snap to Market` | ‏כן | `TWS`, Desktop | Smart, Directed | IBKR simulated | ‏מחיר מחושב פעם אחת | `Medium/High` |
-| `Snap to Midpoint` | ‏כן | `TWS`, Desktop | Smart, Directed | IBKR simulated | ‏מחיר קופא ועלול להתיישן | `High/Challenger` |
-| `Snap to Primary` | ‏כן | `TWS`, Desktop | Directed | IBKR simulated | ‏Directed + stale-price risk | `Medium/High` |
-| `IBKR ATS Pegged-to-Best` | ‏כן | כל הפלטפורמות לפי catalog הנוכחי | Directed | IBKR ATS | ‏ATS-specific | `Advanced` |
-| `IBKR ATS Pegged-to-Midpoint` | ‏כן | כל הפלטפורמות המרכזיות | Directed | IBKR ATS | ‏destination-specific | `Advanced` |
+| Capability | שכבה קנונית | Routing / Implementation | Caveat מרכזי | Research Role |
+|---|---|---|---|---|
+| `Post Only` | Liquidity Attribute | Route-specific Broker/Venue behavior | ‏field קיים אינו הוכחת acceptance לכל destination | `CORE_SAFETY` / passive guardrail |
+| `Hidden` | Display Attribute | SMART/Direct; Native או Broker-Simulated לפי path | ‏priority/latency משתנים לפי venue/path | `SPECIALIST_CONDITIONAL` |
+| `Iceberg / Reserve` | Display/Quantity Attribute | Broker/Venue managed | ‏slice/replenishment semantics | `SPECIALIST_CONDITIONAL` |
+| `Relative / Pegged-to-Primary` | Dynamic Pricing Primitive/Variant | SMART / Direct / ATS לפי path | ‏SMART ו־Directed אינן semantics זהות | `RESEARCH_CHALLENGER` |
+| `Pegged-to-Midpoint` | Dynamic Pricing Primitive/Variant | Direct / ATS לפי path | ‏destination capability היא חלק מה־feature | `RESEARCH_CHALLENGER` |
+| `MidPrice` | Broker Algo / Mechanism | SMART | ‏execution path יכול להשתנות | `RESEARCH_CHALLENGER` |
+| `Snap to Market` | One-shot Dynamic Pricing Primitive/Variant | Broker-Simulated לפי התיעוד שנבדק | ‏מחיר מחושב פעם אחת ועלול להתיישן | `SPECIALIST_CONDITIONAL` |
+| `Snap to Midpoint` | One-shot Dynamic Pricing Primitive/Variant | Broker-Simulated | ‏stale fixed price / no-fill | `RESEARCH_CHALLENGER` |
+| `Snap to Primary` | One-shot Dynamic Pricing Primitive/Variant | Direct לפי scope; Broker-Simulated | ‏destination + stale-price risk | `SPECIALIST_CONDITIONAL` |
+| `IBKR ATS Pegged-to-Best` | ATS-specific Dynamic Pricing | Directed to IBKR ATS | ‏ATS-specific semantics | `SPECIALIST_CONDITIONAL` |
+| `IBKR ATS Pegged-to-Midpoint` | ATS-specific Dynamic Pricing | Directed to IBKR ATS | ‏destination-specific semantics | `SPECIALIST_CONDITIONAL` |
 
 ---
 
-## ‏9.9 `Relative` — אותה משפחה, semantics שונות לפי Routing
+## ‏9.11 `Relative` — Route היא חלק מה־Capability Key
 
-‏ה־matrix אינה יכולה לכתוב רק:
+‏Capability cache לא תכתוב:
 
 ```text
-Relative = Supported
+RELATIVE = true
 ```
 
-‏כי ב־Directed Relative הפקודה יכולה לצוף בשני כיווני השוק, בעוד ב־SMART Relative קנייה יכולה לעלות עם ה־NBB בלי לרדת איתו אוטומטית, ומכירה יכולה לרדת עם ה־NBO בלי לעלות איתו אוטומטית.
-
-‏לכן capability key נכון יותר הוא:
+‏אלא משהו בסגנון:
 
 ```text
-RELATIVE + SMART
-RELATIVE + DIRECT(destination)
+RELATIVE:SMART
+RELATIVE:DIRECT:<destination>
+RELATIVE:IBKR_ATS
 ```
 
-‏ולא `RELATIVE` בלבד.
+‏משום ש־route יכולה לשנות את repricing semantics עצמן, לא רק את מקום הביצוע.
 
 ---
 
-## ‏9.10 `Pegged-to-Midpoint` מול `MidPrice` — מטריצה שמונעת alias שגוי
+## ‏9.12 `Pegged-to-Midpoint` מול `MidPrice` — אותו objective חלקי, Capability שונה
 
 ```text
 PEGGED_TO_MIDPOINT:
-    routing = DIRECT / ATS
-    venue-specific behavior
+    category = dynamic-pricing primitive/variant
+    routing  = DIRECT / ATS path
+    behavior = venue/path-specific
 
 MIDPRICE:
-    routing = SMART
-    IBKR-managed midpoint-oriented execution
+    category = broker-managed algo/mechanism
+    routing  = SMART
+    behavior = broker-selected execution path
 ```
 
-‏אם Adapter מתרגם את שתיהן ל־`MIDPOINT`, איבדנו מידע מהותי על route, determinism ו־failure modes.
+‏אם Adapter מתרגם את שתיהן ל־`MIDPOINT`, הוא מוחק route, control delegation ו־failure semantics.
 
 ---
 
-## ‏9.11 `Snap` — Supported, אבל ב־IBKR Simulated
+## ‏9.13 `Snap` — Implementation Path חייב להיות Field
 
-‏IBKR מתעדת את שלוש משפחות `Snap` כפקודות מדומות על כל ה־exchanges.
+‏בתיעוד שנבדק, משפחת `Snap` מנוהלת כ־Broker-Simulated behavior.
 
-‏לכן בטבלת runtime נשמור גם:
+‏לכן נשמור בנפרד:
 
 ```text
-implementation_owner = IBKR_SIMULATED
+implementation_owner = BROKER
+implementation_kind  = BROKER_SIMULATED
+residency             = verify_per_path
 ```
 
-‏ונמדוד `quote_at_submit`, ‏computed price, ‏ack ו־first working state. אחרת Backtest יכול לחשוב שה־Venue עצמה מפעילה primitive שאינו קיים שם.
+‏ולא נסיק מ־`Broker-Simulated` שה־Order בהכרח `Broker-Resident` בכל failure scenario. ‏Simulation ו־Residency הם dimensions שונים.
 
 ---
 
-## ‏9.12 מטריצת Stops / Protection / Relationships
+## ‏9.14 Stops / Protection / Relationships Matrix
 
-| Capability | מניות US | UI מתועד | Routing | TWS API primitive | Caveat | התאמה לנו |
-|---|---|---|---|---|---|---|
-| `Stop` | ‏כן | כל הפלטפורמות המרכזיות | Smart, Directed | `STP`, `auxPrice`, `triggerMethod` | ‏Native או simulated; Fill price לא מובטח | `High` להגנה |
-| `Stop Limit` | ‏כן | כל הפלטפורמות המרכזיות | Smart, Directed | `STP LMT` | ‏Triggered-but-unfilled risk | `Medium/High` |
-| `Trailing Stop` | ‏כן | כל הפלטפורמות המרכזיות | Smart, Directed | trail fields | ‏noise / premature exit | `Research` |
-| `Trailing Stop Limit` | ‏כן | כל הפלטפורמות המרכזיות | Smart, Directed | trail + limit offset | ‏יכול להישאר Position לאחר trigger | `Research` |
-| `Adjustable Stop` | ‏כן | כל הפלטפורמות המרכזיות | Smart, Directed | adjusted-order fields | ‏Broker-managed transition | `Advanced Challenger` |
-| `Conditional` | ‏כן | `TWS`, Mobile לפי catalog | Smart, Directed | `conditions` | ‏עשויה להיות simulated | `Advanced` |
-| `Bracket` | ‏כן | `TWS`, Desktop, Mobile | Smart, Directed | `parentId`, `transmit` | ‏Composite; partial/race semantics חייבות בדיקה | `High Protection Challenger` |
-| `OCA/OCO` | ‏כן | `TWS` ל־OCA | Smart, Directed | `ocaGroup`, `ocaType` | ‏Cancellation אינה atomic | `High` כחלק מ־exit correctness |
+| Capability | שכבה קנונית | Implementation / Routing | Caveat מרכזי | Research Role |
+|---|---|---|---|---|
+| `Stop` | Trigger + Market-style post-trigger execution | Native או Broker-Simulated לפי path | ‏Trigger price אינה Fill price | `CORE_SAFETY` |
+| `Stop Limit` | Trigger + Limit-style post-trigger execution | Path-dependent | ‏Triggered-but-unfilled risk | `SPECIALIST_CONDITIONAL` |
+| `Trailing Stop` | Moving Trigger | Broker/Venue path-dependent | ‏noise / premature trigger | `RESEARCH_CHALLENGER` |
+| `Trailing Stop Limit` | Moving Trigger + Limit post-trigger | Path-dependent | ‏Position יכולה להישאר לאחר trigger | `RESEARCH_CHALLENGER` |
+| `Adjustable Stop` | Transforming Order | Broker-managed transformation | ‏one-time transition semantics | `SPECIALIST_CONDITIONAL` |
+| `Conditional` | Predicate / Dependency | Broker-managed or simulated לפי path | ‏market-data / residency implications | `SPECIALIST_CONDITIONAL` |
+| `Bracket` | Composite Order Structure | parent/children + transmit semantics | ‏partial/race/recovery semantics | `CORE_SAFETY` |
+| `OCA/OCO` | Coordination Relationship | `ocaGroup` / `ocaType` path | ‏coordination is not atomic | `CORE_SAFETY` |
 
 ---
 
-## ‏9.13 `Bracket` מקבלת Gate קשוח יותר משאר הפקודות
+## ‏9.15 `Bracket` מקבלת Production Gate קשוח יותר
 
-‏גם אם `Bracket` מופיעה בקטלוג ותומכת במניות, לא נאפשר `PRODUCTION_ENABLED` לפני בדיקות מפורשות של:
+‏`Bracket` יכולה להיות documented available ובכל זאת להישאר:
+
+```text
+enablement_state = PAPER_ACCEPTED
+```
+
+‏עד שנבדקו במפורש לפחות:
 
 ```text
 parent full fill
@@ -240,15 +393,13 @@ disconnect/reconnect
 process restart
 ```
 
-‏הסיבה היא ש־Bracket אינה רק בחירת מחיר. היא מנהלת **מבנה Position Protection**.
+> ‏`ACCEPTANCE TEST REQUIRED` — Parent partial-fill child activation נשארת unresolved עבור ה־API/Product/Route הספציפיים עד evidence אמפירי. Availability בתיעוד אינה פותרת את ה־semantics הזו.
 
 ---
 
-## ‏9.14 `OCA` — Capability עם אזהרה מובנית
+## ‏9.16 `OCA/OCO` — Coordination Capability, לא Atomic Guarantee
 
-‏IBKR עצמה מזהירה שאין guarantee שבקשת Cancel/Modify של OCA תגיע ל־Exchange לפני Order שכבר מתבצעת.
-
-‏לכן ה־capability record שלה יכיל למשל:
+‏Capability Record צריך להיות מסוגל לשמור safety properties כגון:
 
 ```text
 atomic_cancel = false
@@ -256,62 +407,93 @@ late_sibling_fill_possible = true
 reconciliation_required = true
 ```
 
-‏כך אזהרה מקצועית הופכת ל־machine-readable safety property.
+> ‏`ENGINE INVARIANT` — sibling שנמצא ב־pending cancel נשאר potentially executable עד terminal broker evidence.
+
+‏כך אזהרה מקצועית הופכת לחלק מה־machine-readable contract.
 
 ---
 
-## ‏9.15 מטריצת Routing ו־Broker Algos
+## ‏9.17 Routing ו־Broker Algo — שתי קטגוריות נפרדות
 
-| Capability | מניות US | UI | Routing Mode | מי מנהל | התאמה לנו |
-|---|---|---|---|---|---|
-| `SMART` | ‏כן | רחב | Smart | IBKR Router | `High/Baseline` |
-| Direct Routing | ‏כן | כל הפלטפורמות המרכזיות | Directed | אנחנו בוחרים destination | `Medium/Advanced` |
-| `Adaptive` | ‏כן | TWS, Desktop, Mobile | `IB Algo` | IBKR Algo | `High/Challenger` |
-| `MidPrice` | ‏כן | כל הפלטפורמות המרכזיות | Smart | IBKR | `High/Challenger` |
-| `SMART DarkOnly` | ‏תלוי Contract/route | API/routing option | Smart variant | IBKR | `Low/Advanced` |
-| `IBKR ATS` | ‏כן | כל הפלטפורמות המרכזיות | Directed | IBKR ATS | `Advanced` |
-| `VWAP/TWAP/POV` | ‏כן בחלק מהמקרים | Algo-specific | IB Algo | IBKR | `Low` כרגע |
-| `Accumulate/Distribute` | ‏כן | `TWS Only` | Smart, Directed, IBKR ATS | IBKR/TWS algo | `Low` כרגע |
+| Capability | שכבה קנונית | מי מחזיק את ההחלטה | Research Role |
+|---|---|---|---|
+| `SMART` | Routing Policy | IBKR בוחרת destination במסגרת ה־router | `CORE_BASELINE` |
+| Direct Routing | Routing Policy | המנוע בוחר destination | `SPECIALIST_CONDITIONAL` |
+| `SMART DarkOnly` | Routing Variant | IBKR בתוך universe מוגבל | `SPECIALIST_CONDITIONAL` |
+| `IBKR ATS` | Destination | destination ייעודי | `SPECIALIST_CONDITIONAL` |
+| `Adaptive` | Broker Algo | IBKR מנהלת speed/price search | `RESEARCH_CHALLENGER` |
+| `MidPrice` | Broker Algo / Mechanism | IBKR מנהלת midpoint-oriented path | `RESEARCH_CHALLENGER` |
+| `VWAP/TWAP/POV` | Broker Algos | Broker scheduling/participation logic | `REFERENCE_ONLY` כרגע |
+| `Accumulate/Distribute` | Broker Algo | Broker/TWS slicing logic | `REFERENCE_ONLY` כרגע |
 
----
-
-## ‏9.16 `Adaptive` — Order Type לא מספיק כדי לתאר Capability
-
-‏רשומת capability צריכה לכלול גם:
+‏אין enum קנוני כזה:
 
 ```text
-base_order_type = MARKET | LIMIT
-adaptive_priority = URGENT | NORMAL | PATIENT
-price_cap_required_by_our_policy
-application_ttl
+route = SMART | DIRECT | IB_ALGO
 ```
 
-‏מבחינתנו `ADAPTIVE_LIMIT_URGENT` ו־`ADAPTIVE_MARKET_PATIENT` אינן אותו feature רק משום ששניהם Adaptive.
+‏`RoutingPlan` ו־`BrokerAlgoPlan` נשארים אובייקטים נפרדים כפי שנקבע בחלק 7.
 
 ---
 
-## ‏9.17 `TWS API` — Static Runtime Discovery
+## ‏9.18 `Adaptive` — Capability צריכה לתאר גם Parameters
 
-> ‏אימות אחרון: `2026-10-27`.
+‏רשומה בסגנון:
 
-‏`ContractDetails` כולל לפחות:
+```text
+ADAPTIVE = supported
+```
+
+‏אינה מספיקה.
+
+‏נרצה dimensions כגון:
+
+```text
+base_order_primitive = MARKET | LIMIT
+adaptive_priority    = URGENT | NORMAL | PATIENT
+economic_price_bound_required_by_policy
+application_order_ttl
+routing_requirement
+```
+
+‏`ADAPTIVE_LIMIT_URGENT` ו־`ADAPTIVE_MARKET_PATIENT` אינן אותה Behavior Candidate רק משום שהן משתמשות באותו Algo.
+
+---
+
+## ‏9.19 `TWS API` Runtime Discovery
+
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
+
+‏`ContractDetails` כולל בין היתר metadata כגון:
 
 ```text
 orderTypes
 validExchanges
 ```
 
-‏לכן startup/cache builder יכול לבנות לכל Contract תמונה ראשונית של Order families ושל destinations חוקיים.
+‏זו evidence שימושית ל־runtime capability discovery.
 
-‏זה אינו מספיק לבדו — משום ש־combination של TIF, attribute, session ו־route עדיין יכולה להידחות — אבל זו שכבת validation ראשונה טובה.
+‏אבל:
+
+```text
+orderTypes contains X
+```
+
+‏אינו מוכיח שכל combination של:
+
+```text
+X + TIF + attributes + route + session + account
+```
+
+‏יתקבל.
 
 ---
 
-## ‏9.18 `Web API` — Runtime Rules עשירים יותר ברמת Contract
+## ‏9.20 `Web API` Runtime Rules
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
-‏Endpoint ה־Contract Rules של Web API יכול להחזיר בין היתר:
+‏ב־Contract Rules שתועדו ב־Web API קיימים metadata fields כגון:
 
 ```text
 orderTypes
@@ -325,60 +507,93 @@ fraqTypes
 cqtTypes
 ```
 
-‏זה בדיוק סוג metadata שמאפשר לבנות Adapter שלא מניח capabilities גלובליות.
+‏זה מאפשר Adapter שבונה capability view פר Contract במקום להניח feature flags גלובליים.
 
 ---
 
-## ‏9.19 Web API אינה העתק של `TWS API`
+## ‏9.21 `TWS API` ו־Web API אינם אותו Capability Surface
 
-‏Web API תומכת ב־advanced order types וב־IB Algos, ויש endpoint לקבלת algos זמינים ל־Contract. היא תומכת גם ב־Bracket וב־OCA בהקשר המתועד של endpoint ההזמנות.
-
-‏אבל אנחנו לא מסיקים:
+‏אסור להסיק:
 
 ```text
 TWS field exists
-=> identical Web API field and lifecycle
+=> identical Web API field
+=> identical lifecycle
+=> identical error behavior
 ```
 
-‏לכל Adapter תהיה capability matrix משלו.
+‏לכן:
+
+```text
+adapter = TWS_API
+```
+
+‏ו־:
+
+```text
+adapter = WEB_API
+```
+
+‏הם חלק מ־Capability Key, ולא רק implementation detail.
 
 ---
 
-## ‏9.20 מבנה `CapabilityRecord` מוצע
+## ‏9.22 `CapabilityRecord` קנוני
 
 ```text
 CapabilityRecord {
   broker
-  adapter                 // TWS_API | WEB_API
-  legal_entity
-  account_scope
-  conid
-  symbol
+
+  // identity / scope
+  capability_id
+  capability_category
+  product
   sec_type
   region
-  capability_id
-  base_order_type
-  attributes
+  conid
+  symbol
+  adapter
+  account_scope
+  legal_entity
+  permission_scope
+  session
+
+  // execution path
+  routing_policy
+  destination
+  broker_algo
+  parameter_constraints
   tif_values
-  routing_modes
-  destinations
+  attributes
   outside_rth
-  implementation_owner   // VENUE | IBKR | CLIENT | MIXED
+
+  // implementation dimensions
+  implementation_owner
+  implementation_kind      // VENUE_NATIVE | BROKER_SIMULATED | BROKER_ALGO | COMPOSITE | CLIENT_MANAGED | MIXED
+  residency_state          // VERIFIED_BROKER_RESIDENT | CLIENT_DEPENDENT | UNKNOWN
+
+  // evidence
+  documented_availability
   documented_platforms
   runtime_evidence
-  acceptance_state
+  acceptance_evidence
+  rejection_history
   last_verified_at
   source_version
-  rejection_history
+
+  // our policy
+  research_role
+  enablement_state
+  disable_reason
   notes
 }
 ```
 
-‏זה נראה כבד יותר מ־`supportsIOC=true`, אבל זו בדיוק המורכבות שה־Broker והשווקים עצמם מציגים.
+‏ה־Record נראה עשיר יותר מ־`supportsIOC=true`, אבל הוא מונע בדיוק את סוג ה־false assumptions שמסוכנים ב־advanced orders.
 
 ---
 
-## ‏9.21 Capability Key חייב לכלול Route כאשר Route משנה Semantics
+## ‏9.23 Capability Key חייב לכלול Route כאשר Route משנה Semantics
 
 ‏דוגמאות:
 
@@ -390,17 +605,13 @@ PEGGED_MID:IBKR_ATS
 MIDPRICE:SMART
 ```
 
-‏אחרת cache אחד יכול לגרום למנוע לשלוח שילוב שנבדק במקום אחר אך אינו חוקי כאן.
+‏אם route/destination משנות pricing, activation, support או ownership semantics — הן חלק מה־identity של capability.
 
 ---
 
-## ‏9.22 Session היא חלק מה־Capability
+## ‏9.24 Session היא חלק מה־Capability
 
-‏גם Order שמתועדת ב־Regular Trading Hours לא בהכרח מקבלת אותה semantics מחוץ לשעות הרגילות.
-
-‏Web API Contract Rules אף יכולה להחזיר `orderTypesOutside` בנפרד.
-
-‏לכן capability key או policy צריכות להכיר:
+‏לא מעתיקים enablement אוטומטית בין:
 
 ```text
 REGULAR
@@ -409,15 +620,17 @@ AFTER_HOURS
 OVERNIGHT
 ```
 
-‏ולא להעתיק enablement מ־session אחת לאחרת.
+‏Order שזמינה ב־RTH אינה בהכרח מקבלת אותם trigger, liquidity, route או outside-hours rules בסשן אחר.
+
+‏`orderTypesOutside` ב־Web API היא דוגמה לכך שה־Broker עצמו מפריד את ה־scope הזה.
 
 ---
 
-## ‏9.23 `IBKR Israel` / Legal Entity — אין `YES` גורף
+## ‏9.25 Account / Legal Entity / Permissions הם חלק מה־Scope
 
-‏התיעוד הרשמי שאנחנו משתמשים בו הוא תיעוד מוצר/API של IBKR ברמה גלובלית. הוא אינו מספק לכל Order Type טבלת `IBKR Israel = yes/no` שמכסה את החשבון שלנו.
+‏תיעוד מוצר גלובלי אינו תחליף ל־account-specific evidence.
 
-‏לכן ה־production gate האמיתי כולל:
+‏Production gate כולל לפחות:
 
 ```text
 account legal entity
@@ -429,32 +642,45 @@ paper behavior
 small-live behavior
 ```
 
-‏כל עוד אחד מהשלבים לא אומת, לא נציג אותו כעובדה חשבונית מוחלטת.
+‏לכן ניסוח קנוני הוא:
+
+```text
+Documented available in IBKR product docs
+```
+
+‏ולא:
+
+```text
+Supported in our account
+```
+
+‏עד שיש evidence מתאימה.
 
 ---
 
-## ‏9.24 Startup Capability Discovery
+## ‏9.26 Startup Capability Discovery
 
 ‏ב־startup או בתחילת session:
 
 ```text
 1. identify account / adapter / environment
 2. resolve contract
-3. fetch ContractDetails or Web API rules
-4. normalize supported order types
-5. normalize TIFs
-6. normalize valid routes / exchanges
-7. normalize algos
-8. merge static caveats
-9. compare with last-known capability snapshot
-10. freeze features whose assumptions changed
+3. fetch runtime contract metadata
+4. normalize broker primitives
+5. normalize TIF / fill policies
+6. normalize attributes
+7. normalize routes / destinations
+8. normalize broker algos
+9. attach static documented caveats
+10. compare with last-known snapshot
+11. freeze features whose assumptions changed materially
 ```
 
-‏אם Capability קריטית השתנתה, Entry חדשה לא צריכה להמשיך כאילו לא קרה דבר.
+‏Capability Discovery היא **validation layer**, לא Decision Engine.
 
 ---
 
-## ‏9.25 Capability Cache צריכה Expiry ו־Version
+## ‏9.27 Capability Cache צריכה Freshness ו־Version
 
 ‏לא נשמור:
 
@@ -462,38 +688,40 @@ small-live behavior
 supports_midprice = true forever
 ```
 
-‏אלא:
+‏אלא לפחות:
 
 ```text
 verified_at
-source
-account
+source_version
+broker_software_version_if_relevant
+adapter
+account_scope
 contract
 route
-adapter
-software_version
+session
 ```
 
-‏Capabilities הן Data תלוית זמן.
+‏Capabilities הן time-dependent operational data.
 
 ---
 
-## ‏9.26 Broker Rejection היא Data שמעדכנת את המודל
+## ‏9.28 Broker Rejection היא Evidence, לא רק Log
 
-‏אם Runtime metadata אמרה ש־Order family זמינה אבל submit אמיתי נדחה, אין להתייחס לזה רק כ־error log.
-
-‏נשמור:
+‏אם runtime metadata צפתה שה־feature זמינה אבל submit נדחתה, נרשום:
 
 ```text
-capability_expected = true
+expected_availability
 broker_result = REJECTED
 reason_code
-route
 contract
+route
+destination
+adapter
+session
 payload_shape
 ```
 
-‏ונוריד זמנית את ה־feature ל־:
+‏ואפשר להעביר את הרשומה למצב כגון:
 
 ```text
 RUNTIME_CONFLICT
@@ -501,50 +729,87 @@ RUNTIME_CONFLICT
 
 ‏עד בירור.
 
+‏Rejection אחת אינה בהכרח הוכחה שה־feature נעלמה גלובלית; היא evidence עבור scope מסוים.
+
 ---
 
-## ‏9.27 Fallback לעולם אינו `Unsupported -> Market`
+## ‏9.29 `AVAILABLE` אינה `ENABLED`
 
-‏זה anti-pattern מסוכן.
+‏זה ה־guard המרכזי של הפרק:
 
-‏אם `Pegged-to-Midpoint` נדחתה, אין משמעות לכך שהמנוע רשאי מיד לקנות Market.
+```text
+Documented Available
+    ↓
+Runtime Confirmed
+    ↓
+Paper Accepted
+    ↓
+Live Small Accepted
+    ↓
+Production Enabled
+```
 
-‏Fallback חייב לחזור ל־Execution Policy:
+‏Feature יכולה להיות זמינה לחלוטין אצל Broker ועדיין להיות:
+
+```text
+enablement_state = DOC_ONLY
+```
+
+‏משום שהמערכת שלנו עוד לא הוכיחה lifecycle, telemetry, recovery או safety semantics.
+
+---
+
+## ‏9.30 Fallback לעולם אינו `Unsupported -> More Aggressive`
+
+‏אם Candidate נדחתה או אינה זמינה:
+
+```text
+capability failure
+```
+
+‏המנוע חוזר ל־fresh decision:
 
 ```text
 is signal still valid?
-how old is it?
-what is current spread?
-what is economic cap?
-what quantity remains?
-what alternative capability is enabled?
+what is current urgency?
+what is current Economic Price Bound?
+how much qty is already filled or potentially executable?
+what alternatives are enabled now?
 ```
 
-‏רק אז אפשר לבחור `MidPrice`, ‏`Marketable Limit + IOC`, ‏Passive Limit או `NO TRADE`.
+> ‏`ENGINE RULE` — Capability failure מפעיל elimination + re-decision. הוא אינו synonym ל־Market Order, אינו escalation אוטומטי ואינו עוקף את ה־Economic Price Bound.
 
 ---
 
-## ‏9.28 Acceptance Gate לפי משפחה
+## ‏9.31 Acceptance Gate לפי Family
 
-| משפחה | בדיקות חובה לפני enablement |
+| Family | Minimum acceptance evidence לפני Production |
 |---|---|
-| Core `MKT/LMT/IOC` | ‏full/partial/no-fill, rejection, cancel race, price cap, reconnect |
-| Passive/Post Only | ‏marketable-at-arrival behavior, reject/reprice, queue/markout |
-| Hidden/Iceberg | ‏native/simulated path, slices, remainder, marketable transition |
-| Pegged/Relative | ‏reference changes, cap reached, route semantics, cancel while repricing |
-| Midpoint/Snap | ‏midpoint movement, no-fill, stale Snap, direct-route rejects |
-| Stops | ‏trigger method, gap, trigger vs fill, outside-RTH behavior |
-| Bracket/OCA | ‏partial parent, child reject, sibling race, reconnect, double-exit defense |
-| Adaptive/Broker Algo | ‏priority behavior, TTL cancel, partial fills, reconnect, algo availability |
-| Direct/ATS | ‏destination acceptance, actual venue, fees, no-liquidity fallback |
+| Core `MKT/LMT/IOC` | ‏full/partial/no-fill, rejection, cancel race, Economic Price Bound, reconnect |
+| Passive / Post Only | ‏marketable-at-arrival behavior, reject/reprice path, route-specific semantics |
+| Hidden / Reserve | ‏native/simulated owner, slice/remainder behavior, cancel/recovery |
+| Pegged / Relative | ‏reference moves, bound reached, route semantics, broker-managed repricing אחרי stale signal |
+| Midpoint / Snap | ‏midpoint movement, no-fill, stale Snap, route rejects, TTL cancel |
+| Stops | ‏trigger method, gap, trigger-vs-fill, session behavior, implementation owner |
+| Bracket / OCA | ‏partial parent, child rejection, sibling race, reconnect, double-exit defense, ownership |
+| Broker Algos | ‏parameter behavior, app TTL, partial fills, cancel/reconnect, decision-return conditions |
+| Direct / ATS | ‏destination acceptance, actual fill venue, fees, no-liquidity/reject handling |
 
 ---
 
-## ‏9.29 `Paper Accepted` אינה הוכחה מלאה ל־Live
+## ‏9.32 `PAPER_ACCEPTED` אינה הוכחה ל־Live Microstructure
 
-‏Paper environment שימושית מאוד ל־state machine, payload validation וחלק מה־failure handling.
+‏Paper environment שימושית ל־:
 
-‏אבל היא לא יכולה להוכיח במלואה:
+```text
+payload validation
+state machine
+basic callbacks
+rejection handling
+reconciliation paths
+```
+
+‏אבל אינה מוכיחה במלואה:
 
 ```text
 real queue position
@@ -559,52 +824,50 @@ all production routing behavior
 
 ---
 
-## ‏9.30 `Live Small` נועד לאמת Semantics, לא לרדוף אחרי P&L
+## ‏9.33 `LIVE_SMALL_ACCEPTED` מאמתת Semantics, לא Profitability
 
-‏מטרת `LIVE_SMALL_ACCEPTED` היא לבדוק בסיכון נמוך:
+‏המטרה היא לבדוק בסיכון מוגבל:
 
 ```text
 broker acceptance
 actual callbacks
-route behavior
+actual routing behavior
 fill decomposition
 cancel/modify races
 fee data
 reconnect behavior
 ```
 
-‏הצלחה בשלב הזה אינה "האסטרטגיה רווחית"; היא אומרת שהתשתית מתנהגת כפי שהמנוע חושב.
+‏הצלחה אינה הוכחה שה־Signal רווחי. היא evidence שה־execution capability מתנהגת כפי שהמערכת מצפה.
 
 ---
 
-## ‏9.31 מטריצת Enablement ראשונית למנוע שלנו
+## ‏9.34 Enablement Matrix ראשונית למנוע
 
-| Capability | Research priority | Production gate ראשוני |
+| Capability / Behavior | Research Role | Production Gate מרכזי |
 |---|---|---|
-| Passive `LMT` + short TTL | `Core` | ‏State machine + cancel-race accepted |
-| Marketable `LMT + IOC` | `Core` | ‏Partial/no-fill + cap accepted |
-| `SMART` | `Core Routing Baseline` | ‏venue/fill telemetry קיימת |
-| `Relative/Pegged-to-Primary` | `High Challenger` | ‏SMART/Directed semantics נבדקו בנפרד |
-| `MidPrice` | `High Challenger` | ‏fill/no-fill + TTL + route telemetry |
-| Directed `Pegged-to-Midpoint` | `High Challenger` | ‏destination-specific acceptance |
-| `Snap to Midpoint` | `High Challenger` | ‏stale-price + TTL tests |
-| `Adaptive Limit Urgent/Normal` | `High Challenger` | ‏algo availability + cancel/reconnect |
-| `Bracket / Hybrid Protection` | `High Safety Challenger` | ‏כל Failure Matrix של חלק 6 |
-| `Stop` backstop | `High Safety` | ‏trigger/gap/session tests |
-| `Post Only` | `High Passive Guardrail` | ‏route-specific behavior verified |
-| `Hidden/Iceberg` | `Advanced` | ‏רק אם footprint hypothesis קיימת |
-| `IBKR ATS pegged` | `Advanced` | ‏ATS-specific evidence |
-| `AON/MinQty` | `Advanced/Low` | ‏רק אם partial-fill economics מצדיקות |
-| `FOK` | `Not Core for US Stocks` | ‏לא להניח stock support |
-| Long-horizon execution algos | `Low now` | ‏רק אם horizon/size משתנים |
+| Passive `LMT` + app TTL | `CORE_BASELINE` | ‏state machine + cancel race |
+| `MARKETABLE_LIMIT_IOC` | `CORE_BASELINE` | ‏partial/no-fill + Economic Price Bound |
+| `SMART` | `CORE_BASELINE` routing | ‏venue/fill telemetry |
+| `Post Only` | `CORE_SAFETY` passive guardrail | ‏route-specific acceptance |
+| `Stop` backstop | `CORE_SAFETY` | ‏trigger/gap/session/residency tests |
+| `Bracket / Hybrid Protection` | `CORE_SAFETY` / challenger architecture | ‏Part 6 Failure Matrix |
+| `Relative/Pegged-to-Primary` | `RESEARCH_CHALLENGER` | ‏SMART/Directed semantics בנפרד |
+| `MidPrice` | `RESEARCH_CHALLENGER` | ‏fill/no-fill + TTL + path telemetry |
+| Directed `Pegged-to-Midpoint` | `RESEARCH_CHALLENGER` | ‏destination-specific acceptance |
+| `Snap to Midpoint` | `RESEARCH_CHALLENGER` | ‏stale-price + TTL |
+| `Adaptive Limit Urgent/Normal` | `RESEARCH_CHALLENGER` | ‏algo availability + cancel/reconnect |
+| Hidden / Reserve | `SPECIALIST_CONDITIONAL` | ‏רק עם footprint/display hypothesis |
+| ATS-specific Pegged | `SPECIALIST_CONDITIONAL` | ‏ATS-specific evidence |
+| AON / MinQty | `SPECIALIST_CONDITIONAL` | ‏רק אם partial-fill economics מצדיקות |
+| FOK for US-stock core | `OUT_OF_SCOPE` כרגע | ‏לא להניח stock path |
+| Long-horizon scheduling algos | `REFERENCE_ONLY` | ‏רק אם horizon/size משתנים |
 
 ---
 
-## ‏9.32 מה מנוע ה־Scanner צריך לדעת ומה לא
+## ‏9.35 ה־Scanner לא צריך לדעת Broker Enums
 
-‏ה־Scanner אינו צריך להכיר API enum של כל פקודה.
-
-‏הוא צריך להוציא Intent כגון:
+‏Signal/Scanner layer מוציאה Intent כגון:
 
 ```text
 urgency
@@ -614,74 +877,79 @@ max_position
 partial_fill_tolerance
 ```
 
-‏Execution Engine לוקח Intent + Capability Matrix ומחליט אילו implementation candidates חוקיים.
+‏Execution Engine משתמשת ב־Intent יחד עם Capability Matrix כדי לסנן implementation candidates.
 
-‏כך שינוי Broker capability אינו דורש לשנות את ה־Signal model.
+‏כך שינוי ב־Broker capability אינו משנה את ה־Signal model.
 
 ---
 
-## ‏9.33 `Capability Resolver` במנוע
-
-‏לפני יצירת Concrete Order:
+## ‏9.36 `Capability Resolver` מסנן; הוא לא בוחר Winner
 
 ```text
 Intent
   ↓
-Execution Policy candidates
+Application Execution Mode
+  ↓
+Behavior Candidates
   ↓
 Capability Resolver
   ↓
-filter unsupported / unaccepted combinations
+eliminate unavailable / unaccepted combinations
   ↓
-Rank or select allowed execution behavior
+Decision Engine compares survivors
   ↓
-Concrete Broker Order
+Concrete Broker Plan
 ```
 
-‏אצלנו הדגש הוא אפילו על **elimination**: שילוב שלא עבר Gate פשוט אינו Candidate.
+> ‏`ENGINE RULE` — Capability Resolver עונה **מה מותר לשקול**. הוא אינו עונה **מה עדיף כלכלית** ואינו מחליף את Decision Engine.
 
 ---
 
-## ‏9.34 Capability Matrix היא גם Kill Switch ממוקד
+## ‏9.37 Capability Matrix היא Kill Switch ממוקד
 
-‏אם מתברר ש־`Adaptive` התחילה להידחות אחרי שינוי Broker, אין צורך לעצור בהכרח את כל המנוע.
-
-‏אפשר:
+‏אם feature מסוימת מתחילה להידחות:
 
 ```text
 ADAPTIVE = DISABLED_RUNTIME_CONFLICT
-MIDPRICE = ENABLED
-MARKETABLE_LIMIT_IOC = ENABLED
+MIDPRICE = PAPER_ACCEPTED
+MARKETABLE_LIMIT_IOC = PRODUCTION_ENABLED
 ```
 
-‏כך degradation נשלטת ומפורשת.
+‏המערכת יכולה להסיר Candidate אחת בלי להעמיד פנים שכל Broker connectivity נשברה.
 
-‏לעומת זאת, אם Capability קריטית להגנת Position — למשל protective Stop path — נכשלת, ייתכן שה־Risk Gate צריך לעצור Entries חדשות לחלוטין.
+‏לעומת זאת, failure של capability safety-critical — למשל path של protective order שעליו נשענת הארכיטקטורה — יכולה לחסום Entries חדשות לחלוטין.
 
 ---
 
-## ‏9.35 Telemetry של Capability
+## ‏9.38 Telemetry קנונית ל־Capability
 
 ```text
 capability_id
+capability_category
 adapter
 account_scope
+legal_entity
 conid
 route
 destination
 session
-documented_support
-runtime_support
-acceptance_state
+documented_availability
+runtime_state
+enablement_state
+research_role
+implementation_owner
+implementation_kind
+residency_state
 last_verified_at
+source_version
 submit_attempts
 accept_count
 reject_count
 last_reject_code
 last_reject_message
-implementation_owner
 paper_test_version
 live_test_version
+disable_reason
 ```
 
 ‏ומדדים:
@@ -691,15 +959,14 @@ reject_rate_by_capability
 runtime_doc_mismatch_rate
 capability_change_events
 fallback_rate
-fallback_success_rate
 production_disable_events
 ```
 
 ---
 
-## ‏9.36 Freshness Policy
+## ‏9.39 Freshness Policy
 
-‏Capabilities שתלויות ב־Broker אינן Specification פנימית קבועה.
+‏Capabilities שתלויות ב־Broker אינן Specification פנימית נצחית.
 
 ‏נגדיר לפחות:
 
@@ -713,32 +980,33 @@ record last_verified_at
 ‏במקרה של conflict:
 
 ```text
-runtime broker evidence > stale local cache
+fresh broker evidence > stale local cache
 ```
 
-‏אבל rejection אחת אינה בהכרח הוכחה שה־feature הוסר גלובלית; מסווגים לפי Contract/Route/Account.
+‏אבל evidence מקומית אינה מורחבת אוטומטית ל־scope אחר.
 
 ---
 
-## ‏9.37 `UI Support` היא Evidence שונה מ־`API Support`
+## ‏9.40 `UI Support` ו־`API Support` הן Evidence שונות
 
-‏Order שמופיעה ב־TWS אינה הוכחה שה־Web API exposes בדיוק אותה semantics.
+‏Order שמופיעה ב־TWS אינה הוכחה שה־Web API exposes אותה semantics.
 
-‏ומצד שני, `TWS API Order` יכולה לכלול attribute שאינו מוצג באותו אופן בכל UI.
+‏ושדה API שקיים אינו הוכחה שה־UI, route או account שלנו מאפשרים אותו.
 
-‏לכן נשמור עמודות נפרדות:
+‏לכן נשמור בנפרד:
 
 ```text
-manual_ui_support
-tws_api_representation
-web_api_representation
+manual_ui_evidence
+tws_api_evidence
+web_api_evidence
+runtime_broker_evidence
 ```
 
-‏ולא שדה `IBKR_SUPPORTED` יחיד.
+‏ולא שדה יחיד בשם `IBKR_SUPPORTED`.
 
 ---
 
-## ‏9.38 `API Field Exists` אינה Capability Proof
+## ‏9.41 `API Field Exists` אינה Capability Proof
 
 ‏אם `Order` object מכיל:
 
@@ -750,9 +1018,9 @@ hidden
 postOnly
 ```
 
-‏זה מוכיח שה־API model יודע לייצג את הרעיון; זה לא מוכיח שכל US Stock דרך כל destination יקבל את השדה.
+‏זה מוכיח שה־API model יודע לייצג שדה.
 
-‏הוכחת capability היא:
+‏הוכחה חזקה יותר ל־Capability דורשת:
 
 ```text
 documented applicability
@@ -764,20 +1032,36 @@ broker acceptance
 observed semantics
 ```
 
+‏וב־Production נדרשות גם telemetry/recovery/safety acceptance.
+
 ---
 
-## ‏9.39 Native / Simulated / Broker Algo / Composite — למה זה חייב להיות Field
+## ‏9.42 Implementation Owner ו־Residency אינם אותו שדה
 
-‏ארבע Orders שכולן "נתמכות" יכולות לחיות במקומות שונים:
+‏נבדיל בין:
 
 ```text
-VENUE_NATIVE
-BROKER_SIMULATED
-BROKER_ALGO_MANAGED
-COMPOSITE_RELATIONSHIP
+implementation_kind:
+  VENUE_NATIVE
+  BROKER_SIMULATED
+  BROKER_ALGO
+  COMPOSITE_RELATIONSHIP
+  CLIENT_MANAGED
+  MIXED
 ```
 
-‏ההבדל משפיע על:
+‏לבין:
+
+```text
+residency_state:
+  VERIFIED_BROKER_RESIDENT
+  CLIENT_DEPENDENT
+  UNKNOWN
+```
+
+‏פקודה יכולה להיות Broker-Simulated בלי שהקורס יניח אוטומטית survivability מסוים לאחר disconnect/restart.
+
+‏זה משפיע על:
 
 ```text
 latency
@@ -786,20 +1070,19 @@ market-data dependency
 cancel behavior
 queue behavior
 failure domain
+recovery contract
 ```
-
-‏לכן `implementation_owner` הוא נתון execution מרכזי.
 
 ---
 
-## ‏9.40 Recommendation — ה־Allowlist הראשונה שלנו
+## ‏9.43 Research Allowlist ראשונית
 
-‏ל־Research Harness הייתי מאפשר מוקדם:
+‏ל־Research Harness אפשר לשקול מוקדם, בכפוף ל־enablement המתאים:
 
 ```text
 LIMIT
-PASSIVE_LIMIT_WITH_APP_TTL
-MARKETABLE_LIMIT
+PASSIVE_JOIN
+PASSIVE_POST_ONLY
 MARKETABLE_LIMIT_IOC
 SMART
 RELATIVE_PRIMARY
@@ -810,7 +1093,7 @@ ADAPTIVE_LIMIT_URGENT
 ADAPTIVE_LIMIT_NORMAL
 ```
 
-‏ול־Risk/Protection Research:
+‏ול־Protection Research:
 
 ```text
 STOP
@@ -820,79 +1103,93 @@ OCA
 HYBRID_PROTECTION
 ```
 
-‏אבל `PRODUCTION_ENABLED` לכל אחת מהן נשאר Gate נפרד.
+‏המילה `allowlist` כאן פירושה **מותר למחקר בשלב שה־environment מאפשר**, לא `PRODUCTION_ENABLED`.
 
 ---
 
-## ‏9.41 מה לא נכנס אוטומטית ל־Allowlist
+## ‏9.44 מה לא נכנס אוטומטית ל־Allowlist
 
 ```text
 FOK for stocks
 AON as default
 Hidden as default
-Iceberg as default
+Reserve/Iceberg as default
 DarkOnly as default
 ATS-specific pegged as default
 long-horizon scheduling algos
 ```
 
-‏לא מפני שהן "גרועות", אלא מפני שהן פותרות בעיות שאינן baseline שלנו או דורשות evidence נוסף.
+‏לא משום שהן "גרועות", אלא משום שהן פותרות Problems אחרים או דורשות evidence נוספת.
 
 ---
 
-## ‏9.42 Practitioner Secrets — מה שמטריצת Support רגילה מפספסת
+## ‏9.45 Practitioner Secrets — מה שמטריצת Support רגילה מפספסת
 
-### ‏1. Support הוא Tuple
+### ‏1. `Support` הוא Tuple
 
 ```text
-(order family, product, route, destination, session, adapter, account)
+(feature, product, route, destination, session, adapter, account, parameters)
 ```
 
-‏לא checkbox.
+### ‏2. `AVAILABLE != PRODUCTION_ENABLED`
 
-### ‏2. `Marketable Limit` לא אמורה להופיע כ־Broker enum נפרד
+‏Broker availability אינה system readiness.
 
-‏היא behavior של `Limit` מול ה־Book.
+### ‏3. `Research Priority != Capability Evidence`
 
-### ‏3. `Bracket` אינה Primitive אחת
+‏Candidate חשובה למחקר יכולה עדיין להיות `DOC_ONLY`.
 
-‏היא graph של Orders ולכן ה־Gate שלה צריך לבדוק Relationships ו־races.
+### ‏4. `Marketable Limit` אינה Broker enum נפרד
 
-### ‏4. `SMART` היא Route Policy
+‏זו marketability של Limit מול market snapshot.
 
-‏לא `Order Type` במובן של מחיר.
+### ‏5. `Bracket` אינה Primitive
 
-### ‏5. `Adaptive` היא Delegation
+‏היא graph ולכן ה־Gate שלה בודק relationships, quantities, races ו־recovery.
 
-‏אנחנו מוסרים ל־Broker חלק מה־HOW, אך לא את ה־WHETHER.
+### ‏6. `SMART` היא Routing Policy
 
-### ‏6. Simulated אינו בהכרח רע
+‏לא Price Order Type ולא Broker Algo.
 
-‏אבל הוא משנה failure domain וצריך להיות גלוי למנוע.
+### ‏7. `Adaptive` היא Delegation
 
-### ‏7. UI היא לא ה־API
+‏Broker מנהל חלק מה־HOW; המנוע עדיין מחזיק את ה־WHETHER ואת ה־signal clock.
 
-‏Manual availability אינה הבטחת programmatic parity.
+### ‏8. Broker-Simulated אינו בהכרח רע
 
-### ‏8. Runtime metadata אינה Truth מוחלטת
+‏אבל הוא משנה failure domain ואינו synonym של Broker-Resident.
 
-‏Submit אמיתי עדיין יכול להידחות בגלל combination/account/route.
+### ‏9. UI אינה API
 
-### ‏9. Paper אינה Live
+‏Manual availability אינה programmatic parity.
 
-‏היא בודקת correctness רב — לא microstructure אמיתי מלא.
+### ‏10. Runtime metadata אינה Truth מוחלטת
 
-### ‏10. Fallback הוא Intent חדש
+‏Combination/account/route אמיתי עדיין יכול להידחות.
 
-‏Unsupported Order אינה הרשאה להגדיל אגרסיביות.
+### ‏11. Paper אינה Live
 
-### ‏11. Capability יכולה להיעלם בזמן
+‏היא בודקת correctness רב, לא את כל ה־microstructure האמיתי.
+
+### ‏12. Fallback הוא Fresh Decision
+
+‏Capability failure אינה הרשאה להגדיל אגרסיביות.
+
+### ‏13. Capability יכולה להשתנות בזמן
 
 ‏Cache חייבת freshness/versioning.
 
-### ‏12. Production Feature הוא Order Type + Tests + Telemetry + Recovery
+### ‏14. Feature Production היא יותר משם Order
 
-‏רק אז היא באמת capability של **המערכת שלנו**.
+```text
+semantics
++ capability evidence
++ tests
++ telemetry
++ recovery
++ safety invariants
+= production capability
+```
 
 ---
 
@@ -909,8 +1206,14 @@ long-horizon scheduling algos
 
 # ‏Checkpoint — סוף חלק 9
 
-‏בחלק הזה הפכנו את הידע על Order Types למודל Capability שהמנוע יכול להשתמש בו בפועל. במקום `supported=true`, הגדרנו תמיכה כתלות ב־Product, Contract, Route, Destination, Session, API Adapter, Account/Legal Entity ו־implementation owner; איחדנו את משפחות Core, Liquidity, Pegged/Midpoint/Snap, Stops/Bracket/OCA ו־Routing/Broker Algos; והגדרנו `Production Enablement Gates` מ־`DOC_ONLY` ועד `PRODUCTION_ENABLED`.
+‏בחלק הזה הפכנו את המושג `Supported` למודל מדויק יותר: **Capability היא Tuple עם scope, implementation dimensions, evidence ו־enablement state**. הפרדנו `Availability` מ־`Research Role` ומ־`Production Enablement`; יישרנו את המטריצה ל־taxonomy של Broker Primitive, TIF/Attribute, Trigger/Composite, Routing ו־Broker Algo; והבהרנו ש־Capability Resolver רק מסנן Candidates — הוא אינו בוחר את ה־Winner.
 
-‏המסקנה המרכזית: **תיעוד אומר לנו מה כדאי לנסות; Runtime metadata אומרת מה נראה חוקי עכשיו; acceptance tests ו־Broker evidence אומרים במה המנוע רשאי באמת להשתמש.** שום fallback לא יגדיל אגרסיביות אוטומטית, ושום feature מתקדמת לא תיכנס ל־Production רק מפני שהיא מופיעה ב־UI או ב־API object.
+‏הכלל החשוב ביותר הוא:
 
-‏החלק הבא יהיה **חלק 10 — Engine Decision Guide**: נחבר Signal state, urgency, spread, depth, expected edge, remaining signal life, position/fill state, exit feasibility ו־capabilities למנגנון החלטה אחד שבוחר Execution Behavior מתאים לכל מצב.
+```text
+AVAILABLE != PRODUCTION_ENABLED
+```
+
+‏תיעוד אומר מה אפשר לבדוק; runtime metadata ו־Broker acceptance נותנים evidence לגבי ה־scope הנוכחי; ורק acceptance tests, telemetry, recovery ו־risk invariants מאפשרים לקדם feature ל־`PRODUCTION_ENABLED`.
+
+‏החלק הבא יהיה **חלק 10 — Engine Decision Guide**: נחבר Signal state, urgency, spread/depth, expected edge, remaining signal life, position/fill state, exit feasibility ו־capabilities למנגנון החלטה שמסנן Candidates ובוחר Execution Behavior בהתאם ל־state.
