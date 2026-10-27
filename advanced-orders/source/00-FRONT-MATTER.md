@@ -2,108 +2,171 @@
 
 > ‏מיני־קורס עומק משלים ל־`04-ORDER-TYPES-FOR-PERSONAL-ALGO.md`.
 >
-> ‏התוצר הסופי של המיני־קורס הוא **הקובץ היחיד הזה**. בכל שלב נרחיב ונעדכן אותו עד שיהפוך למסמך ארוך, רציף וניתן להדפסה.
+> ‏Scope: ‏Advanced Orders וה־Execution שלהן — semantics, attributes, routing, broker algos, lifecycle, protection, capability, failure behavior והחיבור למנוע החלטה קצר־טווח.
 >
-> ‏המיקוד המרכזי: `Short-Horizon Momentum` — כניסה ויציאה בשניות ועד בערך דקה כאשר ה־Edge עדיין חי. פקודות שרלוונטיות בעיקר ל־market making, institutional execution ארוך או order sizes גדולים מאוד יוסברו, אבל יקבלו פחות עומק אלא אם יש להן השלכה ממשית על המערכת שלנו.
+> ‏נושאי Market Data, Scanner, Auctions ו־Microstructure כלליים נכנסים לכאן רק כאשר הם משנים ישירות את ההתנהגות, החוקיות, הסיכון או ה־lifecycle של פקודה מתקדמת.
 
 ---
 
-## ‏סטטוס המסמך
+## ‏איך בנוי מקור האמת
 
-- ‏מצב: `IN PROGRESS`.
-- ‏שלב נוכחי: `10B — Entry Decision and Execution-Behavior Selection`.
-- ‏מקור אמת: הקובץ הזה.
-- ‏עובדות תלויות־זמן על Broker/Venue/API נבדקות מול תיעוד עדכני ונושאות תאריך אימות.
-- ‏אין להניח ש־Order Type הנתמך במוצר אחד, Venue אחד או UI אחד נתמך אוטומטית בכל מוצר, בכל Routing mode ובכל API.
+‏מקור האמת של הקורס הוא אוסף קבצי ה־Source תחת:
+
+`advanced-orders/source/`
+
+‏הסדר הקנוני מוגדר ב־:
+
+`advanced-orders/source/manifest.json`
+
+‏הקובץ:
+
+`advanced-orders/ADVANCED-ORDER-MASTERY.md`
+
+‏מיועד להיות תוצר מאוחד שנבנה מן המקורות, ולא קובץ שממשיכים לערוך ידנית.
 
 ---
 
-# ‏מפת המיני־קורס
+# ‏איך לקרוא את הקורס
 
-‏המסמך ייבנה בהדרגה סביב השאלות שאיש Execution מקצועי צריך לדעת לענות עליהן לפני שהוא מכניס פקודה למנוע מסחר.
+‏לפני Part 1 קוראים את:
+
+`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`
+
+‏הוא מגדיר את שכבות ה־abstraction ואת אוצר המילים הקנוני של הקורס. במיוחד הוא מפריד בין:
+
+```text
+Broker Order Primitive
+Time / Fill Policy
+Display / Liquidity Attribute
+Trigger Policy
+Composite Structure
+Routing Policy
+Broker Algo
+Application Execution Mode
+Behavior Candidate
+Ownership / Implementation
+Capability / Enablement State
+```
+
+‏ההפרדה הזו חשובה משום שמונחים כמו `Limit`, ‏`IOC`, ‏`Post Only`, ‏`Bracket`, ‏`SMART`, ‏`Adaptive` ו־`MARKETABLE_LIMIT_IOC` אינם מושגים מאותה שכבה.
+
+---
+
+## ‏מסלול הליבה
+
+```text
+Canonical Taxonomy
+→ Part 1: Order Language
+→ Part 2: Core Execution
+→ Part 3: Time / Fill Policies
+→ Parts 4–7: Advanced Order Families and Routing
+→ Part 8: Lifecycle and State Machine
+→ Part 9: Capability / Production Enablement
+→ Part 10A: Decision Gates
+→ Part 10B: Entry Selection
+→ Part 10C: Exit / Protection
+→ Part 10D: Full Decision Engine
+```
+
+‏הפרקים אינם רשימת פקודות בלבד. המטרה היא לעבור בהדרגה מ־semantics של Order בודדת אל מנוע שמסוגל לבחור, לנהל, לבטל, להחליף, לשחזר ולהגן על Orders בצורה עקבית.
+
+---
+
+# ‏מפת הקורס
+
+## ‏`00A` — Canonical Taxonomy and Vocabulary
+
+‏מגדיר פעם אחת את שכבות המושגים, vocabulary של זמן/מחיר/cancel/partial fill/capability, וההבדל בין `FACT`, ‏`ENGINE RULE`, ‏`RESEARCH HYPOTHESIS` ו־`ACCEPTANCE TEST REQUIRED`.
 
 ## ‏חלק 1 — השפה המקצועית של פקודה
 
-‏מה באמת מרכיב Order, מי מחזיק אותה בכל שלב, מה ההבדל בין `native`, ‏`broker-simulated` ו־`client-managed`, ומה המשמעות של `submitted`, ‏`working`, ‏`partially filled`, ‏`pending cancel`, ‏`cancelled`, ‏`filled`, ‏`rejected` ועוד.
+‏מה באמת מרכיב Order, מי מחזיק אותה בכל שלב, מה ההבדל בין `venue-native`, ‏`broker-simulated`, ‏`broker-resident` ו־`client-managed`, ומה המשמעות של states כגון `working`, ‏`partially filled`, ‏`pending cancel`, ‏`cancelled`, ‏`filled` ו־`rejected`.
 
-## ‏חלק 2 — Core execution
+## ‏חלק 2 — Core Execution
 
-‏`Market`, ‏`Limit`, ‏`Marketable Limit`, ‏Passive Limit, ‏price caps, ‏aggressiveness, ‏crossing the spread, ‏partial fills, ‏slippage, ‏fill probability ו־opportunity cost.
+‏`Market`, ‏`Limit`, ‏marketability של Limit, ‏Passive execution, ‏price boundaries, ‏crossing the spread, ‏partial fills, ‏slippage, ‏fill probability ו־opportunity cost.
 
-## ‏חלק 3 — Time in Force ופקודות מיידיות
+## ‏חלק 3 — Time / Fill Policies
 
-‏`DAY`, ‏`GTC`, ‏`GTD`, ‏`IOC`, ‏`FOK`, ‏`AON`, ‏Minimum Quantity וההבדל בין "אני רוצה Fill עכשיו" לבין "אני רוצה שכל הכמות תתבצע עכשיו".
+‏`DAY`, ‏`GTC`, ‏`GTD`, ‏`IOC`, ‏`FOK`, ‏`AON`, ‏Minimum Quantity וההבדל בין חיי Signal, חיי ניסיון execution ו־Broker `TIF`.
 
-## ‏חלק 4 — Liquidity control
+## ‏חלק 4 — Liquidity Control
 
-‏`Post Only`, ‏`Hidden`, ‏`Reserve/Iceberg`, ‏display size, ‏queue priority, ‏maker/taker behavior, ‏adverse selection, ‏order aging והאם בכלל כדאי לנו להיות passive כאשר חיי ה־Signal קצרים.
+‏`Post Only`, ‏`Hidden`, ‏`Reserve/Iceberg`, ‏display size, ‏queue behavior, ‏maker/taker behavior, ‏adverse selection והמחיר של המתנה פסיבית.
 
-## ‏חלק 5 — Pegged, Relative, Midpoint ו־Snap families
+## ‏חלק 5 — Pegged, Relative, Midpoint ו־Snap
 
-‏`Relative/Pegged-to-Primary`, ‏`Pegged-to-Market`, ‏`Pegged-to-Midpoint`, ‏`MidPrice`, ‏`Snap to Market`, ‏`Snap to Midpoint`, ‏`Snap to Primary`, ‏IBKR ATS pegged orders והבדלים קריטיים בין שמות דומים.
+‏פקודות וכללים שמנהלים מחיר באופן דינמי: מי בוחר reference, מי מבצע repricing, מהו cap, מתי מדובר ב־continuous repricing ומתי ב־one-shot calculation.
 
 ## ‏חלק 6 — Stops, Trailing, Bracket, OCA/OCO ו־Conditional
 
-‏מנגנוני הגנה ויציאה, parent/child orders, ‏transmit sequencing, ‏race conditions, ‏orphan orders, ‏double exits ומה באמת קורה כאשר Fill ו־Cancel חוצים זה את זה.
+‏Trigger semantics, ‏protection, ‏parent/child dependencies, ‏transmit sequencing, ‏mutual exclusion, ‏partial-fill consequences, ‏race conditions, ‏orphan orders ו־double-exit risk.
 
 ## ‏חלק 7 — Routing ו־Broker Algos
 
-‏`SMART` מול Direct Routing, ‏venue selection, ‏fees/rebates, ‏hidden liquidity, ‏price improvement, ‏IBKR algos כגון `Adaptive` ו־`MidPrice`, ומתי Broker Algo עוזר לעומת מתי הוא מוסיף התנהגות שקשה יותר לחזות במנוע קצר־טווח.
+‏`SMART` מול Direct Routing, ‏venue selection, ‏hidden liquidity, ‏fees/rebates, ‏price improvement ו־broker-managed execution כגון `Adaptive` ו־`MidPrice`.
 
 ## ‏חלק 8 — Cancel/Replace ו־Execution State Machine
 
-‏למה `cancel()` אינו מחיקה, מהו `cancel/replace`, מתי שינוי פקודה מאבד queue priority, איך עובדים נכון עם partial fills, duplicate events, reconnects, late fills ו־broker reconciliation.
+‏למה `cancel requested` אינו `cancel confirmed`, ‏modify/cancel races, ‏queue implications, ‏duplicate/out-of-order events, ‏late fills, ‏reconnect, reconciliation ו־recovery.
 
-## ‏חלק 9 — `IBKR` capability matrix
+## ‏חלק 9 — `IBKR` Capability Matrix
 
-‏לכל Order Type חשוב נבדוק:
+‏תמיכה אינה Boolean. לכל feature נבדקים Product, Contract, Route/Destination, API Adapter, Account/Legal Entity, Session, implementation owner ו־Production Enablement State.
 
-```text
-What it does
-Why it exists
-Best use case
-Bad use case
-Who normally uses it
-Fill semantics
-Queue implications
-Adverse-selection implications
-Latency implications
-TWS support
-IBKR Desktop support
-Mobile / Client Portal support when relevant
-TWS API support
-Client Portal API support when relevant
-SMART / Direct routing requirements
-US-stock relevance
-Account / venue caveats
-Relevance to our < 1 minute momentum engine
-```
+## ‏חלק 10A — Decision Inputs and Elimination Gates
 
-## ‏חלק 10 — Engine decision guide
+‏Signal, market, order, position, risk, capability ו־system-health state עוברים Gates שמחליטים מה בכלל חוקי לפני בחירת execution behavior.
 
-‏בסוף נתרגם הכול ל־Execution Policy ממשי עבור המנוע שלנו:
+## ‏חלק 10B — Entry Decision
 
-```text
-signal state
-+ urgency
-+ spread
-+ displayed depth
-+ expected edge
-+ remaining signal life
-+ position state
-+ fill state
-+ exit feasibility
-=> choose order behavior
-```
+‏בחירת Behavior ל־Entry מתוך Candidates חוקיות לפי urgency, remaining signal life, economics, liquidity, hard boundaries, expected fill behavior ו־delegation.
 
-‏המטרה אינה לבחור "פקודה הכי טובה" אחת, אלא לדעת **איזו התנהגות נכונה לכל מצב**.
+## ‏חלק 10C — Exit Decision, Protection and Ownership
 
-## ‏חלק 11 — Print Optimization Pass
+‏Exit רגילה, Exit מהירה, emergency reduction, ‏Stop backstop, ‏Bracket/Hybrid protection והעיקרון של Single Exit Authority.
 
-‏רק לאחר שכל התוכן המקצועי יושלם, נעבור על הקובץ כולו להכנה יעילה להדפסה: צפיפות מידע גבוהה אך קריאה, צמצום רווחים מיותרים, טיפול בכותרות ובטבלאות, שבירות עמוד הגיוניות ו־RTL יציב.
+## ‏חלק 10D — Full Decision Engine
 
-## ‏חלק 12 — Final Gap Review וסגירה
-
-‏השלב האחרון יהיה מעבר על חוסרים, כפילויות, עובדות תלויות־זמן, התאמה ל־IBKR ולמנוע שלנו, ורק לאחריו המסמך ייחשב גמור.
+‏חיבור Gates, Entry, Exit, Protection, recovery, precedence, obligations ו־semantic actions למנוע החלטה אחד.
 
 ---
+
+# ‏תבנית הלמידה לכל משפחת Advanced Orders
+
+‏בכל משפחה מרכזית נשאף לענות במפורש על:
+
+```text
+What is it?
+Why does it exist?
+When is it useful?
+When is it a bad choice?
+What is the closest alternative?
+What assumption makes it attractive?
+What failure invalidates that assumption?
+Who owns the behavior after submit?
+What survives disconnect/restart?
+What must our engine still control?
+How does it map to our execution engine?
+```
+
+‏כאשר נדרשת השוואה, עדיף Decision Example שמכריע בין שתי חלופות על פני דוגמת syntax בלבד.
+
+---
+
+# ‏כללי Evidence ו־Currentness
+
+‏עובדות תלויות־Broker/Venue/API אינן נלמדות כעובדות נצחיות.
+
+‏כאשר פרט כזה מהותי ל־semantics או ל־Production enablement, נציין context מתאים ונבדיל בין:
+
+```text
+FACT
+ENGINE RULE
+RESEARCH HYPOTHESIS
+ACCEPTANCE TEST REQUIRED
+```
+
+‏Capability מתועדת אינה הרשאה אוטומטית להשתמש בה ב־Production.
+
+‏המודל הקנוני של enablement מפורט ב־`00A` ובחלק 9.
