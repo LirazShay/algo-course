@@ -233,13 +233,25 @@ What must be reconciled before new side effects?
 
 ---
 
-# ‏00D.8 R8C Checkpoint
+# ‏00D.8 Define Once → Cross-reference → Extend Only When Needed
 
-‏הפרק סוגר את שתי דרישות הניווט/נרמול הבאות:
+‏כדי לשמור את הקורס קצר יותר וברור יותר, Concepts שחוזרים בהרבה families אינם מקבלים הגדרה מלאה מחדש בכל פרק.
+
+| Concept | מקור קנוני | איך להשתמש בהמשך |
+|---|---|---|
+| `signal_ttl / application_order_ttl / broker_tif / working_order_age` | `00A.13` | ‏להוסיף רק consequence ייחודי למשפחה |
+| `Economic Price Boundary` / hard cap | `00A.14` | ‏להראות רק איך Candidate מסוימת materializes או נכשלת מול הגבול |
+| Cancel / broker truth | `00A.15`, `08` | ‏להוסיף race/late-effect ייחודי בלבד |
+| Partial Fill | `00A.16` | ‏להוסיף economics / protection / lifecycle ייחודיים בלבד |
+| ownership / residency / native semantics | `00D.4–00D.5` | ‏למלא את ה־Ownership Card, לא להמציא synonym חדש |
+| Capability / Production enablement | `00A.17`, `09`, `09B` | ‏להוסיף רק scope/evidence ספציפיים |
+
+‏כלל העריכה הקנוני:
 
 ```text
-AO-GAP-P1-24 — consistent prerequisites / cross-references
-AO-GAP-P1-25 — normalized native / resident / simulated / client-managed vocabulary
+DEFINE ONCE
+→ CROSS-REFERENCE
+→ EXTEND ONLY WHEN THE FAMILY CHANGES THE CONSEQUENCE
 ```
 
-‏השלב הבא ב־R8 אינו מוסיף עוד taxonomy. הוא צריך לעבור ל־final learning-flow / duplication cleanup ולבדוק מה אפשר לצמצם בלי לאבד ידע.
+‏חזרה קצרה לצורך הוראה למתחיל מותרת; חזרה של contract שלם ללא consequence חדש אינה נדרשת.
