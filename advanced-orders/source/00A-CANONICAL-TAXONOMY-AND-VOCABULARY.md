@@ -10,7 +10,7 @@
 
 ‏אם מערבבים ביניהם, קשה להבין מה באמת בחרה האסטרטגיה, מה הברוקר קיבל, מה ה־Venue מנהל ומה המנוע שלנו עדיין חייב לנהל בעצמו.
 
-‏לכן הקורס משתמש מעכשיו בשכבות הבאות:
+‏לכן הקורס משתמש בשכבות הבאות:
 
 ```text
 STRATEGY / TRADE INTENT
@@ -95,7 +95,7 @@ ADAPTIVE_LIMIT_NORMAL
 MARKETABLE_LIMIT_IOC
 ```
 
-‏השמות האלה נשמרים משום שהם שימושיים למחקר ולהשוואת outcomes, אבל הקורס לא יקרא להם מעכשיו "Order Types" בלי qualifier.
+‏השמות האלה נשמרים משום שהם שימושיים למחקר ולהשוואת outcomes, אבל הקורס לא יקרא להם "Order Types" בלי qualifier.
 
 ‏דוגמה:
 
@@ -221,7 +221,7 @@ MIT         -> opposite trigger direction, then market-style execution
 LIT         -> opposite trigger direction, then limit execution
 ```
 
-‏ההבחנה הזו תקבל הרחבה מקצועית ב־Repair Wave של Missing Advanced Orders.
+‏להשוואה המקצועית המלאה של trigger direction מול post-trigger execution ראו `06A` ו־`06B`.
 
 ---
 
@@ -533,3 +533,20 @@ Lifecycle owner:
 ```
 
 ‏אם אחת מארבע התשובות אינה ברורה, ההסבר עדיין אינו שלם.
+
+---
+
+## ‏0A.21 כלל `Define Once → Cross-reference → Extend`
+
+‏כדי שהקורס לא יחזור שוב ושוב על אותם contracts, ארבעה נושאים מוגדרים כאן פעם אחת ומשם מורחבים רק כאשר למשפחה מסוימת יש consequence ייחודי:
+
+| נושא קנוני | מקור ההגדרה | מה מותר לפרק משפחה להוסיף |
+|---|---|---|
+| clocks / TTL | `00A.13` | רק איך השעונים משפיעים על אותה family |
+| Economic Price Boundary / hard cap | `00A.14` | רק materialization או failure ייחודיים |
+| cancel / broker truth | `00A.15` + Part `08` | רק race/late-effect ייחודי |
+| Partial Fill | `00A.16` | רק economics, protection או lifecycle ייחודיים |
+
+‏כאשר אין consequence חדש, מפנים להגדרה הקנונית במקום להגדיר אותה מחדש.
+
+‏`00C` משמש quick-reference beginner-first לאותם מונחים; הוא אינו מקור semantics חלופי.
