@@ -101,8 +101,9 @@ Completed Cross-Cutting: 01 — Recommended MVP
                          03 — Recommended Market Data Stack
                          04 — Recommended Scanner Design
                          05 — Recommended Ranking Process
+                         06 — Recommended Entry Policy
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: Cross-Cutting 06 — Recommended Entry Policy
+Next Segment: Cross-Cutting 07 — Recommended Exit Policy
 Source of Truth: GitHub main
 ```
 
@@ -289,7 +290,8 @@ Baseline
 | Recommended Market Data Stack | `CC03-RECOMMENDED-MARKET-DATA-STACK.md` | `COMPLETED` |
 | Recommended Scanner Design | `CC04-RECOMMENDED-SCANNER-DESIGN.md` | `COMPLETED` |
 | Recommended Ranking Process | `CC05-RECOMMENDED-RANKING-PROCESS.md` | `COMPLETED` |
-| Recommended Entry Policy | `CC06-RECOMMENDED-ENTRY-POLICY.md` | `NOT STARTED` |
+| Recommended Entry Policy | `CC06-RECOMMENDED-ENTRY-POLICY.md` | `COMPLETED` |
+| Recommended Exit Policy | `CC07-RECOMMENDED-EXIT-POLICY.md` | `NOT STARTED` |
 
 ‏לפני סיום הפרויקט חייבים להיווצר לפחות:
 
