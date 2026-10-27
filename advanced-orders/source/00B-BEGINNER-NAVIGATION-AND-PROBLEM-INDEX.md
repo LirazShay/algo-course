@@ -33,7 +33,7 @@ atomicity
 → engine mapping
 ```
 
-‏כאשר מופיע מונח שאתה עדיין לא מכיר, אפשר להמשיך לקרוא את ההסבר הפשוט ולחזור ל־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md` כמילון Reference.
+‏כאשר מופיע מונח שאתה עדיין לא מכיר, אפשר להמשיך לקרוא את ההסבר הפשוט ולחזור ל־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md` כמקור taxonomy או ל־`00C-CANONICAL-GLOSSARY.md` כהסבר קצר beginner-first.
 
 > ‏כלל לימודי: `00A` הוא מקור האמת של המונחים, אבל הוא **לא מבחן כניסה לקורס**.
 
@@ -118,7 +118,7 @@ What information am I actually trying to hide?
 | ‏לתת לברוקר לבחור destination | `SMART Routing` | `07`, `07A` |
 | ‏לבחור destination מפורש | Direct Routing | `07`, `07A` |
 | ‏להבין אם Broker Algo מחליפה Strategy decision | Broker Algo ownership | `07`, `10H` |
-| ‏להבין מי ממשיך לנהל Peg/Trigger/Algo אחרי disconnect | implementation owner / residency | `00A`, `08B` |
+| ‏להבין מי ממשיך לנהל Peg/Trigger/Algo אחרי disconnect | implementation owner / residency | `00A`, `00D`, `08B` |
 | ‏לבדוק אם feature נתמך **בדיוק במסלול שלנו** | Capability tuple | `09`, `09B`, `10I` |
 
 ---
@@ -155,7 +155,7 @@ What information am I actually trying to hide?
 → Part 10
 ```
 
-‏במסלול הזה `00A` משמש Reference שחוזרים אליו כאשר המונחים מתחילים להצטבר. אין צורך לשנן אותו לפני Part 1.
+‏במסלול הזה `00A` משמש Reference קנוני ו־`00C` משמש Glossary מהיר. אין צורך לשנן אותם לפני Part 1.
 
 ## ‏מסלול ב — קורא שמחפש לפתור בעיה מסוימת
 
@@ -168,11 +168,13 @@ What information am I actually trying to hide?
 → Part 10 engine mapping if implementing
 ```
 
+‏אם אינך בטוח מהו prerequisite או מי מנהל את ה־behavior לאחר Submit, השתמש ב־`00D-PREREQUISITES-CROSS-REFERENCES-AND-OWNERSHIP-MAP.md`.
+
 ---
 
 # ‏00B.9 Cross-Reference Rule
 
-‏בכל family משמעותית, התוצר הסופי צריך לאפשר לעבור בין ארבע שכבות:
+‏בכל family משמעותית, התוצר הסופי מאפשר לעבור בין ארבע שכבות:
 
 ```text
 Learn the semantics
@@ -201,7 +203,7 @@ Bracket
 → 10C
 ```
 
-‏`R8` ישלים בהמשך את ה־cross-references בתוך הפרקים עצמם ואת ה־Glossary הקנוני.
+‏למפה מרוכזת של prerequisites, סוגי cross-reference ו־ownership ראו `00D`.
 
 ---
 
@@ -226,8 +228,18 @@ EXIT_ONLY
 
 ---
 
-## ‏00B.11 Checkpoint
+## ‏00B.11 מה ה־Index מבטיח — ומה לא
 
-‏הפרק סוגר את `AO-GAP-P1-22 — Problem → Candidate Index` ומניח בסיס ל־`AO-GAP-P1-24 — Prerequisites / Cross-References`.
+‏ה־Index מבטיח שלמתחיל תהיה נקודת כניסה לפי הבעיה שהוא מזהה, בלי צורך להכיר מראש את כל שמות הפקודות.
 
-‏השלב הבא של `R8` צריך לטפל ב־Glossary הקנוני ובהצגה האחידה של terminology, בלי להרחיב את Scope מעבר ל־Advanced Orders.
+‏הוא אינו מחליף:
+
+```text
+family semantics
+comparison / trade-off analysis
+failure / survivability analysis
+capability validation
+fresh Decision Engine evaluation
+```
+
+‏לכן כל מסלול שמתחיל כאן ממשיך לפרקי המקור המתאימים לפני implementation או Production use.
