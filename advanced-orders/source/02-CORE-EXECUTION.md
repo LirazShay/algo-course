@@ -1,6 +1,8 @@
-# ‏חלק 2 — Core Execution: ‏`Market`, ‏`Limit`, ‏`Marketable Limit` ו־Passive Limit
+# ‏חלק 2 — Core Execution: ‏`Market`, ‏`Limit`, ‏marketable Limit ו־Passive Limit
 
-## ‏2.1 אותו `Order Type` יכול להיות אגרסיבי או פסיבי
+> ‏ה־taxonomy הקנונית נמצאת ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`. בחלק הזה `Market` ו־`Limit` הם Broker Order Primitives; ‏marketable/passive מתארים את מצב הביצוע של ה־Limit ביחס לשוק; ו־`Application Execution Mode` נשאר שכבה נפרדת.
+
+## ‏2.1 אותו Broker Order Primitive יכול להיות אגרסיבי או פסיבי
 
 ‏הטעות הראשונה שצריך למחוק היא ההנחה:
 
@@ -32,12 +34,14 @@ BUY LMT 50.00   -> passive at bid
 BUY LMT 50.03   -> marketable / aggressive
 ```
 
-‏אותו `orderType = LMT`, שלוש התנהגויות ביצוע שונות.
+‏אותו `broker_order_primitive = LMT`, שלוש התנהגויות ביצוע שונות.
 
 ‏לכן מנוע מקצועי צריך לשמור בנפרד לפחות:
 
 ```text
-order_type
+broker_order_primitive
+behavior_candidate
+application_execution_mode
 aggressiveness
 limit_price
 reference_bid
@@ -129,7 +133,7 @@ Executable depth for my requested quantity
 - ‏ה־instrument נזיל מאוד והכמות קטנה יחסית לעומק.
 - ‏ה־spread צר וה־book יציב יחסית.
 - ‏הסיכון מהישארות בפוזיציה גדול מהסיכון ל־slippage.
-- ‏יש מצב `emergency exit` שבו price certainty משנית ל־position certainty.
+- ‏יש מצב `EMERGENCY_REDUCE` שבו price certainty משנית ל־position certainty.
 
 ‏מי משתמש בה? כמעט כל סוגי המשתתפים יכולים להשתמש בה, אבל מקצוענים לא מתייחסים אליה כאל "כפתור מהיר" בלבד. הם מתייחסים אליה כהצהרה:
 
@@ -158,7 +162,7 @@ execution urgency > explicit price protection
 
 ## ‏2.6 פרט חשוב ב־IBKR: `Market` לא בהכרח נשלחת כ־Market פשוטה
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת שבדרך כלל היא מטפלת ב־Market Orders באמצעות **סדרה של marketable limit orders מדומות**, כחלק מהגנת מחיר, ובמקומות מתאימים יכולה להשתמש ב־`Market With Protection`.
 
@@ -211,7 +215,9 @@ less execution certainty
 
 ---
 
-## ‏2.8 `Marketable Limit` — אחד הכלים המרכזיים לרובוט קצר־טווח
+## ‏2.8 Limit במצב `marketable` — אחד הכלים המרכזיים לרובוט קצר־טווח
+
+> ‏`ENGINE RULE` — `Marketable Limit` אינה Broker Order Primitive נפרדת. זו `Limit` שמחירה, ביחס ל־snapshot הנוכחי, מאפשר execution מיידי מול הצד הנגדי.
 
 ‏נניח:
 
@@ -230,9 +236,7 @@ BUY 100 LMT 50.04
 
 ‏אם יש 100 מניות זמינות ב־50.02 והיא מגיעה בזמן, היא יכולה להתבצע ב־50.02 — לא חייבים לשלם 50.04 רק משום שזה ה־Limit.
 
-‏ה־50.04 הוא:
-
-> ‏`worst acceptable price`, לא יעד תשלום.
+‏ה־50.04 הוא ה־broker limit שמממש במקרה הזה את `Economic Price Bound`; הוא **אינו יעד תשלום**.
 
 ‏זה בדיוק מה שהופך את ההתנהגות הזו למעניינת אצלנו:
 
@@ -243,7 +247,7 @@ but refuse execution beyond economic boundary
 
 ---
 
-## ‏2.9 `Marketable Limit` אינה קסם ואינה מבטיחה Fill
+## ‏2.9 Marketability אינה קבועה ואינה מבטיחה Fill
 
 ‏נניח שהמנוע רואה:
 
@@ -270,7 +274,7 @@ Ask = 50.06
 
 ‏כלומר:
 
-> ‏Marketable היא תכונה ביחס למצב השוק **ברגע מסוים**, לא תווית נצחית של הפקודה.
+> ‏Marketability היא state ביחס למצב השוק **ברגע מסוים**, לא תווית נצחית של הפקודה.
 
 ‏מכאן נובע שמנוע חייב למדוד:
 
@@ -285,7 +289,7 @@ market_state_at_each_stage
 
 ---
 
-## ‏2.10 הסיכון הסמוי: Marketable Limit יכולה להפוך ל־Passive remainder
+## ‏2.10 Limit marketable יכולה להפוך ל־Passive remainder
 
 ‏נניח:
 
@@ -319,10 +323,10 @@ DAY
 
 ‏עבור Signal שחי שניות, זו יכולה להיות בעיה: הפקודה התחילה כאגרסיבית אבל סיימה כ־stale passive order.
 
-‏לכן בהמשך נלמד מדוע השילוב:
+‏לכן בהמשך נלמד מדוע Behavior Candidate של:
 
 ```text
-Marketable Limit + IOC
+MARKETABLE_LIMIT_IOC
 ```
 
 ‏מעניין במיוחד כאשר רוצים "מה שניתן עכשיו — כן; שארית ישנה — לא".
@@ -433,7 +437,7 @@ net outcome per signal opportunity
 
 ---
 
-## ‏2.14 איך לבחור `price cap` נכון ל־Marketable Limit
+## ‏2.14 איך לבחור `Economic Price Bound` נכון ל־Limit אגרסיבית
 
 ‏טעות קלה היא לומר:
 
@@ -450,12 +454,12 @@ always cross by 2 cents
 - ‏מספיק לעומק קטן אבל לא לכמות גדולה.
 - ‏רחבים מדי בזמן volatility גבוהה.
 
-‏ה־cap צריך להיות קשור לכלכלה של העסקה.
+‏ה־boundary צריך להיות קשור לכלכלה של העסקה.
 
 ‏מודל עקרוני:
 
 ```text
-max_buy_price =
+entry_max_price =
     expected_exit_price
   - required_net_edge
   - expected_exit_cost
@@ -463,21 +467,15 @@ max_buy_price =
   - safety_margin
 ```
 
-‏ובמכירה:
-
-```text
-min_sell_price =
-    expected_exit_value_floor
-  + required_net_edge_adjustment
-```
+‏ובמכירה/יציאה אפשר להגדיר בהתאם `exit_min_price` כאשר יש bound כלכלי מתאים.
 
 ‏הנוסחה המדויקת תשתנה לפי המודל שלנו, אבל העיקרון הוא:
 
-> ‏ה־Limit אינו offset קבוע; הוא גבול כלכלי שמעבר אליו העסקה כבר אינה שווה לנו.
+> ‏ה־Economic Price Bound הוא מושג ההחלטה; ה־broker limit price הוא הדרך הקונקרטית לממש אותו ב־Order מסוימת.
 
 ---
 
-## ‏2.15 `Price cap` חייב להכיר גם Depth
+## ‏2.15 `Economic Price Bound` חייב להכיר גם Depth
 
 ‏נניח:
 
@@ -489,9 +487,9 @@ Ask book:
 1000 @ 20.10
 ```
 
-‏אם רוצים 250 מניות ו־cap הוא 20.02, יש displayed depth מספק לפי ה־snapshot.
+‏אם רוצים 250 מניות ו־entry bound הוא 20.02, יש displayed depth מספק לפי ה־snapshot.
 
-‏אם רוצים 600 מניות, אין displayed depth מספק עד ה־cap.
+‏אם רוצים 600 מניות, אין displayed depth מספק עד ה־bound.
 
 ‏מכאן שני דברים:
 
@@ -501,10 +499,10 @@ Ask book:
 ‏לכן מנוע יכול לחשב לפני שליחה:
 
 ```text
-visible_qty_within_cap
-expected_vwap_within_cap
-worst_visible_price_within_cap
-requested_qty / visible_qty_within_cap
+visible_qty_within_bound
+expected_vwap_within_bound
+worst_visible_price_within_bound
+requested_qty / visible_qty_within_bound
 ```
 
 ‏זה עדיין לא מבטיח Fill, כי Book יכול להשתנות ויש hidden liquidity, אבל זו בדיקת feasibility טובה יותר מ־Ask בודד.
@@ -596,7 +594,7 @@ Passive:
 
 ‏אם Signal חלש יותר, spread רחב והזמן מאפשר, Passive יכולה להיות עדיפה.
 
-‏לכן ה־execution mode צריך להיות פונקציה של מצב השוק ולא setting קבוע.
+‏לכן `Application Execution Mode` צריך להיות פונקציה של מצב השוק ולא setting קבוע.
 
 ---
 
@@ -616,7 +614,7 @@ NO TRADE
 
 ```text
 Entry:
-strict price cap
+strict economic price bound
 accept no-fill
 
 Normal Exit:
@@ -626,56 +624,56 @@ Emergency Exit:
 prioritize reducing position risk
 ```
 
-‏זו סיבה חשובה לא להשתמש באותו `Order Policy` אוטומטית ל־Entry ול־Exit.
+‏זו סיבה חשובה לא להשתמש באותו Execution Policy אוטומטית ל־Entry ול־Exit.
 
 ---
 
-## ‏2.20 רובוט לא צריך לבחור "Order Type" — הוא צריך לבחור `Execution Mode`
+## ‏2.20 להפריד `Application Execution Mode` מ־`Behavior Candidate`
 
-‏במקום קוד מהסוג:
+‏המנוע לא צריך לבחור ישירות "Order Type". הוא צריך קודם לבחור **אופי ביצוע**, ורק אחר כך Candidate קונקרטית שמממשת אותו.
 
-```text
-if signal:
-    BUY LMT
-```
-
-‏עדיף להגדיר Modes ברורים.
-
-### ‏`PASSIVE_PROBE`
-
-‏ניסיון קצר לקבל Fill בלי לחצות את ה־spread.
+‏ה־Modes הקנוניים הרלוונטיים כאן:
 
 ```text
-join or improve bid
-short application TTL
-cancel on signal decay
+PASSIVE
+PRICE_IMPROVING
+AGGRESSIVE_CAPPED
+NORMAL_EXIT
+FAST_EXIT
+EMERGENCY_REDUCE
 ```
 
-### ‏`PASSIVE_JOIN`
-
-‏הצטרפות ל־best bid/ask כאשר הזמן מאפשר ויש סיבה להעדיף queue exposure.
-
-### ‏`MARKETABLE_CAPPED`
-
-‏לקיחת נזילות מיידית עד worst acceptable price.
+‏ומתחתיהם יכולים להופיע Behavior Candidates כגון:
 
 ```text
-LMT with economically derived cap
+PASSIVE_JOIN
+IMPROVE_ONE_TICK
+MARKETABLE_LIMIT_IOC
 ```
 
-### ‏`AGGRESSIVE_STEP`
+‏לדוגמה:
 
-‏התחלה ב־cap צר והרחבה מבוקרת רק אם Signal עדיין תקף.
+```text
+ApplicationExecutionMode = PASSIVE
+BehaviorCandidate = PASSIVE_JOIN
+ConcreteOrder:
+  primitive = LMT
+  tif = DAY
+  application_order_ttl = short
+```
 
-### ‏`EXIT_FAST`
+‏או:
 
-‏מדיניות שמעדיפה סגירת Position מהר יותר מה־Entry baseline.
+```text
+ApplicationExecutionMode = AGGRESSIVE_CAPPED
+BehaviorCandidate = MARKETABLE_LIMIT_IOC
+ConcreteOrder:
+  primitive = LMT
+  tif = IOC
+  limit_price = derived from Economic Price Bound
+```
 
-### ‏`EMERGENCY_REDUCE`
-
-‏מצב חריג שבו המטרה הראשית היא הורדת Exposure; גם כאן צריך guardrails, אך סדר העדיפויות שונה.
-
-‏המיפוי מ־Mode ל־Order Type יכול להשתנות לפי IBKR capability, Venue ו־TIF.
+‏כך `PASSIVE_JOIN`, ‏`MARKETABLE_LIMIT_IOC` ו־`FAST_EXIT` אינם מתחרים באותו enum ואינם מתערבבים עם `LMT`/`IOC` עצמם.
 
 ---
 
@@ -684,11 +682,13 @@ LMT with economically derived cap
 ‏אדם יכול להסתכל על הספר ולשנות מחיר ידנית, אבל תוכנה יכולה לבצע את התהליך באופן עקבי ומהיר:
 
 ```text
-recompute max acceptable price
+recompute economic price bound
 recompute visible depth
 recompute signal age
 recompute expected edge
-choose aggressiveness
+choose application execution mode
+choose behavior candidate
+materialize concrete order
 submit
 observe fills
 cancel/re-evaluate
@@ -698,14 +698,14 @@ cancel/re-evaluate
 
 ‏היתרון הוא שהמנוע יכול להשתמש באותה מדיניות בדיוק אלפי פעמים ולמדוד את התוצאה.
 
-‏זה מאפשר לבצע ניסוי אמיתי בין:
+‏זה מאפשר לבצע ניסוי אמיתי בין Behaviors כגון:
 
 ```text
-Passive
-Marketable Limit
-Marketable Limit + IOC
-Midpoint/Pegged
-Adaptive
+PASSIVE_JOIN
+MARKETABLE_LIMIT_IOC
+MIDPRICE
+RELATIVE_PRIMARY
+ADAPTIVE_LIMIT_URGENT
 ```
 
 ‏במקום לבחור לפי תחושת בטן.
@@ -718,7 +718,7 @@ Adaptive
 
 ‏דוגמאות:
 
-- ‏Quote stale גורם ל־cap לא נכון.
+- ‏Quote stale גורם ל־bound לא נכון.
 - ‏כפל event גורם לשליחת Order פעמיים.
 - ‏Cancel שלא אושר גורם ל־overfill.
 - ‏לולאת chase מרחיבה מחיר שוב ושוב בלי לשים לב שה־Edge כבר נעלם.
@@ -731,10 +731,10 @@ Adaptive
 
 ```text
 max_total_qty
-max_price_deviation
+economic_price_bound
 max_chase_steps
-max_order_age
-max_signal_age
+application_order_ttl
+signal_ttl
 max_position
 max_outstanding_orders
 kill_switch
@@ -767,9 +767,9 @@ BUY LMT 50.02
 ```text
 signal still valid
 remaining edge > required threshold
-price <= hard economic cap
+price <= economic price bound
 chase_count < max_chase_steps
-time_since_signal < max_signal_age
+signal_age < signal_ttl
 ```
 
 ‏כאשר אחד נשבר — `NO MORE CHASE`.
@@ -788,7 +788,7 @@ time_since_signal < max_signal_age
 - ‏כל cancel/replace יכול לפגוע ב־queue priority.
 - ‏אם המחיר עולה מהר, אנחנו עלולים להישאר מאחור.
 
-‏לכן "להיצמד למוביל" אינה אסטרטגיית ביצוע מלאה. היא רק initial placement rule.
+‏לכן "להיצמד למוביל" אינה אסטרטגיית ביצוע מלאה. היא initial placement rule בתוך Behavior Candidate כגון `PASSIVE_JOIN`.
 
 ‏צריך להוסיף:
 
@@ -822,7 +822,7 @@ partial-fill policy
 
 ## ‏2.26 מדדי Telemetry שחייבים לכל Order
 
-‏כדי ללמוד איזה Mode עובד, נשמור לפחות:
+‏כדי ללמוד איזה Mode ו־Behavior עובדים, נשמור לפחות:
 
 ```text
 signal_id
@@ -831,13 +831,15 @@ symbol
 side
 requested_qty
 filled_qty
-order_type
-execution_mode
+application_execution_mode
+behavior_candidate
+broker_order_primitive
+tif
 limit_price
 reference_bid
 reference_ask
 reference_mid
-visible_depth_within_cap
+visible_depth_within_bound
 signal_timestamp
 decision_timestamp
 submit_timestamp
@@ -873,28 +875,28 @@ missed_move_if_no_fill
 net_edge_after_execution
 ```
 
-‏בלי הנתונים האלה לא נוכל לדעת אם `Pegged`, ‏`Bracket`, ‏`IOC`, ‏`Adaptive` או כל Order מתקדם באמת שיפרו את המערכת.
+‏בלי הנתונים האלה לא נוכל לדעת אם `Pegged`, ‏`Bracket`, ‏`IOC`, ‏`Adaptive` או כל Advanced Order באמת שיפרו את המערכת.
 
 ---
 
 ## ‏2.27 מטריצת החלטה ראשונית לחלק 2
 
-| מצב | כלי בסיסי למחקר | למה | הסיכון המרכזי |
+| מצב | Behavior/Primitive בסיסי למחקר | למה | הסיכון המרכזי |
 |---|---|---|---|
-| ‏Signal חזק וקצר, Spread סביר | `Marketable Limit` עם cap כלכלי | ‏מהירות עם price bound | ‏cap רחב מדי או שוק שבורח לפני arrival |
+| ‏Signal חזק וקצר, Spread סביר | marketable `Limit` עם bound כלכלי | ‏מהירות עם price protection | ‏bound רחב מדי או שוק שבורח לפני arrival |
 | ‏Signal תקף אך urgency נמוכה יותר | Passive `Limit` | ‏ניסיון לחסוך spread | ‏no-fill / adverse selection |
 | ‏נזילות דקה או volatility גבוהה | `Limit` שמרנית / `NO TRADE` | ‏מונע runaway price | ‏פספוס הזדמנות |
-| ‏יציאה רגילה | Aggressive price-capped `Limit` | ‏איזון בין מהירות להגנת מחיר | ‏position נשאר אם cap צר מדי |
-| ‏מצב חירום | Policy ייעודית להפחתת Exposure | ‏position risk קודם | ‏slippage גבוה |
+| ‏יציאה רגילה | Aggressive price-capped `Limit` | ‏איזון בין מהירות להגנת מחיר | ‏position נשאר אם bound צר מדי |
+| ‏מצב חירום | `EMERGENCY_REDUCE` + materialization מתאים | ‏position risk קודם | ‏slippage גבוה |
 | ‏Edge קטן מה־round-trip execution cost | `NO TRADE` | ‏אין עסקה כלכלית | ‏FOMO בלבד |
 
 ‏זו אינה טבלת Live סופית. היא baseline מחקרי שיקבל refinement אחרי `IOC`, ‏Pegged/Midpoint, routing ו־broker algos.
 
 ---
 
-## ‏2.28 `IBKR` — מה נתמך כרגע עבור `Market` ו־`Limit`
+## ‏2.28 `IBKR` — מה מתועד כרגע עבור `Market` ו־`Limit`
 
-> ‏אימות אחרון: `2026-10-27`, לפי התיעוד הרשמי של IBKR. לפני שימוש אמיתי צריך לבדוק גם account/product/route בפועל.
+> ‏`FACT` — אימות אחרון: `2026-10-27`, לפי התיעוד הרשמי של IBKR. לפני שימוש אמיתי צריך לבדוק גם account/product/route בפועל ולהעביר Capability דרך שלבי ה־enablement הקנוניים.
 
 ### ‏`Market`
 
@@ -916,7 +918,7 @@ tif
 
 ‏ולכן `MKT` ו־`LMT` הם חלק מה־API automation path הרגיל.
 
-### ‏`Marketable Limit`
+### ‏Limit במצב marketable
 
 ‏אין צורך ב־Order Type נפרד כדי לקבל את ההתנהגות הבסיסית. זו `Limit` שמחירה חוצה או פוגש את הצד הנגדי בזמן שהיא ניתנת לביצוע.
 
@@ -926,21 +928,25 @@ tif
 
 ‏מבחינתנו:
 
-> ‏גם אם המנוע חושב שה־cap חוקי וכלכלי, צריך לטפל ב־broker rejection/price-cap behavior כחלק מה־state machine.
+> ‏גם אם המנוע חושב שה־bound חוקי וכלכלי, צריך לטפל ב־broker rejection/price-cap behavior כחלק מה־state machine.
 
 ---
 
-## ‏2.29 ההמלצה ההנדסית הראשונית למנוע שלנו
+## ‏2.29 ה־baseline ההנדסי הראשוני למנוע שלנו
 
-‏לפני שבודקים Order Types מתקדמים, baseline טוב למחקר הוא לא "תמיד Market" ולא "תמיד Bid".
+‏לפני שבודקים Advanced Orders, baseline טוב למחקר הוא לא "תמיד Market" ולא "תמיד Bid".
 
-‏הייתי מגדיר שלושה Challengers בסיסיים:
+‏שלושה Behavior Candidates בסיסיים:
 
 ```text
-A. Passive Limit with short application TTL
-B. Marketable Limit with economically derived cap
-C. Marketable Limit + immediate-expiry behavior
-   (IOC יילמד לעומק בחלק הבא)
+A. PASSIVE_JOIN
+   -> Limit + short application_order_ttl
+
+B. AGGRESSIVE_CAPPED via marketable Limit
+   -> Limit with economically derived bound
+
+C. MARKETABLE_LIMIT_IOC
+   -> marketable Limit + IOC
 ```
 
 ‏ולכל אחד למדוד:
@@ -974,7 +980,7 @@ cheap entry but expensive exit
 
 ‏אגרסיביות היא יחס בין ה־Limit ל־Book, לא שם הפקודה.
 
-### ‏2. `Marketable` יכולה להפוך ל־resting
+### ‏2. Limit marketable יכולה להפוך ל־resting
 
 ‏אם השוק זז או אם נשאר remainder ואין `IOC`, ההתנהגות משתנה באמצע חיי אותה Order.
 
@@ -990,7 +996,7 @@ cheap entry but expensive exit
 
 ‏אסטרטגיה שמודדת Alpha על Last אבל מבצעת על Bid/Ask יכולה לדמיין Edge שלא ניתן למימוש.
 
-### ‏6. Chase בלי hard cap הוא Market בתחפושת
+### ‏6. Chase בלי Economic Price Bound הוא Market בתחפושת
 
 ‏השם `Limit` אינו מציל אותנו אם הקוד ממשיך להעלות את המחיר עד שמתבצע.
 
@@ -1017,9 +1023,9 @@ cheap entry but expensive exit
 
 # ‏Checkpoint — סוף חלק 2
 
-‏בחלק הזה עברנו מהגדרות בסיסיות ל־execution mechanics: למה Top of Book אינו מחיר מובטח, איך Market יכולה ללכת בתוך ה־Book, למה Marketable Limit היא התנהגות של Limit ולא קסם נפרד, איך remainder יכול להפוך ל־stale passive order, למה no-fill ו־adverse selection חייבים להיכנס למחקר, ואיך לתרגם את כל זה ל־Execution Modes עבור רובוט.
+‏בחלק הזה עברנו מהגדרות בסיסיות ל־execution mechanics תוך שמירה על ה־taxonomy הקנונית: `Market` ו־`Limit` הם Broker Order Primitives; marketability/passivity הן states של הביצוע; `Economic Price Bound` הוא constraint של ההחלטה; ו־`Application Execution Mode` נפרד מ־Behavior Candidate ומ־Concrete Broker Order.
 
-‏ה־baseline שנוצר הוא: **לא לבחור Order לפי שם, אלא לפי urgency, economic price cap, depth, signal lifetime, fill state ו־exit feasibility.**
+‏ה־baseline שנוצר הוא: **לא לבחור Order לפי שם, אלא לבחור Mode ו־Behavior לפי urgency, economic price bound, depth, signal lifetime, fill state ו־exit feasibility — ורק אחר כך לממש אותם ב־primitive/attributes מתאימים.**
 
 ‏החלק הבא יהיה `Time in Force` ופקודות מיידיות — `DAY`, ‏`GTC`, ‏`GTD`, ‏`IOC`, ‏`FOK`, ‏`AON` ו־Minimum Quantity — עם דגש עמוק על השאלה מתי אנחנו רוצים partial fill עכשיו, full fill עכשיו, או בכלל לא להשאיר remainder.
 
