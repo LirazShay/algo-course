@@ -96,8 +96,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     84 — Glossary
                     85 — Readiness Checklist
                     85A — Market Conduct, Manipulation Prevention, Self-Trade Controls and Automated-Trading Compliance
+Completed Cross-Cutting: 01 — Recommended MVP
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: Cross-Cutting 01 — Recommended MVP
+Next Segment: Cross-Cutting 02 — Recommended Research Stack
 Source of Truth: GitHub main
 ```
 
@@ -279,7 +280,8 @@ Baseline
 
 | Pack | Recommendation Sheet | Status |
 |---|---|---|
-| Recommended MVP | `CC01-RECOMMENDED-MVP.md` | `NOT STARTED` |
+| Recommended MVP | `CC01-RECOMMENDED-MVP.md` | `COMPLETED` |
+| Recommended Research Stack | `CC02-RECOMMENDED-RESEARCH-STACK.md` | `NOT STARTED` |
 
 ‏לפני סיום הפרויקט חייבים להיווצר לפחות:
 
