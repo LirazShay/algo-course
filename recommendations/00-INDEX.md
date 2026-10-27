@@ -102,8 +102,9 @@ Completed Cross-Cutting: 01 — Recommended MVP
                          04 — Recommended Scanner Design
                          05 — Recommended Ranking Process
                          06 — Recommended Entry Policy
+                         07 — Recommended Exit Policy
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: Cross-Cutting 07 — Recommended Exit Policy
+Next Segment: Cross-Cutting 08 — Recommended Order Policy
 Source of Truth: GitHub main
 ```
 
@@ -256,7 +257,7 @@ Baseline
 | `66-STATISTICAL-AND-QUANTITATIVE-FOUNDATIONS.md` | `66-STATISTICAL-AND-QUANTITATIVE-FOUNDATIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `67-MACHINE-LEARNING-FOR-ALGO-TRADING.md` | `67-MACHINE-LEARNING-FOR-ALGO-TRADING.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `68-MARKET-REGIMES-AND-CONTEXT.md` | `68-MARKET-REGIMES-AND-CONTEXT.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `69-NEWS-EVENTS-AND-CORPORATE-ACTIONS.md` | `69-NEWS-EVENTS-AND-CORPORATE-ACTIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `69-NEWS-EVENTS-AND-CORPORATE-ACTIONS.md` | `69-NEWS-EVENTS-CORPORATE-ACTIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `70-SHORT-SELLING-AND-BORROW.md` | `70-SHORT-SELLING-AND-BORROW.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `72-FEES-TAX-AND-ACCOUNTING-AWARENESS.md` | `72-FEES-TAX-AND-ACCOUNTING-AWARENESS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
@@ -291,7 +292,8 @@ Baseline
 | Recommended Scanner Design | `CC04-RECOMMENDED-SCANNER-DESIGN.md` | `COMPLETED` |
 | Recommended Ranking Process | `CC05-RECOMMENDED-RANKING-PROCESS.md` | `COMPLETED` |
 | Recommended Entry Policy | `CC06-RECOMMENDED-ENTRY-POLICY.md` | `COMPLETED` |
-| Recommended Exit Policy | `CC07-RECOMMENDED-EXIT-POLICY.md` | `NOT STARTED` |
+| Recommended Exit Policy | `CC07-RECOMMENDED-EXIT-POLICY.md` | `COMPLETED` |
+| Recommended Order Policy | `CC08-RECOMMENDED-ORDER-POLICY.md` | `NOT STARTED` |
 
 ‏לפני סיום הפרויקט חייבים להיווצר לפחות:
 
