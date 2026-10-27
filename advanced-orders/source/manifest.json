@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R7_COMPLETE",
-  "repairCheckpoint": "R7C_CLOSEOUT_COMPLETE",
+  "repairState": "R8_IN_PROGRESS",
+  "repairCheckpoint": "R8A_BEGINNER_NAVIGATION_PROBLEM_INDEX_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1 source migration, R2 structure/taxonomy normalization, R3 missing-advanced-order repairs, R4 decision/comparison repairs, R5 engine mapping/capability normalization, R6 failure/survivability/safety repairs, and R7 practitioner judgment repairs are complete. R8 reference/navigation/final learning cleanup and R9 deterministic assembly/print work remain. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented."
+    "reason": "R1-R7 repairs are complete. R8 reference/navigation/final learning cleanup is in progress; R8A beginner navigation and Problem-to-Candidate index are complete. R9 deterministic assembly/print work remains. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented."
   },
   "finalizationPolicy": {
     "goal": "The final advanced-orders area is a clean printable Advanced Orders course, not a workspace dump.",
@@ -49,6 +49,7 @@
   },
   "entries": [
     {"id":"00","title":"Front Matter and Course Map","source":"advanced-orders/source/00-FRONT-MATTER.md","status":"ready"},
+    {"id":"00B","title":"Beginner Navigation and Problem to Candidate Index","source":"advanced-orders/source/00B-BEGINNER-NAVIGATION-AND-PROBLEM-INDEX.md","status":"ready"},
     {"id":"00A","title":"Canonical Taxonomy and Vocabulary","source":"advanced-orders/source/00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md","status":"ready"},
     {"id":"01","title":"Order Language","source":"advanced-orders/source/01-ORDER-LANGUAGE.md","status":"ready"},
     {"id":"02","title":"Core Execution","source":"advanced-orders/source/02-CORE-EXECUTION.md","status":"ready"},
