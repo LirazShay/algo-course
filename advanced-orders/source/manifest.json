@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R9_IN_PROGRESS",
-  "repairCheckpoint": "R9D_GENERATION_GATE_ENABLED",
+  "repairCheckpoint": "R9E_GENERATION_RUNNER_READY_MASTER_PENDING",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -14,7 +14,21 @@
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": true,
     "assembler": "advanced-orders/build/assemble.mjs",
-    "reason": "R1-R8 course-source work is complete. R9A created the deterministic assembler, R9B validated its runtime contract on an isolated fixture, R9C added the dependency-free compact print viewer, and R9D opened the generation gate. The next generation step must replace ADVANCED-ORDER-MASTERY.md only by running the canonical assembler from the ready manifest sources and must immediately verify deterministic equality/hash before print verification or cleanup."
+    "reason": "R1-R8 course-source work is complete. R9A created the deterministic assembler, R9B validated its runtime contract, R9C added the compact print viewer, R9D opened the generation gate, and R9E added a Windows entrypoint that runs the canonical assembler with --write followed immediately by --check. The generated master is still pending an actual repository runtime execution; print verification and cleanup remain blocked until that execution succeeds."
+  },
+  "generationRunner": {
+    "state": "R9E_ENTRYPOINT_READY",
+    "path": "advanced-orders/build/generate-course.cmd",
+    "platform": "Windows",
+    "executionState": "PENDING_LOCAL_REPO_RUNTIME",
+    "contract": [
+      "run the canonical assembler with --write",
+      "immediately run the same assembler with --check",
+      "stop on the first non-zero exit code",
+      "never edit canonical source files or bypass generatedMaster.buildAllowed",
+      "do not start print verification or cleanup until WRITE_OK and CHECK_OK are both observed"
+    ],
+    "reason": "The connected GitHub surface supports repository reads and writes but does not expose a shell on the repository. The separate local shell cannot reach GitHub, so generation must not be emulated by manual concatenation."
   },
   "assemblerValidation": {
     "state": "R9B_COMPLETE",
