@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R2_IN_PROGRESS",
-  "repairCheckpoint": "R2D4_PART9_COMPLETE",
+  "repairCheckpoint": "R2E1_PART10A_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
