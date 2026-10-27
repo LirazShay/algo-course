@@ -86,8 +86,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     74 — Scanner Diagnostics
                     75 — Feature Retirement
                     76 — Continuous Improvement Loop
+                    77 — Strategy Versioning
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 77 — Strategy Versioning
+Next Segment: 78 — Champion / Challenger
 Source of Truth: GitHub main
 ```
 
@@ -248,9 +249,10 @@ Baseline
 | `74-SCANNER-DIAGNOSTICS.md` | `74-SCANNER-DIAGNOSTICS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `75-FEATURE-RETIREMENT.md` | `75-FEATURE-RETIREMENT.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `76-CONTINUOUS-IMPROVEMENT-LOOP.md` | `76-CONTINUOUS-IMPROVEMENT-LOOP.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `77-STRATEGY-VERSIONING.md` | `77-STRATEGY-VERSIONING.md` | TBD | `NOT STARTED` |
+| `77-STRATEGY-VERSIONING.md` | `77-STRATEGY-VERSIONING.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `78-CHAMPION-CHALLENGER.md` | `78-CHAMPION-CHALLENGER.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 78–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 79–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
