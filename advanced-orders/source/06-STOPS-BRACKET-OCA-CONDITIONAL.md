@@ -1,46 +1,59 @@
-# ‏חלק 6 — Stops, Trailing, Bracket, OCA/OCO ו־Conditional Orders
+# ‏חלק 6 — Trigger, Protection ו־Composite Structures: ‏Stops, Trailing, Bracket, OCA/OCO ו־Conditional Orders
 
-## ‏6.1 לפני השמות: שלושה מנגנונים שונים שחייבים להפריד
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, הפרק הזה אינו משפחה אחת של "Order Types". הוא משלב `Trigger Policy`, ‏post-trigger execution, ‏dependency, ‏predicate, ‏mutual-exclusion/quantity coordination ו־composite order structures. ‏`Venue-Native`, ‏`Broker-Managed/Broker-Simulated`, ‏`Broker-Resident` ו־`Client-Managed` הם dimensions נפרדים.
 
-‏המשפחה הזו מערבבת שלושה רעיונות שונים:
+## ‏6.1 לפני השמות: ארבעה מנגנונים ושתי שאלות שחייבים להפריד
+
+‏המשפחה הזו מערבבת ארבעה רעיונות שונים:
 
 ```text
 Trigger
 Dependency
-Mutual exclusion
+Mutual exclusion / quantity coordination
+Predicate
 ```
 
-‏`Stop` ו־`Trailing` עוסקות ב־Trigger: מתי Order משנה מצב או הופכת executable.
+‏ובפקודה מבוססת Trigger תמיד יש שתי שאלות שונות:
 
-‏`Bracket` עוסקת ב־Dependency: children קשורות ל־parent ואמורות להגן על Position שנוצרה מה־parent.
+```text
+WHEN does activation happen?
+WHAT execution behavior happens after activation?
+```
 
-‏`OCA/OCO` עוסקות ב־Mutual exclusion: ביצוע של Order אחת צריך לגרום לביטול או התאמה של האחרות.
+‏`Stop` ו־`Trailing` עוסקות קודם כול ב־Trigger: מתי Order משנה מצב או הופכת executable; לאחר מכן חייבים לשאול האם post-trigger execution היא Market-style, ‏Limit-style או transformation אחרת.
 
-‏`Conditional` מוסיפה שכבת Predicate: Order פעילה או מתבטלת רק כאשר תנאי מסוים מתקיים.
+‏`Bracket` היא `Composite Order Structure`: children קשורות ל־parent ואמורות לנהל/להגן על Position שנוצרה מה־parent.
 
-‏במנוע Production אסור להכניס את כולן למחלקה אחת בשם `advancedOrder`. כל מנגנון מייצר failure modes אחרים.
+‏`OCA/OCO` הן relationships של mutual exclusion / quantity coordination: ביצוע של Order אחת אמור לגרום לביטול או התאמה של האחרות, אך אינו מבטיח transaction אטומית.
+
+‏`Conditional` מוסיפה Predicate: Order פעילה או מתבטלת רק כאשר תנאי מסוים מתקיים.
+
+> ‏`ENGINE RULE` — במנוע Production אסור להכניס את כולן למחלקה אחת בשם `advancedOrder`. כל מנגנון מייצר lifecycle ו־failure modes אחרים.
 
 ---
 
-## ‏6.2 `Stop` — Trigger שמחליף Price Certainty ב־Execution Urgency
+## ‏6.2 `Stop` — Trigger ואז Market-Style Execution
 
-‏פקודת `Stop` רגילה אינה Order Market פעילה מהרגע הראשון. היא מחכה ל־trigger.
+‏פקודת `Stop` רגילה אינה Market Order פעילה מהרגע הראשון. היא מחכה ל־trigger.
 
-‏כאשר ה־trigger מתקיים, ההתנהגות הופכת בקירוב ל־Market execution.
+‏כאשר ה־trigger מתקיים, ההתנהגות הופכת בקירוב ל־Market-style execution.
 
 ‏לכן היא מפרידה בין:
 
 ```text
-trigger price
+trigger policy / trigger price
 ```
 
 ‏לבין:
 
 ```text
+post-trigger execution behavior
 actual execution price
 ```
 
 ‏והם אינם חייבים להיות זהים.
+
+> ‏`ENGINE RULE` — בקורס, כאשר נאמר `Stop` בלי qualifier בהקשר הזה, הכוונה היא ל־Stop עם Market-style execution לאחר trigger; ‏`Stop Limit` היא Trigger דומה עם Limit-style execution לאחר trigger.
 
 ---
 
@@ -68,7 +81,7 @@ position certainty > price certainty
 
 ## ‏6.4 `Trigger Method` הוא חלק מה־Order semantics
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת שב־simulated stop orders ניתן להשתמש ב־default trigger methodology שלה או לבחור trigger methodology מותאמת, ושה־default עשוי להשתנות לפי Product.
 
@@ -94,25 +107,35 @@ other broker-defined trigger logic?
 
 ---
 
-## ‏6.5 Stop יכולה להיות Native או Broker-Simulated
+## ‏6.5 `Venue-Native`, ‏`Broker-Simulated` ו־`Broker-Resident` אינם אותו דבר
 
-‏IBKR מציינת שחלק מסוגי ה־Stop יכולים להיות Native בבורסה וחלקם simulated על ספרי IBKR, לפי Exchange ו־Order Type.
+> ‏`FACT` — IBKR מציינת שחלק מסוגי ה־Stop יכולים להיות Native בבורסה וחלקם simulated על ספרי IBKR, לפי Exchange ו־Order Type.
 
 ‏זה חשוב כי simulated trigger תלוי גם ב־market data וב־filters של Broker.
 
-‏לכן מבחינת Reliability:
+‏לכן צריך לשמור שלושה דברים בנפרד:
 
 ```text
-stop exists at broker
+where the instruction/state lives
+who evaluates the trigger
+whether the final instruction is venue-native
 ```
 
-‏אינו בהכרח זהה ל־:
+‏לדוגמה:
 
 ```text
-stop instruction exists natively inside venue matching engine
+broker-resident
++
+broker-simulated trigger
 ```
 
-‏ועלינו לשמור Capability/Route metadata יחד עם ההגנה.
+‏אינו שקול ל־:
+
+```text
+venue-native stop inside matching engine
+```
+
+‏ועלינו לשמור Capability/Route/implementation metadata יחד עם ההגנה.
 
 ---
 
@@ -139,7 +162,7 @@ reconciliation
 
 ---
 
-## ‏6.7 `Stop Limit` — Trigger ואז Limit
+## ‏6.7 `Stop Limit` — Trigger ואז Limit-Style Execution
 
 ‏`Stop Limit` מפרידה לשני מחירים:
 
@@ -148,7 +171,7 @@ stop trigger
 limit execution boundary
 ```
 
-‏כאשר ה־trigger מתקיים, Order הופכת ל־Limit במקום Market.
+‏כאשר ה־trigger מתקיים, Order הופכת ל־Limit במקום Market-style execution.
 
 ‏כך אנחנו מגבילים price risk — אבל מקבלים סיכון חדש:
 
@@ -203,7 +226,7 @@ position still open
 
 ---
 
-## ‏6.10 `Trailing Stop` — Stop עם Ratchet
+## ‏6.10 `Trailing Stop` — Trigger Policy עם Ratchet
 
 ‏Trailing Stop מזיזה את ה־trigger בכיוון המיטיב, אבל אינה מחזירה אותו לאחור כאשר השוק נסוג.
 
@@ -222,7 +245,7 @@ market falls -> stop does not fall
 
 ## ‏6.11 Trailing Amount מול Trailing Percent
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏ב־`TWS API` קיימים `auxPrice`/trailing amount וגם `trailingPercent`; התיעוד מציין שהם mutually exclusive.
 
@@ -267,7 +290,7 @@ position age
 
 ---
 
-## ‏6.13 `Trailing Stop Limit` — Ratchet עם Price Boundary
+## ‏6.13 `Trailing Stop Limit` — Ratchet עם Limit-Style Post-Trigger Execution
 
 ‏Trailing Stop Limit מזיזה גם stop trigger וגם limit price לפי trailing amount ו־limit offset.
 
@@ -287,7 +310,7 @@ risk of triggered-but-unfilled exit
 
 ## ‏6.14 `Limit Offset` ב־Trailing Stop Limit דורש משמעת
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת שב־`TRAIL LIMIT` יש `lmtPriceOffset`, ושלא שולחים במקביל גם explicit limit price וגם limit-price offset באותה צורה.
 
@@ -309,11 +332,11 @@ signal score collapsed
 market data became stale
 ```
 
-‏לכן אצלנו Trailing תהיה Candidate ל־broker-resident guardrail או exit style מסוים, לא תחליף לכל ה־Exit Intelligence.
+‏לכן אצלנו Trailing היא Broker-managed trigger behavior שיכול להיות Candidate להגנה או exit style מסוים; היא אינה `Application Execution Mode` ואינה תחליף לכל ה־Exit Intelligence.
 
 ---
 
-## ‏6.16 `Adjustable Stop` — שינוי חד־פעמי של Order במקום Trigger מיידי
+## ‏6.16 `Adjustable Stop` — Transforming Order במקום Trigger שמוציא מיד
 
 ‏Adjustable Stop מעניינת משום שה־trigger שלה אינו בהכרח אומר "צא עכשיו".
 
@@ -327,13 +350,13 @@ when price reaches X:
     transform parent into tighter stop
 ```
 
-‏זה סוג של state transition שמנוהל אצל Broker.
+‏זו דוגמה ל־`TRANSFORMING ORDER`: trigger מפעיל state transition של Order קיימת, ולא בהכרח ביצוע מיידי.
 
 ---
 
 ## ‏6.17 שדות API של Adjustable Stop
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏`TWS API Order` כולל בין היתר:
 
@@ -388,6 +411,8 @@ PercentChange
 
 ‏וב־API אפשר לחבר תנאים עם `AND` או `OR`.
 
+‏ברמת ה־taxonomy זהו `Predicate / Dependency Policy`, לא Broker Order Primitive שמתחרה ב־Market/Limit.
+
 ---
 
 ## ‏6.20 למה Conditions מעניינות לרובוט
@@ -437,13 +462,13 @@ halt
 delayed/inconsistent event
 ```
 
-‏ב־safety-critical exit לא מסתמכים על condition מורכבת בלי להבין איפה היא מחושבת.
+‏ב־safety-critical exit לא מסתמכים על condition מורכבת בלי להבין איפה היא מחושבת והאם היא broker-resident.
 
 ---
 
-## ‏6.23 `OCA` — One Cancels All
+## ‏6.23 `OCA` — Mutual Exclusion / Quantity Coordination Relationship
 
-‏`OCA` מקבצת Orders כך שביצוע Order אחת משפיע על האחרות.
+‏`OCA` מקבצת Orders כך שביצוע Order אחת אמור להשפיע על האחרות.
 
 ‏זה מתאים ליותר משני Orders, ולא חייב להיות קשור ל־Parent.
 
@@ -454,13 +479,13 @@ multiple alternative executions
 but do not want all of them to complete independently
 ```
 
-‏זה primitive של mutual exclusion / quantity coordination.
+‏זה relationship primitive של mutual exclusion / quantity coordination — לא Broker Order Primitive יחיד ולא transaction אטומית.
 
 ---
 
 ## ‏6.24 שלושת `OcaType` ב־TWS API
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת:
 
@@ -494,7 +519,7 @@ remaining sibling qty = 100
 
 ## ‏6.26 OCA אינה Transaction אטומית מול Exchanges
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מזהירה שאין הבטחה שבקשות cancel/modify של OCA יגיעו ל־Exchange לפני Order שכבר נמצאת בתהליך execution.
 
@@ -511,13 +536,15 @@ one filled
 sibling can no longer fill
 ```
 
+> ‏`ENGINE RULE` — `OCA/OCO coordination != transactional atomic guarantee`. ‏Sibling שנמצא ב־pending cancel נשאר potentially executable עד evidence terminal מתאים.
+
 ‏המנוע עדיין חייב להתמודד עם late fill ו־overfill reconciliation.
 
 ---
 
 ## ‏6.27 `OCO` מול `OCA`
 
-‏`OCO` הוא בדרך כלל השם הרעיוני למצב של שתי Orders חלופיות — למשל Take Profit ו־Stop Loss — שבהן ביצוע אחת מבטל את השנייה.
+‏`OCO` הוא בדרך כלל השם הרעיוני למצב של שתי Orders חלופיות — למשל Take Profit ו־Stop Loss — שבהן ביצוע אחת אמור לבטל את השנייה.
 
 ‏`OCA` הוא ה־IBKR mechanism הכללי לקבוצה של Orders.
 
@@ -532,7 +559,7 @@ sibling_exclusion_semantics
 
 ---
 
-# ‏6.28 `Bracket` — לא Order אחת אלא מערכת קטנה
+# ‏6.28 `Bracket` — Composite Order Structure, לא Order אחת
 
 ‏Bracket בסיסית היא:
 
@@ -609,7 +636,7 @@ bracket_status = ACTIVE
 
 ## ‏6.31 `Transmit` — החלק שאסור לטעות בו
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏הדוגמה הרשמית של `TWS API` משתמשת בתבנית:
 
@@ -643,9 +670,9 @@ Stop not sent
 
 ---
 
-## ‏6.33 אבל `Transmit=false` יוצר סיכון אחר
+## ‏6.33 `UNTRANSMITTED != PROTECTED`
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת ש־untransmitted Orders נמצאות רק בתוך אותו TWS session, אינן נשלחות ל־IB server, ונמחקות בעת restart/logout של אותה session.
 
@@ -654,6 +681,8 @@ Stop not sent
 ```text
 no broker-resident protection exists yet
 ```
+
+> ‏`ENGINE RULE` — `UNTRANSMITTED != PROTECTED`. ‏Order שנמצאת ב־TWS המקומי אך טרם transmitted אינה נחשבת Broker-resident protection.
 
 ‏זה מצב שחייב להופיע ב־state machine כ־`STAGING`, לא כ־`PROTECTED`.
 
@@ -704,7 +733,7 @@ FLAT_CONFIRMED
 
 ---
 
-## ‏6.36 Parent Partial Fill — הנקודה הכי חשובה לבדיקה אמפירית
+## ‏6.36 Parent Partial Fill — `ACCEPTANCE TEST REQUIRED`
 
 ‏מצאנו כאן nuance משמעותי בתיעוד IBKR.
 
@@ -712,11 +741,9 @@ FLAT_CONFIRMED
 
 ‏לעומת זאת, חומר הדרכה עדכני של `TWS API` מתאר attached children כ־held עד שה־Parent מתמלא לחלוטין ואז נעשות active.
 
-‏אין להתעלם מהפער הזה.
+> ‏`ACCEPTANCE TEST REQUIRED` — אין לקורס "לפתור" את הפער על ידי בחירת אחת הגרסאות. עבור ה־API, Product, Route ו־adapter שבהם נשתמש יש למדוד במפורש מה קורה ל־children לאחר Parent partial fill.
 
-‏מסקנת Production שלנו:
-
-> ‏לפני Live נבצע acceptance test מפורש על ממשק ה־API, Product ו־Route שבהם נשתמש, ונמדוד מה בדיוק קורה ל־children לאחר Parent partial fill.
+‏עד לקבלת evidence מתאים, capability זו אינה מקבלת semantics סופיות ב־Production.
 
 ---
 
@@ -819,7 +846,7 @@ fill event arrives
 
 ---
 
-## ‏6.42 Profit-Taker Child היא Execution Policy בפני עצמה
+## ‏6.42 Profit-Taker Child היא Exit Behavior בפני עצמה
 
 ‏Take Profit אינה רק מספר יעד.
 
@@ -834,7 +861,7 @@ modify dynamically?
 partial exit allowed?
 ```
 
-‏Bracket בסיסית משתמשת בדרך כלל ב־opposite-side Limit, אבל המנוע שלנו צריך לחשוב על exit behavior — לא רק target price.
+‏Bracket בסיסית משתמשת בדרך כלל ב־opposite-side Limit, אבל המנוע שלנו צריך לחשוב על **Exit Behavior** ואז על Concrete Order שמממשת אותו — לא רק על target price.
 
 ---
 
@@ -860,7 +887,7 @@ signal reversal exit
 protective disaster/risk stop
 ```
 
-‏הראשון יכול להיות dynamic ומהיר יותר; השני יכול להישאר Broker-resident כ־backstop.
+‏הראשון יכול להיות dynamic ומהיר יותר; השני יכול להישאר Broker-resident כ־backstop אם capability ו־residency אכן הוכחו.
 
 ---
 
@@ -933,8 +960,8 @@ broker stop also fills
 ‏עבורנו רעיון חזק הוא להפריד:
 
 ```text
-Broker Bracket = safety envelope
-Client Engine   = dynamic exit intelligence
+Broker Composite Protection = safety envelope
+Client Engine               = dynamic exit intelligence
 ```
 
 ‏ה־Broker מחזיק catastrophic protection ו־optional profit boundary.
@@ -945,13 +972,15 @@ Client Engine   = dynamic exit intelligence
 
 ---
 
-## ‏6.48 `Broker-Resident` מול `Client-Managed Exit`
+## ‏6.48 `Broker-Resident` מול `Client-Managed` הם dimensions של ownership/residency
 
 | מודל | יתרון | חסרון |
 |---|---|---|
-| Broker-resident | ‏ממשיך להתקיים גם אם process המקומי נופל | ‏פחות יודע על ה־Signal הפרטי שלנו |
-| Client-managed | ‏גמיש ומגיב לכל feature שלנו | ‏תלוי connectivity/process/data |
+| Broker-resident protection | ‏יכול להמשיך להתקיים גם אם process המקומי נופל, כאשר residency הוכחה | ‏פחות יודע על ה־Signal הפרטי שלנו |
+| Client-managed exit | ‏גמיש ומגיב לכל feature שלנו | ‏תלוי connectivity/process/data |
 | Hybrid | ‏Backstop אצל Broker + intelligence מקומית | ‏state coordination מורכב יותר |
+
+‏אלה אינם Order Types. הם מתארים **איפה state חי ומי מחזיק authority** על protection/exit.
 
 ‏למנוע Production, Hybrid הוא Candidate חשוב למחקר — אבל רק אחרי בדיקות races קפדניות.
 
@@ -1112,7 +1141,15 @@ user intentionally canceled trade
 
 ‏אותו דבר אם API client אחר משנה Order.
 
-‏לכן Position היא source of truth שמחושב מ־broker executions/account state — לא רק מה־strategy ledger המקומי.
+‏לכן נפריד בין:
+
+```text
+execution_ledger_position
+broker_reported_position
+reconciled_position
+```
+
+> ‏`ENGINE RULE` — decisions חדשות מסתמכות על `reconciled_position`; requested quantity או ledger מקומי לבדם אינם Position truth מספקת לאחר external/manual activity או recovery.
 
 ---
 
@@ -1130,7 +1167,7 @@ rebuild bracket graph
 
 ‏ורק אז המנוע מחליט אם מותר לו לשלוח Orders חדשות.
 
-‏עד אז מצב בטוח הוא `RECOVERING`, לא `RUNNING`.
+‏עד אז `RECOVERING` הוא **System Operating Mode**, לא Bracket lifecycle state רגיל.
 
 ---
 
@@ -1143,7 +1180,7 @@ parent fills
 local process dies 2 ms later
 ```
 
-‏אם Stop כבר חלק מ־Bracket שהגיעה ל־Broker, יש סיכוי שההגנה ממשיכה להתקיים בלי התהליך המקומי.
+‏אם Stop כבר חלק מ־Bracket שהגיעה ל־Broker וה־residency שלה הוכחה, ההגנה יכולה להמשיך להתקיים בלי התהליך המקומי.
 
 ‏אם ה־Exit כולו client-managed, אין שום לוגיקה מקומית פעילה עד restart.
 
@@ -1241,7 +1278,7 @@ slippage_from_trigger
 
 ---
 
-## ‏6.66 State Machine מומלץ ל־Bracket
+## ‏6.66 State Machine מומלץ ל־Bracket — בלי לערבב System Modes
 
 ```text
 CREATED
@@ -1272,27 +1309,32 @@ PARENT_WORKING
      FLAT_CONFIRMED
 ```
 
-‏ובכל node יכולים להיות transitions ל־:
+‏לצד lifecycle הזה יש **epistemic/control states** כגון:
 
 ```text
-REJECTED
-RECOVERING
-UNPROTECTED
+UNKNOWN
 INCONSISTENT
-MANUAL_INTERVENTION_REQUIRED
+UNPROTECTED
 ```
 
-‏השם האחרון אינו אומר שאדם חייב תמיד ללחוץ; הוא אומר שהאוטומציה אינה רשאית להעמיד פנים שהמצב תקין.
+‏ובנפרד **System Operating Modes** כגון:
+
+```text
+RECOVERING
+FROZEN
+```
+
+> ‏`ENGINE RULE` — `UNKNOWN`, ‏`RECOVERING` ו־`FROZEN` אינם אותו סוג enum: הראשון מתאר מה איננו יודעים, השני את מצב הפעולה של המערכת, והשלישי control/safety mode.
 
 ---
 
 ## ‏6.67 Invariants שצריכים להיבדק אחרי כל Event
 
 ```text
-position_qty == broker_truth_after_reconciliation
+reconciled_position matches broker/execution evidence
 no new entry while bracket state is inconsistent
 no exit assumes pending-cancel sibling is dead
-active protective qty never intentionally exceeds position qty
+active protective qty never intentionally exceeds reconciled position qty
 position qty never remains intentionally unprotected beyond allowed window
 all live children map to a known parent/position
 all modifications use latest known filled/remaining qty
@@ -1398,13 +1440,13 @@ reconnect_to_consistent_state_ms
 20. Verify exact partial-fill child activation semantics
 ```
 
-‏הבדיקה ה־20 היא Mandatory אצלנו בגלל ההבדל שמצאנו בין מסמכי IBKR.
+‏הבדיקה ה־20 היא `ACCEPTANCE TEST REQUIRED` אצלנו בגלל ההבדל שמצאנו בין מסמכי IBKR.
 
 ---
 
 ## ‏6.71 `IBKR` — תמיכה נוכחית ברמת UI
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏לפי Order Types של IBKR:
 
@@ -1419,7 +1461,7 @@ reconnect_to_consistent_state_ms
 | `OCA` | Stocks, ETFs ועוד | `TWS` | Smart, Directed |
 | `Conditional` | Stocks, ETFs ועוד | `TWS` ו־`IBKR Mobile` לפי הדף הנוכחי | Smart, Directed |
 
-‏זו תמיכת Product/Platform כללית של IBKR, לא הבטחה שכל combination נתמך בכל Legal Entity/Contract/Route.
+‏זו תמיכת Product/Platform כללית של IBKR, לא הבטחה שכל combination נתמך בכל Legal Entity/Contract/Route, ובוודאי לא `PRODUCTION_ENABLED` אצלנו.
 
 ---
 
@@ -1446,7 +1488,7 @@ conditionsIgnoreRth
 autoCancelParent
 ```
 
-‏כלומר ה־API נותן primitives אמיתיים לבניית המנגנונים של החלק הזה.
+‏כלומר ה־API נותן primitives/attributes אמיתיים לבניית המנגנונים של החלק הזה.
 
 ‏אבל IBKR עצמה ממליצה לבדוק Order Type ידנית ב־TWS לפני שמקודדים tactic מורכבת, משום שלא כל combination של advanced features נתמך.
 
@@ -1479,15 +1521,13 @@ slOrderType = PRESET
 
 ‏זה יכול לפשט setup אחיד, אבל יוצר dependency על configuration חיצונית ב־TWS.
 
-‏למנוע reproducible אני מעדיף במחקר הראשון parameters מפורשים בקוד, ורק אחר כך להשוות Preset-driven workflow אם יש לו ערך תפעולי.
+‏למנוע reproducible, במחקר הראשון עדיף parameters מפורשים בקוד כדי שהניסוי יהיה ניתן לשחזור; Preset-driven workflow הוא capability נפרדת להשוואה, לא הנחה מובלעת.
 
 ---
 
-## ‏6.75 Recommendation ארכיטקטונית ראשונית למנוע שלנו
+## ‏6.75 שלוש `Protection Architectures` למחקר
 
-‏לא הייתי בוחר עכשיו "Bracket מלאה מנהלת הכול" או "הכול client-side".
-
-‏הייתי חוקר שלוש architectures:
+‏במקום להתייחס אליהן כ־Order Types, נשווה שלוש ארכיטקטורות ownership/residency:
 
 ```text
 A. CLIENT_MANAGED_EXIT
@@ -1504,7 +1544,7 @@ C. HYBRID_PROTECTION
    broker child is canceled/reconciled when local exit succeeds
 ```
 
-‏עבור holding של שניות, `C` היא Candidate חשובה במיוחד מפני שהיא משלבת survivability עם signal-aware exit — אבל היא גם דורשת את ה־race handling הקשוח ביותר.
+‏עבור holding של שניות, `C` היא Research Candidate חשובה מפני שהיא משלבת survivability עם signal-aware exit — אבל היא גם דורשת את ה־race handling הקשוח ביותר.
 
 ---
 
@@ -1565,7 +1605,7 @@ simplify some failure handling
 
 ### ‏4. Pending Cancel היא עדיין Order מסוכנת
 
-‏עד שאין terminal state, היא יכולה לקבל Fill.
+‏עד שאין terminal evidence מתאים, היא יכולה לקבל Fill.
 
 ### ‏5. OCA אינה Atomic Transaction
 
@@ -1581,7 +1621,7 @@ simplify some failure handling
 
 ### ‏8. Broker-Resident Protection שווה הרבה דווקא בזמן תקלה
 
-‏הערך שלה נמדד כשמחשב/Process/Data נופלים — לא רק כשהכול עובד.
+‏הערך שלה נמדד כשמחשב/Process/Data נופלים — ורק כאשר residency הוכחה — לא רק כשהכול עובד.
 
 ### ‏9. Dynamic Exit + Broker Stop הם שתי רשויות ביצוע
 
@@ -1593,7 +1633,7 @@ simplify some failure handling
 
 ### ‏11. Documentation mismatch הוא Signal לבדיקה, לא הזמנה לניחוש
 
-‏כאשר מקורות IBKR מתארים partial-parent behavior בצורה שונה, אנחנו לא בוחרים גרסה שנוחה לנו; אנחנו כותבים acceptance test.
+‏כאשר מקורות IBKR מתארים partial-parent behavior בצורה שונה, אנחנו לא בוחרים גרסה שנוחה לנו; אנחנו מסמנים `ACCEPTANCE TEST REQUIRED` וכותבים acceptance test.
 
 ### ‏12. Bracket טובה היא מערכת שמצליחה גם כשמשהו משתבש
 
@@ -1618,8 +1658,8 @@ simplify some failure handling
 
 # ‏Checkpoint — סוף חלק 6
 
-‏בחלק הזה הפכנו Stops ו־Bracket מ־"פקודות יציאה" למערכת Risk/Execution מלאה. הפרדנו בין Trigger, Dependency ו־Mutual Exclusion; ירדנו לעומק של `Stop`, ‏`Stop Limit`, ‏`Trailing`, ‏`Trailing Limit`, ‏`Adjustable Stop`, ‏`Conditional` ו־`OCA`; ובנינו ל־Bracket מודל Production עם `parentId`, ‏`Transmit`, partial fills, quantity invariants, pending-cancel races, orphan/double exits, reconnect/recovery, Failure Matrix ו־acceptance tests.
+‏בחלק הזה הפכנו Stops ו־Bracket מ־"פקודות יציאה" למערכת Risk/Execution מלאה. הפרדנו בין `Trigger Policy`, ‏post-trigger execution, ‏Predicate, ‏Dependency, ‏Mutual Exclusion ו־Composite Structure; ירדנו לעומק של `Stop`, ‏`Stop Limit`, ‏`Trailing`, ‏`Trailing Limit`, ‏`Adjustable Stop`, ‏`Conditional` ו־`OCA`; ובנינו ל־Bracket מודל Production עם `parentId`, ‏`Transmit`, partial fills, quantity invariants, pending-cancel races, orphan/double exits, reconnect/recovery, Failure Matrix ו־acceptance tests.
 
-‏הנקודה החשובה ביותר למנוע שלנו היא ש־Bracket יכולה להיות **שכבת survivability מצוינת**, אבל היא אינה תחליף ל־Signal-aware Exit. לכן שלוש architectures — client-managed, broker-bracket ו־hybrid protection — ייבחנו אמפירית ולא ייבחרו לפי אינטואיציה.
+‏הנקודה החשובה ביותר למנוע שלנו היא ש־Bracket יכולה להיות **שכבת survivability מצוינת**, אבל היא אינה תחליף ל־Signal-aware Exit. שלוש `Protection Architectures` — client-managed, broker-bracket ו־hybrid protection — ייבחנו אמפירית ולא ייבחרו לפי אינטואיציה.
 
 ‏החלק הבא יהיה **חלק 7 — Routing ו־Broker Algos**: `SMART` מול Direct Routing, בחירת Venue, fees/rebates, hidden liquidity, price improvement, ‏`Adaptive`, ‏`MidPrice` ושאלת המפתח למנוע של שניות — מתי כדאי למסור לברוקר החלטת execution ומתי אנחנו צריכים לשמור אותה אצלנו.
