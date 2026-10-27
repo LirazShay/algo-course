@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
-  "repairState": "R7_IN_PROGRESS",
-  "repairCheckpoint": "R7B_PRACTITIONER_FAMILY_INSIGHTS_COMPLETE",
+  "repairState": "R7_COMPLETE",
+  "repairCheckpoint": "R7C_CLOSEOUT_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -13,7 +13,7 @@
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "R1 source migration, R2 structure/taxonomy normalization, R3 missing-advanced-order repairs, R4 decision/comparison repairs, R5 engine mapping/capability normalization, and R6 failure/survivability/safety repairs are complete. R7 practitioner judgment repairs are in progress, including beginner-first explanations before advanced terminology. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented after the remaining R7-R9 work."
+    "reason": "R1 source migration, R2 structure/taxonomy normalization, R3 missing-advanced-order repairs, R4 decision/comparison repairs, R5 engine mapping/capability normalization, R6 failure/survivability/safety repairs, and R7 practitioner judgment repairs are complete. R8 reference/navigation/final learning cleanup and R9 deterministic assembly/print work remain. Rebuilding the master remains intentionally deferred until the deterministic assembler is implemented."
   },
   "buildPolicy": {
     "requireAllEntriesReady": true,
@@ -56,6 +56,7 @@
     {"id":"10E","title":"Entry vs Exit Asymmetry Decision Guide","source":"advanced-orders/source/10E-ENTRY-VS-EXIT-ASYMMETRY-DECISION-GUIDE.md","status":"ready"},
     {"id":"10F","title":"Comparison Closeout Decision Checklist","source":"advanced-orders/source/10F-COMPARISON-CLOSEOUT-DECISION-CHECKLIST.md","status":"ready"},
     {"id":"10G","title":"Practitioner Judgment Core","source":"advanced-orders/source/10G-PRACTITIONER-JUDGMENT-CORE.md","status":"ready"},
-    {"id":"10H","title":"Practitioner Judgment by Order Family","source":"advanced-orders/source/10H-PRACTITIONER-JUDGMENT-BY-FAMILY.md","status":"ready"}
+    {"id":"10H","title":"Practitioner Judgment by Order Family","source":"advanced-orders/source/10H-PRACTITIONER-JUDGMENT-BY-FAMILY.md","status":"ready"},
+    {"id":"10I","title":"Practitioner Judgment Completion","source":"advanced-orders/source/10I-PRACTITIONER-JUDGMENT-COMPLETION.md","status":"ready"}
   ]
 }
