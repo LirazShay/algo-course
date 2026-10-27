@@ -76,8 +76,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     64 — Professional Checklist Before Real Money
                     65 — Classic Indicators
                     66 — Statistical and Quantitative Foundations
+                    67 — Machine Learning for Algo Trading
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 67 — Machine Learning for Algo Trading
+Next Segment: 68 — Market Regimes and Context
 Source of Truth: GitHub main
 ```
 
@@ -228,9 +229,10 @@ Baseline
 | `64-PROFESSIONAL-CHECKLIST-BEFORE-REAL-MONEY.md` | `64-PROFESSIONAL-CHECKLIST-BEFORE-REAL-MONEY.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `65-CLASSIC-INDICATORS.md` | `65-CLASSIC-INDICATORS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `66-STATISTICAL-AND-QUANTITATIVE-FOUNDATIONS.md` | `66-STATISTICAL-AND-QUANTITATIVE-FOUNDATIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `67-MACHINE-LEARNING-FOR-ALGO-TRADING.md` | `67-MACHINE-LEARNING-FOR-ALGO-TRADING.md` | TBD | `NOT STARTED` |
+| `67-MACHINE-LEARNING-FOR-ALGO-TRADING.md` | `67-MACHINE-LEARNING-FOR-ALGO-TRADING.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `68-MARKET-REGIMES-AND-CONTEXT.md` | `68-MARKET-REGIMES-AND-CONTEXT.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 68–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 69–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
