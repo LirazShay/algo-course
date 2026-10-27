@@ -7,6 +7,8 @@ on:
       - main
     paths:
       - '.github/workflows/advanced-orders-print-verify.yml'
+      - 'advanced-orders/source/**'
+      - 'advanced-orders/build/assemble.mjs'
       - 'advanced-orders/print/**'
       - 'advanced-orders/ADVANCED-ORDER-MASTERY.md'
 
@@ -19,6 +21,7 @@ concurrency:
 
 jobs:
   verify-print-viewer:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
@@ -94,7 +97,7 @@ jobs:
         shell: bash
         run: rm -rf node_modules
 
-      - name: Record successful print verification in manifest
+      - name: Record successful post-cleanup verification in manifest
         env:
           VERIFIED_SHA256: ${{ steps.printverify.outputs.sha256 }}
           VERIFIED_SOURCES: ${{ steps.printverify.outputs.sources }}
@@ -115,13 +118,13 @@ jobs:
           }
 
           manifest.repairState = 'R9_IN_PROGRESS';
-          manifest.repairCheckpoint = 'R9G_PRINT_VERIFICATION_COMPLETE';
+          manifest.repairCheckpoint = 'R9I_POST_CLEANUP_VERIFICATION_COMPLETE';
           manifest.generatedMaster = {
             ...manifest.generatedMaster,
-            reason: 'R1-R8 course-source work is complete. R9 deterministic generation and browser-level print verification have both completed successfully in GitHub Actions without local-runtime dependency. Final repository cleanup and closeout remain.'
+            reason: 'R1-R8 course-source work is complete. Deterministic generation, final cleanup, and post-cleanup browser-level print verification have completed successfully in GitHub Actions. Final closeout remains.'
           };
           manifest.printVerification = {
-            state: 'R9G_COMPLETE',
+            state: 'R9I_POST_CLEANUP_COMPLETE',
             workflow: '.github/workflows/advanced-orders-print-verify.yml',
             workflowRunId: process.env.WORKFLOW_RUN_ID,
             verifiedCommit: process.env.VERIFIED_COMMIT,
@@ -131,8 +134,8 @@ jobs:
             renderedCharacters: Number(process.env.RENDER_CHARS),
             headlessPdfBytes: Number(process.env.PDF_BYTES),
             checks: [
-              'generated master passes canonical assembler --check before browser verification',
-              'print viewer loads over its dependency-free HTTP server',
+              'generated master passes canonical assembler --check after final cleanup',
+              'print viewer loads over its dependency-free HTTP server after final cleanup',
               'manifest-driven viewer assembly hash equals generated master SHA-256',
               'rendered course has expected substantial content and heading structure',
               'paper size, margins, font size, line height, density, and column controls apply',
@@ -140,7 +143,7 @@ jobs:
               'headless Chromium produces a non-trivial PDF payload',
               'browser console and page emit no errors during verification'
             ],
-            reason: 'The final generated course is verified externally in CI at browser and print-media level. No local browser or local command execution is required.'
+            reason: 'The cleaned final course tree is verified externally in CI at assembly, browser, and print-media level. No local browser or local command execution is required.'
           };
 
           await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
@@ -159,12 +162,12 @@ jobs:
           done
           test -n "$(git status --porcelain)"
 
-      - name: Commit verified print state
+      - name: Commit verified post-cleanup state
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add advanced-orders/source/manifest.json
-          git commit -m 'R9G record external print verification'
+          git commit -m 'R9I record post-cleanup verification'
           git push origin HEAD:main
