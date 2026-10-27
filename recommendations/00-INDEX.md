@@ -85,8 +85,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     73 — Automatic Daily Review
                     74 — Scanner Diagnostics
                     75 — Feature Retirement
+                    76 — Continuous Improvement Loop
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 76 — Continuous Improvement Loop
+Next Segment: 77 — Strategy Versioning
 Source of Truth: GitHub main
 ```
 
@@ -246,9 +247,10 @@ Baseline
 | `73-AUTOMATIC-DAILY-REVIEW.md` | `73-AUTOMATIC-DAILY-REVIEW.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `74-SCANNER-DIAGNOSTICS.md` | `74-SCANNER-DIAGNOSTICS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `75-FEATURE-RETIREMENT.md` | `75-FEATURE-RETIREMENT.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `76-CONTINUOUS-IMPROVEMENT-LOOP.md` | `76-CONTINUOUS-IMPROVEMENT-LOOP.md` | TBD | `NOT STARTED` |
+| `76-CONTINUOUS-IMPROVEMENT-LOOP.md` | `76-CONTINUOUS-IMPROVEMENT-LOOP.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `77-STRATEGY-VERSIONING.md` | `77-STRATEGY-VERSIONING.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 77–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 78–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
