@@ -79,8 +79,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     67 — Machine Learning for Algo Trading
                     68 — Market Regimes and Context
                     69 — News, Events and Corporate Actions
+                    70 — Short Selling and Borrow
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 70 — Short Selling and Borrow
+Next Segment: 71 — Account Mechanics and Regulations
 Source of Truth: GitHub main
 ```
 
@@ -234,9 +235,10 @@ Baseline
 | `67-MACHINE-LEARNING-FOR-ALGO-TRADING.md` | `67-MACHINE-LEARNING-FOR-ALGO-TRADING.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `68-MARKET-REGIMES-AND-CONTEXT.md` | `68-MARKET-REGIMES-AND-CONTEXT.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `69-NEWS-EVENTS-AND-CORPORATE-ACTIONS.md` | `69-NEWS-EVENTS-AND-CORPORATE-ACTIONS.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `70-SHORT-SELLING-AND-BORROW.md` | `70-SHORT-SELLING-AND-BORROW.md` | TBD | `NOT STARTED` |
+| `70-SHORT-SELLING-AND-BORROW.md` | `70-SHORT-SELLING-AND-BORROW.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | `71-ACCOUNT-MECHANICS-AND-REGULATIONS.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 71–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 72–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
