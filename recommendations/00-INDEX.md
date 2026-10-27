@@ -8,7 +8,7 @@
 
 ```text
 Regular Course: COMPLETE
-Recommendation Playbook: IN PROGRESS
+Recommendation Playbook: COMPLETE
 Completed Segments: 01 — Foundations / Personal Algo System
                     02 — US Market Structure
                     03 — Bid / Ask / Last / Spread / Order Book
@@ -115,8 +115,9 @@ Completed Cross-Cutting: 01 — Recommended MVP
                          17 — Recommended Learning Loop
                          18 — Recommended Path from Research to Live
 Recommendation Gap Review: COMPLETED
+Final Recommended Baseline: COMPLETED
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: FINAL-RECOMMENDED-BASELINE.md
+Next Segment: NONE — PLAYBOOK COMPLETE
 Source of Truth: GitHub main
 ```
 
@@ -181,7 +182,7 @@ Baseline
 
 ## ‏6. סדר העבודה
 
-‏העבודה תתקדם לפי מסמכי הקורס, תוך הוספת קובצי Cross-Cutting כאשר החלטה חוצה כמה פרקים:
+‏העבודה התקדמה לפי מסמכי הקורס, תוך הוספת קובצי Cross-Cutting כאשר החלטה חצתה כמה פרקים:
 
 1. ‏לקרוא את פרק הקורס הרלוונטי ואת ההקשר במפת הקורס.
 2. ‏לחלץ את ההחלטות המעשיות, החלופות וה־Failure Modes.
@@ -192,6 +193,8 @@ Baseline
 7. ‏לעדכן את האינדקס.
 8. ‏בסיום כל הפרקים לבצע Recommendation Gap Review.
 9. ‏לסנתז את הכול ל־`FINAL-RECOMMENDED-BASELINE.md`.
+
+‏כל תשעת שלבי העבודה הושלמו.
 
 ---
 
@@ -288,13 +291,13 @@ Baseline
 | `85-READINESS-CHECKLIST.md` | `85-READINESS-CHECKLIST.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` | `85A-MARKET-CONDUCT-MANIPULATION-PREVENTION-SELF-TRADE-AND-COMPLIANCE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 
-‏כל שיעורי הקורס קיבלו כעת Recommendation Sheet. מכאן העבודה עוברת ל־Cross-Cutting packs המחויבים ב־Mandate.
+‏כל שיעורי הקורס קיבלו Recommendation Sheet, כולל ה־Discovered Topics ‏`60A` ו־`85A`.
 
 ---
 
 ## ‏8. Cross-Cutting Packs המחויבים ב־Mandate
 
-‏סטטוס ההתקדמות:
+‏סטטוס הסיום:
 
 | Pack | Recommendation Sheet | Status |
 |---|---|---|
@@ -317,58 +320,40 @@ Baseline
 | Recommended Learning Loop | `CC17-RECOMMENDED-LEARNING-LOOP.md` | `COMPLETED` |
 | Recommended Path from Research to Live | `CC18-RECOMMENDED-PATH-FROM-RESEARCH-TO-LIVE.md` | `COMPLETED` |
 
-‏לפני סיום הפרויקט חייבים להיווצר לפחות:
-
-- ‏Recommended MVP.
-- ‏Recommended Research Stack.
-- ‏Recommended Market Data Stack.
-- ‏Recommended Scanner Design.
-- ‏Recommended Ranking Process.
-- ‏Recommended Entry Policy.
-- ‏Recommended Exit Policy.
-- ‏Recommended Order Policy.
-- ‏Recommended Execution Policy.
-- ‏Recommended Risk Controls.
-- ‏Recommended Backtest Policy.
-- ‏Recommended Replay Policy.
-- ‏Recommended Testing Strategy.
-- ‏Recommended Observability Stack.
-- ‏Recommended Production Safety.
-- ‏Recommended Performance Priorities.
-- ‏Recommended Learning Loop.
-- ‏Recommended Path from Research to Live.
-
 ‏`Recommendation Gap Review` הושלם ב־`00-RECOMMENDATION-GAP-REVIEW.md`; לא נמצא Gap חוסם חדש לפני ה־Final synthesis.
 
 ---
 
 ## ‏9. תוצר הסיום
 
-‏התוצר המסכם יהיה:
+‏התוצר המסכם הושלם:
 
 `FINAL-RECOMMENDED-BASELINE.md`
 
-‏הוא יחבר מקצה לקצה:
+‏הוא מחבר מקצה לקצה:
 
 ```text
 Data
 → Universe
 → Sampling/Event Model
 → Features
-→ Filters
+→ Filters / Eligibility
 → Ranking
 → Candidate Gate
 → Entry
-→ Order Tactic
+→ Order Policy
 → Execution
 → Position Monitoring
 → Exit
 → Costs
-→ Risk
-→ Logging
+→ Risk / Safety / Compliance
+→ Observability
 → Replay
 → Validation
-→ Promotion to Live
+→ Learning / Promotion Governance
+→ ELIGIBLE_FOR_EXTERNAL_LIVE_READINESS_REVIEW
 ```
 
-‏רק לאחר מעבר על כל שיעורי הקורס וביצוע Recommendation Gap Review ניתן יהיה לסמן את ה־Playbook כשלם.
+‏כל Recommendation Sheets, כל `CC01–CC18`, ה־Recommendation Gap Review וה־Final synthesis הושלמו ונשמרו ב־`main`.
+
+‏**Recommendation Playbook Status: `COMPLETE`.**
