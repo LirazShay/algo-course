@@ -99,8 +99,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
 Completed Cross-Cutting: 01 — Recommended MVP
                          02 — Recommended Research Stack
                          03 — Recommended Market Data Stack
+                         04 — Recommended Scanner Design
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: Cross-Cutting 04 — Recommended Scanner Design
+Next Segment: Cross-Cutting 05 — Recommended Ranking Process
 Source of Truth: GitHub main
 ```
 
@@ -285,7 +286,8 @@ Baseline
 | Recommended MVP | `CC01-RECOMMENDED-MVP.md` | `COMPLETED` |
 | Recommended Research Stack | `CC02-RECOMMENDED-RESEARCH-STACK.md` | `COMPLETED` |
 | Recommended Market Data Stack | `CC03-RECOMMENDED-MARKET-DATA-STACK.md` | `COMPLETED` |
-| Recommended Scanner Design | `CC04-RECOMMENDED-SCANNER-DESIGN.md` | `NOT STARTED` |
+| Recommended Scanner Design | `CC04-RECOMMENDED-SCANNER-DESIGN.md` | `COMPLETED` |
+| Recommended Ranking Process | `CC05-RECOMMENDED-RANKING-PROCESS.md` | `NOT STARTED` |
 
 ‏לפני סיום הפרויקט חייבים להיווצר לפחות:
 
