@@ -2,21 +2,27 @@
 
 ## ‏10A — Decision Inputs ו־Elimination Gates
 
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, חלק 10A אינו בוחר Broker Order. הוא קובע אם פעולה מותרת, אילו constraints חלים עליה, ואילו Behavior Candidates רשאים בכלל להגיע לשלב הבחירה של 10B.
+
+---
+
 ## ‏10A.1 המנוע לא מתחיל מ־Order Type
 
-‏אחרי כל החלקים הקודמים אפשר לנסח את העיקרון המרכזי של ה־Execution Engine:
+‏השאלה הראשונה אינה:
 
 ```text
-Do not ask:
 Which order type should I send?
+```
 
-Ask first:
+‏אלא:
+
+```text
 Is execution allowed at all?
 What constraints must any execution obey?
 Which behaviors remain legal after those constraints?
 ```
 
-‏כלומר סדר החשיבה הוא:
+‏סדר העבודה הקנוני הוא:
 
 ```text
 observe
@@ -25,18 +31,18 @@ observe
 → derive boundaries
 → generate candidates
 → choose behavior
-→ materialize broker order
+→ materialize concrete broker order
 ```
 
-‏ה־Order Type היא כמעט סוף התהליך, לא תחילתו.
+> ‏`ENGINE RULE` — Broker Order Primitive הוא כמעט סוף התהליך, לא תחילתו.
 
 ---
 
-## ‏10A.2 אין אצלנו `Master Score` שמחליט הכול
+## ‏10A.2 אין `Master Score` שמבטל Safety Gates
 
-‏בגלל אופי המערכת שלנו, אני מעדיף שהחלטת Execution תיבנה בעיקר מ־**Elimination Gates** ולא מציון יחיד שמחבר דברים שאינם בני־השוואה.
+‏Safety, truth ו־eligibility אינם נקודות שאפשר לפצות עליהן באמצעות Signal חזק.
 
-‏לדוגמה, לא נרצה:
+‏לא נרצה:
 
 ```text
 strong momentum +10
@@ -46,36 +52,73 @@ final score = +1
 => BUY
 ```
 
-‏זה מסוכן, משום ש־`broker unreconciled` אינו חסרון קטן שאפשר "לפצות" עליו במומנטום חזק.
-
-‏נרצה:
+‏אלא:
 
 ```text
 if broker state is unreconciled:
-    ENTRY = FORBIDDEN
+    NEW_ENTRY = FORBIDDEN
 ```
 
-‏אותו דבר לגבי Data stale, capability לא מאומתת, hard risk limit וכדומה.
-
-‏Scores יכולים להיות שימושיים בתוך Strategy או למחקר, אבל **Safety ו־Execution Eligibility הן קודם כול predicates**.
+‏Scores יכולים לשמש למחקר או ל־ranking בתוך קבוצת survivors, אבל לא לעקוף hard gates.
 
 ---
 
 ## ‏10A.3 תוצאת Decision אינה רק `BUY / NO BUY`
 
-‏המנוע צריך להחזיר Decision עשירה יותר:
+‏נשתמש ב־dispositions מובחנים:
+
+```text
+ALLOW_ENTRY
+NO_TRADE
+DEFER
+EXIT_ONLY
+CANCEL_EXISTING
+NO_ACTION
+```
+
+### ‏`ALLOW_ENTRY`
+
+‏מותר ליצור Entry חדשה בתוך constraints שהוחזרו.
+
+### ‏`NO_TRADE`
+
+‏Opportunity שנבחנה אינה עומדת כעת בדרישות Entry. זו מסקנה מקצועית מלאה, לא error.
+
+### ‏`DEFER`
+
+‏אין מספיק certainty זמנית לקבל החלטה סופית; מחכים ל־event או snapshot חדש ואז מריצים Decision חדשה.
+
+### ‏`EXIT_ONLY`
+
+‏אסור להגדיל Risk, אבל פעולות שמקטינות Exposure או משקמות Protection עדיין מותרות.
+
+### ‏`CANCEL_EXISTING`
+
+‏Entry קיימת כבר אינה תקפה וצריך לבקש את ביטולה; אין implication שחייבים ליצור replacement.
+
+### ‏`NO_ACTION`
+
+‏ה־Decision הסתיימה ואין side effect חדש לבצע במחזור הזה. זה אינו synonym ל־`NO_TRADE`: ייתכן שכבר קיימת Order תקפה שצריך פשוט להשאיר כפי שהיא.
+
+> ‏`ENGINE RULE` — `NO_TRADE`, ‏`DEFER` ו־`NO_ACTION` מתארים מצבים שונים ואסור להשתמש בהם כאותו enum value.
+
+---
+
+## ‏10A.4 `DecisionResult` מחזיר Constraints, לא Broker Payload
 
 ```text
 DecisionResult {
-  permission
+  disposition
   purpose
   elimination_reasons
-  allowed_behavior_families
-  forbidden_behavior_families
+  allowed_behavior_candidates
+  forbidden_behavior_candidates
+
   max_qty
-  hard_price_boundary
-  max_wait_ms
+  economic_price_bound
+  max_application_order_ttl_ms
   max_signal_age_ms
+
   partial_fill_policy
   protection_requirement
   capability_requirements
@@ -83,15 +126,13 @@ DecisionResult {
 }
 ```
 
-‏כלומר אפילו אם Entry מותרת, Decision Engine עדיין קובעת את גבולות הפעולה שבתוכם חלק 10B יבחר את ההתנהגות המדויקת.
+‏`economic_price_bound` הוא המונח הקנוני. ב־Entry אפשר לממש אותו כ־`entry_max_price`; ב־Exit כ־`exit_min_price` או boundary מתאים לכיוון הפעולה.
+
+‏לא נשתמש במקביל ב־`hard_cap`, ‏`hard_price_boundary`, ‏`max_price` ו־`economic cap` כאילו הם מושגים שונים.
 
 ---
 
-## ‏10A.4 שש משפחות State שהחלטה חייבת לראות
-
-‏לא מספיק Signal + Quote.
-
-‏ה־Decision Context המלא מתחלק לפחות ל־:
+## ‏10A.5 שש משפחות State שהחלטה חייבת לראות
 
 ```text
 1. SIGNAL STATE
@@ -102,13 +143,11 @@ DecisionResult {
 6. SYSTEM HEALTH STATE
 ```
 
-‏כל אחת יכולה לבדה לפסול Entry.
+‏כל אחת מהן יכולה לפסול Entry לבדה.
 
 ---
 
-## ‏10A.5 `SignalState` — מה האסטרטגיה חושבת עכשיו
-
-‏ה־Execution Engine אינה צריכה לדעת את כל המתמטיקה של האסטרטגיה, אבל היא כן צריכה לקבל Contract ברור:
+## ‏10A.6 `SignalState`
 
 ```text
 SignalState {
@@ -128,13 +167,13 @@ SignalState {
 }
 ```
 
-‏אפשר להוסיף features נוספים לפי Strategy, אבל Execution לא אמורה לקרוא ישירות עשרות אינדיקטורים ולהמציא Signal מחדש.
+‏Execution אינה אמורה להמציא Signal מחדש מתוך עשרות indicators. היא מקבלת Contract סמנטי מה־Strategy.
 
 ---
 
-## ‏10A.6 `Signal validity` עדיפה על ניחוש מתוך strength
+## ‏10A.7 `Signal validity`, ‏Age ו־Urgency הם dimensions נפרדים
 
-‏נרצה ש־Strategy תאמר באופן מפורש למשל:
+‏`validity` יכולה להיות למשל:
 
 ```text
 VALID
@@ -144,71 +183,51 @@ EXPIRED
 UNKNOWN
 ```
 
-‏כך Execution אינה צריכה להסיק:
-
-```text
-score dropped from 8.3 to 7.9
-=> maybe still valid?
-```
-
-‏במנוע של שניות, semantic state מפורש חשוב יותר מ־floating score שאין לו גבול ברור.
-
----
-
-## ‏10A.7 `Signal Age` הוא Input מדרגה ראשונה
-
-‏נחשב:
+‏ונחשב:
 
 ```text
 signal_age_ms = decision_ts - signal_created_ts
 remaining_signal_life_ms = signal_expires_at - decision_ts
 ```
 
-‏אותה מניה עם אותו מחיר יכולה לקבל Decision שונה כאשר:
-
-```text
-remaining life = 1800 ms
-```
-
-‏לעומת:
-
-```text
-remaining life = 120 ms
-```
-
-‏הסיבה: משפחות execution שמצריכות waiting כבר אינן רלוונטיות אם כמעט לא נשארו חיי Signal.
+‏Urgency אינה Signal Strength. Signal חזקה יכולה להיות לא דחופה; Signal בינונית יכולה להיות דחופה משום שכמעט לא נשארו לה חיים.
 
 ---
 
-## ‏10A.8 `Urgency` אינה Strength
+## ‏10A.8 ארבעה clocks שאסור לערבב
 
-‏Signal יכולה להיות חזקה אבל לא דחופה, או בינונית אבל דחופה בגלל expiry קרוב.
-
-‏לכן נשמור בנפרד:
+‏הקורס משתמש בארבעה מושגים שונים:
 
 ```text
-signal_quality
-urgency
-remaining_life
+signal_ttl
+application_order_ttl
+broker_tif
+working_order_age
 ```
 
-‏Urgency יכולה לנבוע מ־:
+### ‏`signal_ttl`
 
-```text
-fast price acceleration
-short remaining life
-rapid quote migration
-competitive opportunity decay
-position-risk state on exit
-```
+‏כמה זמן ה־Signal עצמו תקף.
 
-‏ולא רק מ־"כמה המניה חזקה".
+### ‏`application_order_ttl`
+
+‏כמה זמן האפליקציה מוכנה להשאיר Order מסוימת או behavior מסוים בחיים לפני re-decision.
+
+### ‏`broker_tif`
+
+‏`DAY`, ‏`IOC`, ‏`GTC`, ‏`GTD` וכדומה — semantics שמועברות ל־Broker/Venue.
+
+### ‏`working_order_age`
+
+‏כמה זמן Order מסוימת עובדת בפועל מאז submit/ack הרלוונטיים.
+
+> ‏`ENGINE RULE` — `application_order_ttl` אינה `broker_tif`, ו־Order יכולה להיות חוקית לפי TIF אך stale לפי ה־Signal או לפי TTL האפליקטיבי.
 
 ---
 
-## ‏10A.9 Features של מומנטום נשארות ב־Strategy — אבל חלקן מועברות כ־Context
+## ‏10A.9 Momentum features נשארות ב־Strategy
 
-‏למנוע שלנו רלוונטי לקבל summary של דברים שכבר נבנו בקורס הרחב, למשל:
+‏Execution יכולה לקבל summary כגון:
 
 ```text
 last_change_10s
@@ -223,29 +242,11 @@ quote_velocity
 reversal_detected
 ```
 
-‏אבל Execution משתמשת בהם בעיקר כדי להבין:
-
-```text
-how quickly opportunity is decaying
-whether waiting is structurally plausible
-whether quote state is moving faster than our execution loop
-```
-
-‏ולא כדי להחליף את Scanner/Strategy.
+‏אבל השימוש הוא להבין validity, decay ו־execution feasibility — לא להחליף את Scanner/Strategy.
 
 ---
 
 ## ‏10A.10 `Expected Edge` חייב להיות Executable Edge
-
-‏אין ערך ל־:
-
-```text
-expected_move = +0.30%
-```
-
-‏בלי לחשב מה באמת נשאר לאחר ביצוע.
-
-‏נרצה לפחות מודל עקרוני:
 
 ```text
 expected_net_edge =
@@ -258,13 +259,11 @@ expected_net_edge =
   - safety_margin
 ```
 
-‏אם התוצאה אינה חיובית מעל threshold שהוגדר למחקר, Entry נפסלת לפני בחירת Order Type.
+‏אם אין net edge מספק תחת assumptions סבירות לביצוע, Entry נפסלת לפני בחירת Behavior Candidate.
 
 ---
 
 ## ‏10A.11 `Expected Entry Cost` אינו רק Spread
-
-‏נפרק אותו ל־:
 
 ```text
 spread_component
@@ -272,46 +271,40 @@ expected_slippage
 expected_depth_cost
 expected_fee_component
 expected_adverse_selection
+missed_opportunity_cost_when_relevant
 ```
 
-‏Passive יכולה להפחית spread component אבל להגדיל missed-opportunity או adverse-selection cost.
-
-‏Aggressive יכולה לעשות את ההפך.
-
-‏ב־10A עדיין איננו בוחרים מי עדיפה; אנחנו רק מחייבים שה־Decision Context יוכל להעריך את גבולות economics.
+‏Passive ואגרסיבי מחלקים את העלויות אחרת. 10A אינה בוחרת מי עדיף; היא רק קובעת את הגבולות שבתוכם בחירה כזו יכולה להיות חוקית.
 
 ---
 
-## ‏10A.12 `Exit Feasibility` נבדקת **לפני** Entry
+## ‏10A.12 `Exit Feasibility` נבדקת לפני Entry
 
-‏זה אחד ה־Gates החשובים ביותר.
-
-‏לפני קנייה אנחנו שואלים:
+‏לפני Entry שואלים:
 
 ```text
 If we get filled now,
-can we plausibly get out within our risk/holding horizon?
+can we plausibly reduce or exit the resulting position
+within the required risk / holding horizon?
 ```
 
 ‏נבדוק לפחות:
 
 ```text
-current bid depth
+current exit-side depth
 spread
 recent trade activity
 short-horizon liquidity stability
 expected exit cost
-position size relative to depth
+position size relative to executable liquidity
 protection capability
 ```
 
-‏אם Entry קלה אבל Exit צפויה להיות קשה, העסקה יכולה להיפסל למרות Signal מצוין.
+‏Entry קלה אינה מספיקה אם Exit צפויה להיות בלתי סבירה.
 
 ---
 
-## ‏10A.13 `MarketState` — Snapshot רחב יותר מ־Bid/Ask
-
-‏Decision Context של השוק יכלול לפחות:
+## ‏10A.13 `MarketState`
 
 ```text
 MarketState {
@@ -327,7 +320,7 @@ MarketState {
   last_size
   last_trade_ts
   quote_ts
-  visible_depth_within_entry_cap
+  visible_depth_within_entry_bound
   visible_depth_within_exit_bound
   short_horizon_volatility
   quote_velocity
@@ -337,23 +330,13 @@ MarketState {
 }
 ```
 
-‏Depth מלאה או features נוספות יתווספו כאשר data feed מאפשרת, אבל Top of Book בלבד אינה מספיקה לכל החלטה.
+‏Top of Book לבדה אינה מספקת לכל החלטה, אך לא נדרוש Data שאינה זמינה בלי להגדיר Missing Data Policy מפורשת.
 
 ---
 
-## ‏10A.14 לכל Input יש `timestamp`, לא רק Value
-
-‏ערך בלי זמן יכול להיות מסוכן יותר מחוסר ערך.
+## ‏10A.14 לכל Fact יש Value וגם Freshness
 
 ‏לדוגמה:
-
-```text
-ask = 20.00
-```
-
-‏אינו מידע מלא.
-
-‏צריך:
 
 ```text
 ask = 20.00
@@ -361,46 +344,26 @@ quote_ts = ...
 quote_age_ms = ...
 ```
 
-‏אותו הדבר לגבי:
-
-```text
-signal
-position
-open orders
-capabilities
-account state
-```
-
-‏Decision Engine חייבת לדעת עד כמה כל Fact טרייה.
+‏אותו עיקרון חל על Signal, Position, Open Orders, Capabilities ו־Account/System state.
 
 ---
 
 ## ‏10A.15 `Data Freshness Gate`
-
-‏אם Quote או Trade feed עברו את גבול ה־freshness שהוגדר למצב, Entry נפסלת.
-
-‏לדוגמה רעיונית:
 
 ```text
 if quote_age_ms > max_quote_age_ms:
     deny new entry
 ```
 
-‏המספר המדויק אינו נקבע כאן; הוא parameter למחקר ולתשתית.
+‏המספרים הם config/versioned research parameters.
 
-‏העיקרון הוא:
-
-> ‏לא מפצים על Market Data ישנה באמצעות Order אגרסיבית יותר.
+> ‏`ENGINE RULE` — Market Data ישנה אינה סיבה לבחור Order אגרסיבית יותר.
 
 ---
 
-## ‏10A.16 Freshness אינה Threshold יחיד לכל השוק
+## ‏10A.16 Freshness תלויה ב־regime
 
-‏מניה מאוד פעילה יכולה להפוך Quote של 400ms למיושנת לחלוטין.
-
-‏במניה איטית יותר אותו גיל יכול להיות פחות חריג.
-
-‏לכן נבחן בעתיד threshold לפי:
+‏Threshold יכול להשתנות לפי:
 
 ```text
 symbol activity regime
@@ -410,78 +373,50 @@ volatility
 session
 ```
 
-‏אבל בגרסה ראשונה אפשר להתחיל עם hard conservative thresholds ולהרחיב רק לפי Evidence.
+‏ב־V1 אפשר להשתמש ב־conservative limits קבועים, אבל יש לסמן אותם `POLICY DEFAULT`, לא Fact אוניברסלי.
 
 ---
 
-## ‏10A.17 `Spread Gate`
-
-‏Spread היא עלות פוטנציאלית, ולכן נשאל:
+## ‏10A.17 `Spread Gate` היא Gate כלכלית
 
 ```text
 spread_bps <= allowed_spread_bps?
 spread_cost <= allowed_fraction_of_edge?
 ```
 
-‏גישה טובה יותר מ־:
+‏Spread רחבה אינה אוטומטית `NO_TRADE`: היא יכולה להפוך midpoint/passive behavior לרלוונטי יותר.
+
+‏השאלה הקנונית היא:
 
 ```text
-spread <= 2 cents
+Can any allowed behavior preserve required net edge
+inside the Economic Price Bound?
 ```
-
-‏משום ששני סנטים במניה של $5 ושני סנטים במניה של $500 אינם אותו דבר.
 
 ---
 
-## ‏10A.18 Spread רחבה אינה תמיד `NO TRADE`
-
-‏Spread רחבה יכולה דווקא ליצור מקום ל־Midpoint/Passive price improvement.
-
-‏לכן Gate לא חייב להיות:
-
-```text
-if spread wide => reject
-```
-
-‏אלא:
-
-```text
-if no allowed execution family can preserve required net edge within this spread:
-    reject
-```
-
-‏זו הבחנה חשובה: Gate בודקת economics, לא אסתטיקה של Book.
-
----
-
-## ‏10A.19 `Depth Feasibility Gate`
-
-‏נחשב למשל:
+## ‏10A.18 `Depth Feasibility Gate`
 
 ```text
 requested_qty
-visible_qty_within_hard_cap
+visible_qty_within_economic_bound
 visible_qty_at_best
-requested_qty / visible_qty_within_cap
+requested_qty / visible_qty_within_economic_bound
 ```
 
-‏אם הכמות גדולה מדי ביחס לנזילות שניתן לראות עד הגבול הכלכלי שלנו, יש שלוש תוצאות אפשריות:
+‏תוצאות אפשריות:
 
 ```text
-reduce size
-allow partial-only policy
-NO TRADE
+PASS
+REDUCE_SIZE
+NO_TRADE
 ```
 
-‏מה שלא נעשה הוא להרחיב price cap אוטומטית רק כדי "להצליח להיכנס".
+‏מה שלא עושים הוא להרחיב `Economic Price Bound` אוטומטית רק כדי להשיג Fill.
 
 ---
 
-## ‏10A.20 `Size` היא Decision, לא רק תוצר של Budget
-
-‏הכמות המקסימלית הכלכלית יכולה להיות קטנה מהכמות שההון מאפשר.
-
-‏נגדיר:
+## ‏10A.19 Size היא Decision, לא רק Budget
 
 ```text
 capital_based_qty
@@ -489,23 +424,18 @@ risk_based_qty
 liquidity_based_qty
 strategy_max_qty
 position_limit_qty
+exit_feasible_qty
 ```
-
-‏ואז:
 
 ```text
-max_allowed_qty = min(all relevant bounds)
+max_allowed_qty = min(all applicable bounds)
 ```
-
-‏זה מונע מצב שבו "יש לי כסף לקנות 500" הופך בטעות ל־"השוק מסוגל לבצע 500 בלי לפגוע ב־Edge".
 
 ---
 
-## ‏10A.21 `Volatility Gate`
+## ‏10A.20 `Volatility / Market-State / Session Gates`
 
-‏Volatility גבוהה אינה תמיד שלילית למומנטום — לפעמים היא עצם ההזדמנות.
-
-‏אבל היא משנה Execution Risk.
+‏Volatility גבוהה אינה בהכרח פסילה, אבל היא משנה execution risk.
 
 ‏נבדוק למשל:
 
@@ -517,15 +447,7 @@ spread_instability
 depth_instability
 ```
 
-‏המטרה אינה לחסום כל volatility, אלא לזהות מצב שבו worst plausible execution cost כבר אינו מתאים ל־Edge.
-
----
-
-## ‏10A.22 `Halt / Auction / Abnormal State Gate`
-
-‏אם instrument נמצאת במצב שאינו תואם את execution model שאימנו, Entry רגילה אינה מותרת.
-
-‏נרצה states מפורשים כגון:
+‏Market state יכול להיות:
 
 ```text
 NORMAL_CONTINUOUS
@@ -536,39 +458,29 @@ RESUMING
 UNKNOWN
 ```
 
-‏ורק states שה־Policy שלנו יודעת לטפל בהם נכנסות למסלול הרגיל.
-
----
-
-## ‏10A.23 `Session Gate`
-
-‏`Regular`, ‏pre-market ו־after-hours אינן אותו Regime.
-
-‏Decision Context חייבת לכלול:
+‏ו־Session יכולה להיות:
 
 ```text
-session
-allowed_session_policy
-outside_rth_capability
-session_specific_spread_limit
-session_specific_liquidity_limit
+REGULAR
+PRE_MARKET
+AFTER_HOURS
+OVERNIGHT
 ```
 
-‏אם Strategy נבנתה ל־RTH, אין להפעיל אותה אוטומטית ב־after-hours רק מפני שה־API מאפשר לשלוח Order.
+‏רק states/sessions שה־Policy וה־Capability Matrix מכירות נכנסות למסלול הרגיל.
 
 ---
 
-## ‏10A.24 `PositionState` — Entry חדשה אינה עומדת לבד
-
-‏נשמור לפחות:
+## ‏10A.21 `PositionState` משתמשת ב־Position Truth הקנונית
 
 ```text
 PositionState {
   symbol
   side
-  confirmed_qty
+  execution_ledger_position
+  broker_reported_position
+  reconciled_position
   avg_price
-  unrealized_pnl
   protection_state
   exit_state
   externally_changed
@@ -576,71 +488,50 @@ PositionState {
 }
 ```
 
-‏Signal חדש באותו Symbol צריך לראות Position קיימת לפני החלטה.
+> ‏`ENGINE RULE` — Decision שמגדילה Risk נשענת על `reconciled_position` כאשר קיים סיכון ל־drift, manual activity או recovery.
 
 ---
 
-## ‏10A.25 `OrderState` חייב להיכנס ל־Decision Context
+## ‏10A.22 `OrderState` ו־Potential Exposure
 
-‏גם אם Position כרגע אפס, ייתכן שיש Order שעדיין יכולה להתבצע.
-
-‏נחשב:
+‏גם אם `reconciled_position = 0`, יכולות להיות Orders שעדיין potentially executable.
 
 ```text
 live_entry_qty
+cancel_requested_entry_qty
 cancel_pending_entry_qty
-modify_pending_qty
+modify_unknown_qty
 submit_unknown_qty
 live_exit_qty
 cancel_pending_exit_qty
 ```
 
-‏ולכן:
+‏Potential Exposure Gate:
 
 ```text
-position = 0
-```
-
-‏אינה הוכחה שאין Exposure פוטנציאלית.
-
----
-
-## ‏10A.26 `Potential Exposure Gate`
-
-‏לפני Entry חדשה:
-
-```text
-confirmed_position
+reconciled_position
 + potentially_executable_entry_qty
 + proposed_new_qty
 <= allowed_position
 ```
 
-‏אם Order ישנה נמצאת ב־`CANCEL_PENDING`, הכמות שלה עדיין נספרת עד terminal evidence.
-
-‏זה מחבר ישירות את חלק 8 למנוע ההחלטה.
+> ‏`ENGINE INVARIANT` — Any order without terminal broker evidence remains potentially executable.
 
 ---
 
-## ‏10A.27 `Position Protection Gate`
-
-‏אם כבר יש Position שאינה מוגנת לפי המדיניות שלנו, עדיפות המערכת משתנה.
-
-‏למשל:
+## ‏10A.23 `Position Protection Gate`
 
 ```text
 POSITION_UNPROTECTED
-=> new unrelated entries forbidden
-=> protection/exit actions allowed
+=> forbid new unrelated risk
+=> allow protection / exit / reconciliation actions
 ```
 
-‏כלומר Decision Engine אינה רק `entry selector`; היא קובעת איזה סוג Risk מותר למערכת לקחת עכשיו.
+‏מצב כזה מוביל בדרך כלל ל־`EXIT_ONLY`, לא ל־Entry נוספת.
 
 ---
 
-## ‏10A.28 `RiskState`
-
-‏נרצה Snapshot מפורש:
+## ‏10A.24 `RiskState`
 
 ```text
 RiskState {
@@ -656,57 +547,37 @@ RiskState {
 }
 ```
 
-‏אם אחד מה־hard limits נשבר, Signal quality אינה רלוונטית.
+‏Hard Risk Limit אינו משהו ש־Signal Quality יכולה לעקוף.
 
 ---
 
-## ‏10A.29 `CapabilityState` — מה מותר לנו באמת לבצע עכשיו
+## ‏10A.25 `CapabilityState` הוא Snapshot של Resolver, לא אוסף Booleans מקריים
 
-‏Decision Engine אינה מניחה שכל המשפחות זמינות.
-
-‏היא מקבלת למשל:
+‏10A מקבלת capability snapshot שמכיל לכל feature רלוונטית לפחות:
 
 ```text
-CapabilityState {
-  marketable_limit_ioc
-  passive_limit
-  post_only
-  relative_primary
-  midprice
-  snap_midpoint
-  pegged_midpoint_direct
-  adaptive_urgent
-  adaptive_normal
-  stop
-  bracket
-  oca
-}
+capability_id
+scope
+runtime_evidence
+enablement_state
+disable_reason
+last_verified_at
 ```
-
-‏ולכל capability יש `enablement_state` מחלק 9.
-
----
-
-## ‏10A.30 Capability שאינה `PRODUCTION_ENABLED` אינה Candidate ב־Production
-
-‏ב־Research mode אפשר לאפשר states אחרים לפי סביבת הניסוי.
 
 ‏ב־Production:
 
 ```text
-if capability.enablement_state != PRODUCTION_ENABLED:
-    eliminate capability
+if enablement_state != PRODUCTION_ENABLED:
+    eliminate candidate requiring that capability
 ```
 
-‏אין exception בגלל Signal חזק במיוחד.
+‏ב־Research אפשר להגדיר Policy אחרת לפי סביבת הניסוי.
+
+> ‏`ENGINE RULE` — Capability Resolver **מסנן** Candidates. הוא אינו בוחר את ה־winner ואינו מחליף את Decision Engine.
 
 ---
 
-## ‏10A.31 `SystemHealthState` — המצב שהכי קל לשכוח
-
-‏אפילו Signal ושוק מושלמים אינם מספיקים אם המערכת עצמה אינה בריאה.
-
-‏נרצה לפחות:
+## ‏10A.26 `SystemHealthState`
 
 ```text
 SystemHealthState {
@@ -718,21 +589,28 @@ SystemHealthState {
   persistence_health
   order_id_allocator_health
   capability_cache_health
-  recovery_mode
+  operating_mode
 }
 ```
 
-‏Execution היא distributed system; health היא Input עסקית.
+‏`operating_mode` משתמש ב־vocabulary הקנוני:
+
+```text
+BOOTING
+RECOVERING
+READY
+ENTRY_DISABLED
+EXIT_ONLY
+DEGRADED
+EMERGENCY
+FROZEN
+```
 
 ---
 
-## ‏10A.32 `Clock Health` היא Safety Feature
+## ‏10A.27 `Clock Health` היא Safety Feature
 
-‏אצלנו גיל Signal, TTL, quote age ו־latency הם inputs מרכזיים.
-
-‏אם Clock שלנו קופצת או timestamps מגיעים מ־domains שלא הומרו נכון, כל ההחלטות האלה יכולות להיות שגויות.
-
-‏לכן נשמור distinction בין:
+‏נבדיל בין:
 
 ```text
 wall_clock_time
@@ -741,13 +619,13 @@ source_exchange_or_feed_time
 local_receive_time
 ```
 
-‏TTL מקומי צריך להתבסס על monotonic time כאשר אפשר.
+‏TTL אפליקטיבי מקומי צריך להתבסס על monotonic elapsed time כאשר אפשר.
 
 ---
 
-## ‏10A.33 Global Freeze Gate
+## ‏10A.28 Global Freeze / Entry Disable Gate
 
-‏יש מצבים שבהם לא בודקים שום Entry נוספת:
+‏דוגמאות:
 
 ```text
 kill_switch = ON
@@ -755,31 +633,33 @@ broker_state = UNKNOWN
 reconciliation_in_progress
 critical_position_mismatch
 market_data_unhealthy
-persistent_store_unavailable for required guarantees
+required persistence unavailable
 order_id_allocator_invalid
 ```
 
-‏התוצאה:
+‏התוצאה אינה תמיד "הכול כבוי". אפשר לקבל:
 
 ```text
-ENTRY_PERMISSION = DENY_GLOBAL
+ENTRY_DISABLED
 ```
 
-‏Exit/Protection actions יכולות להישאר מותרות לפי Risk Policy.
+‏או:
+
+```text
+EXIT_ONLY
+```
+
+‏כך פעולות שמקטינות Risk אינן נחסמות יחד עם Entries חדשות.
 
 ---
 
-## ‏10A.34 סדר ה־Gates חשוב
-
-‏לא כדאי לבזבז חישוב על Order candidates כאשר המערכת ממילא אינה רשאית לבצע.
-
-‏Pipeline ראשוני:
+## ‏10A.29 סדר ה־Gates
 
 ```text
 1. SYSTEM HEALTH GATE
 2. BROKER RECONCILIATION GATE
-3. OWNERSHIP / EXPOSURE GATE
-4. MARKET DATA FRESHNESS GATE
+3. OWNERSHIP / POTENTIAL EXPOSURE GATE
+4. MARKET DATA QUALITY / FRESHNESS GATE
 5. SIGNAL VALIDITY / AGE GATE
 6. SESSION / MARKET-STATE GATE
 7. ECONOMIC EDGE GATE
@@ -790,28 +670,24 @@ ENTRY_PERMISSION = DENY_GLOBAL
 12. CANDIDATE GENERATION
 ```
 
-‏הסדר המדויק יכול להשתנות מעט במימוש, אבל Safety/Truth קודמות ל־Optimization.
+‏הסדר המדויק יכול להשתנות מעט במימוש, אבל Truth/Safety קודמות ל־Optimization.
 
 ---
 
-## ‏10A.35 למה `Broker Reconciliation` מגיעה לפני Signal
-
-‏אם איננו יודעים אם Order קודמת עדיין חיה, אסור לקחת Risk חדש רק מפני שה־Scanner מצא מניה מעולה.
-
-‏לכן:
+## ‏10A.30 למה Reconciliation קודמת ל־Signal
 
 ```text
 unknown execution state
 => no new entry
 ```
 
-‏זה בדיוק המקום שבו correctness מחלק 8 גוברת על latency.
+‏Signal מצוין אינו מתיר Risk חדש כאשר איננו יודעים אם Order קודמת עדיין חיה.
 
 ---
 
-## ‏10A.36 `Signal Gate`
+## ‏10A.31 `Signal Gate`
 
-‏Entry נפסלת כאשר למשל:
+‏Entry יכולה להיפסל כאשר:
 
 ```text
 signal.validity != VALID
@@ -820,94 +696,68 @@ remaining_signal_life_ms <= minimum_execution_window_ms
 reversal_detected = true
 ```
 
-‏ה־thresholds עצמם יהיו config/experiment parameters.
-
-‏העיקרון הוא שהמנוע לא שולח Order רק מפני שה־Signal היה תקף לפני 900ms.
+‏אין להסיק מכך ש־Order קיימת תמיד חייבת להתבטל באותו threshold; לכך יש `ORDER_STILL_VALID` evaluation נפרד.
 
 ---
 
-## ‏10A.37 `Economic Gate`
-
-‏נחשב conservatively:
+## ‏10A.32 `Economic Gate`
 
 ```text
 expected_net_edge_at_allowed_execution
+>=
+minimum_required_net_edge
 ```
 
-‏ונדרוש:
-
-```text
-expected_net_edge >= minimum_required_net_edge
-```
-
-‏אם רק תרחיש fill אופטימי משאיר Edge, העסקה אינה עוברת Gate.
-
-‏ה־Decision Engine צריכה להשתמש ב־worst reasonable execution assumptions שמתאימות ל־Mode candidate, לא במחיר תיאורטי שלא ניתן לבצע.
+‏הבדיקה משתמשת assumptions שמרניות ומתאימות ל־Behavior Candidate האפשרית, לא במחיר תיאורטי שאינו executable.
 
 ---
 
-## ‏10A.38 `Exit Feasibility Gate` יכולה להקטין Size במקום לפסול הכול
+## ‏10A.33 `Exit Feasibility Gate` יכולה להקטין Size
 
 ‏לדוגמה:
 
 ```text
-entry depth supports 500
-exit depth safely supports only 180
+entry-side liquidity supports = 500
+exit-feasible qty = 180
 ```
 
-‏התוצאה יכולה להיות:
+‏תוצאה אפשרית:
 
 ```text
 max_allowed_qty = 180
 ```
 
-‏ולא בהכרח `NO TRADE`.
-
-‏זו אחת הסיבות ש־Sizing צריך להגיע אחרי Liquidity/Exit analysis ולא רק אחרי capital calculation.
+‏ולא בהכרח `NO_TRADE`.
 
 ---
 
-## ‏10A.39 `Capability Gate` לא בוחר Winner
-
-‏הוא רק מסיר את מה שאסור:
+## ‏10A.34 `Capability Gate` לא בוחר Winner
 
 ```text
-allowed before capabilities:
-PASSIVE
-POST_ONLY
+pre-capability candidates:
+PASSIVE_JOIN
+PASSIVE_POST_ONLY
 MIDPRICE
-IOC
-ADAPTIVE
+MARKETABLE_LIMIT_IOC
+ADAPTIVE_LIMIT_URGENT
 
 runtime:
-POST_ONLY = unsupported
-ADAPTIVE = runtime conflict
+POST_ONLY path = not production-enabled
+ADAPTIVE path = runtime conflict
 
 survivors:
-PASSIVE
+PASSIVE_JOIN
 MIDPRICE
-IOC
-```
-
-‏רק בשלב הבא נבחר מבין survivors לפי Market/Signal trade-offs.
-
----
-
-## ‏10A.40 Fallback לעולם חוזר דרך ה־Gates
-
-‏אם Order נדחתה:
-
-```text
-MIDPRICE -> REJECTED
-```
-
-‏לא עוברים ישירות:
-
-```text
 MARKETABLE_LIMIT_IOC
 ```
 
-‏אלא:
+‏רק 10B משווה בין survivors.
+
+---
+
+## ‏10A.35 Fallback ו־Escalation חוזרים דרך Decision חדשה
+
+‏אם Candidate נדחתה או לא עבדה:
 
 ```text
 new market snapshot
@@ -917,13 +767,15 @@ new capability state
 run gates again
 ```
 
-‏Fallback הוא Decision חדשה בזמן חדש.
+‏`Fallback` פירושו שה־path הקודם נכשל או אינו זמין.
+
+‏`Escalation` פירושה ש־urgency/risk השתנו.
+
+‏שניהם דורשים re-decision; אף אחד מהם אינו synonym ל־"שלח משהו יותר אגרסיבי".
 
 ---
 
-## ‏10A.41 `UNKNOWN` אינו False ואינו True
-
-‏נרצה three-state thinking בהרבה inputs:
+## ‏10A.36 `UNKNOWN` הוא Epistemic State אמיתי
 
 ```text
 YES
@@ -939,21 +791,13 @@ exit_protection_active = UNKNOWN
 quote_fresh = UNKNOWN
 ```
 
-‏ב־Entry, `UNKNOWN` קריטי בדרך כלל צריך להתנהג כמו deny.
+‏ב־Entry, `UNKNOWN` קריטי מתנהג בדרך כלל כ־deny/defer.
 
-‏ב־Exit, `UNKNOWN` יכול דווקא לגרום ל־risk-reduction behavior.
+‏ב־Exit, `UNKNOWN` יכול להעלות עדיפות ל־risk reduction או reconciliation.
 
 ---
 
-## ‏10A.42 Missing Data Policy צריכה להיות מפורשת
-
-‏אסור לתת לשפת התכנות להחליט במקרה:
-
-```text
-null spread
-0 depth
-missing signal expiry
-```
+## ‏10A.37 Missing Data Policy
 
 ‏לכל field נגדיר:
 
@@ -963,95 +807,61 @@ OPTIONAL_WITH_FALLBACK
 DIAGNOSTIC_ONLY
 ```
 
-‏אם Required חסר — Gate נכשל עם reason ברור.
+‏אם Required חסר — Gate מחזיר `UNKNOWN`/`FAIL` עם reason code מפורש. שפת התכנות אינה מחליטה עבורנו כיצד לפרש `null`.
 
 ---
 
-## ‏10A.43 `Data Quality` היא יותר מ־Freshness
-
-‏Feed יכולה להיות טרייה אך לא עקבית.
+## ‏10A.38 Data Quality היא יותר מ־Freshness
 
 ‏בדיקות לדוגמה:
 
 ```text
 bid <= ask
 sizes >= 0
-timestamps monotonic enough
+timestamps coherent
 symbol identity matches
 price increment valid
 no impossible jump without regime flag
 ```
 
-‏Market snapshot שנכשלה validation לא נכנסת ל־Decision Engine כאילו היא אמת.
+‏Snapshot טרייה אך לא עקבית אינה Market Truth מספקת.
 
 ---
 
-## ‏10A.44 Hysteresis מונעת `ALLOW/DENY` flapping
+## ‏10A.39 Hysteresis ו־`NEW_ENTRY_ELIGIBLE` מול `ORDER_STILL_VALID`
 
-‏אם spread נעה סביב threshold כל 20ms, מנוע בלי hysteresis יכול:
-
-```text
-allow
-cancel
-authorize again
-cancel again
-```
-
-‏נרצה למשל:
-
-```text
-entry_allow_threshold
-entry_keep_alive_threshold
-```
-
-‏או minimum dwell time כאשר מתאים.
-
-‏המטרה אינה להאט; היא למנוע oscillation סביב noise.
-
----
-
-## ‏10A.45 `Keep Alive Gate` שונה מ־`New Entry Gate`
-
-‏Order שכבר חיה לא חייבת להשתמש בדיוק באותם thresholds שהיו בזמן creation.
-
-‏אפשר להפריד:
+‏Threshold ליצירת Order חדשה אינו חייב להיות זהה ל־threshold שמחליט אם להשאיר Order קיימת.
 
 ```text
 NEW_ENTRY_ELIGIBLE
 ORDER_STILL_VALID
 ```
 
-‏לדוגמה, spread עלתה מעט מעבר לרף Entry — אולי אין הצדקה לשלוח Order חדשה, אבל עדיין יש הצדקה להשאיר Passive Order קיימת לעוד 80ms.
+‏כך אפשר למנוע oscillation סביב noise, למשל מצב שבו spread עוברת את רף Entry לשבריר שנייה אבל Passive Order קיימת עדיין תקפה לעוד זמן קצר.
 
-‏מצד שני, Signal invalidation היא בדרך כלל Hard cancel condition.
+‏Signal invalidation, לעומת זאת, יכולה להיות Hard Cancel condition לפי Policy.
 
 ---
 
-## ‏10A.46 `Decision Revision`
+## ‏10A.40 Decision Revision ו־Deterministic Replay
 
-‏כל הרצה של Decision Engine על אותו Intent תקבל:
+‏כל evaluation מקבלת:
 
 ```text
+decision_id
 decision_revision
-```
-
-‏ונשמור:
-
-```text
+policy_version
+config_snapshot_id
 input_snapshot_ids
-gate_results
-output_constraints
 ```
 
-‏כך אפשר לדעת אחרי Fill:
+‏Config היא immutable בתוך Decision אחת.
 
-> ‏איזו Decision בדיוק אישרה את ה־Order הזאת?
+‏אם נשמור את snapshots ואת policy version, אותה Decision צריכה להיות replayable באופן דטרמיניסטי.
 
 ---
 
-## ‏10A.47 `Decision Trace` — לא רק Log טקסטואלי
-
-‏נרצה structure כגון:
+## ‏10A.41 `DecisionTrace`
 
 ```text
 DecisionTrace {
@@ -1059,19 +869,20 @@ DecisionTrace {
   signal_id
   revision
   evaluated_at
+  policy_version
   gates[]
   eliminated_candidates[]
   surviving_candidates[]
   constraints
-  final_permission
+  disposition
 }
 ```
 
-‏זה מאפשר Debug, Backtest replay ו־explainability בלי לקרוא אלפי שורות logs.
+‏זהו artifact מחקרי ותפעולי, לא רק log טקסטואלי.
 
 ---
 
-## ‏10A.48 `GateResult` מוצע
+## ‏10A.42 `GateResult`
 
 ```text
 GateResult {
@@ -1085,83 +896,76 @@ GateResult {
 }
 ```
 
-‏`REDUCE` שימושית ל־Gates שלא חייבות לפסול הכול, למשל Liquidity Gate שמקטינה Size.
+‏`REDUCE` מאפשרת Gate להקטין Size בלי לפסול Opportunity כולה.
 
 ---
 
-## ‏10A.49 Reason Codes צריכים להיות יציבים
-
-‏במקום:
-
-```text
-"trade not good enough"
-```
-
-‏נשמור:
+## ‏10A.43 Reason Codes יציבים
 
 ```text
 SIGNAL_EXPIRED
+SIGNAL_INVALIDATED
 QUOTE_STALE
+MARKET_DATA_INVALID
 SPREAD_TOO_COSTLY
 INSUFFICIENT_DEPTH
 EXIT_NOT_FEASIBLE
 POSITION_LIMIT
+POTENTIAL_EXPOSURE_LIMIT
 BROKER_UNRECONCILED
-CAPABILITY_UNAVAILABLE
+CAPABILITY_NOT_ENABLED
+CAPABILITY_RUNTIME_CONFLICT
 SYSTEM_DEGRADED
+POSITION_UNPROTECTED
 ```
 
-‏כך אפשר למדוד כמה Opportunities נפסלו בגלל כל סיבה.
+‏Reason codes מאפשרים מדידה, replay ו־RCA במקום מחרוזות חופשיות.
 
 ---
 
-## ‏10A.50 דוגמה — Signal חזק שעובר את ה־Gates
+## ‏10A.44 דוגמה — Signal שעובר את ה־Gates
 
 ```text
 signal_valid = true
 remaining_signal_life = 1400ms
 quote_age = 18ms
-spread = acceptable
+spread = economically acceptable
 requested_qty = 100
-visible_qty_within_cap = 500
+visible_qty_within_bound = 500
 exit_feasible_qty = 350
 broker_reconciled = true
-position = 0
-potential_live_entry_qty = 0
-capabilities = healthy
+reconciled_position = 0
+potentially_executable_entry_qty = 0
+required capabilities = production-enabled
 ```
 
 ‏תוצאה:
 
 ```text
-permission = ALLOW_ENTRY
+disposition = ALLOW_ENTRY
 max_qty = 100
 candidate_generation = allowed
 ```
 
-‏עדיין **לא** החלטנו אם לבחור Passive, MidPrice או IOC. זה חלק 10B.
+‏עדיין לא נבחרו Passive, MidPrice או IOC.
 
 ---
 
-## ‏10A.51 דוגמה — Signal מצוין אבל Spread הורסת את ה־Edge
+## ‏10A.45 דוגמה — Spread הורסת את ה־Edge
 
 ```text
 expected_gross_edge = 18 bps
 conservative_round_trip_execution_cost = 24 bps
 ```
 
-‏גם אם Momentum יפה:
-
 ```text
 ECONOMIC_EDGE_GATE = FAIL
-permission = NO_TRADE
+disposition = NO_TRADE
 ```
-
-‏Order Type מתקדמת אינה פטור מאריתמטיקה.
 
 ---
 
-## ‏10A.52 דוגמה — Quote ישנה
+## ‏10A.46 דוגמה — Quote ישנה
 
 ```text
 signal_valid = true
@@ -1169,41 +973,36 @@ quote_age = 900ms
 activity = very high
 ```
 
-‏תוצאה:
-
 ```text
 DATA_FRESHNESS_GATE = FAIL
+disposition = DEFER or NO_TRADE according to policy
 ```
 
-‏לא שולחים Market כדי "לפצות על זה שהמידע ישן".
-
-‏קודם חוזרים למצב שבו יש לנו Market Truth מספקת.
+‏לא מגיבים ל־stale data באמצעות aggression גבוהה יותר.
 
 ---
 
-## ‏10A.53 דוגמה — Order קודמת ב־Cancel Pending
+## ‏10A.47 דוגמה — Entry ישנה ב־Cancel
 
 ```text
-confirmed_position = 0
+reconciled_position = 0
 old_entry_remaining = 100
-old_entry_state = CANCEL_PENDING
+old_entry_state = CANCEL_REQUESTED
 new_signal_target = 100
 position_limit = 100
 ```
 
-‏מבחינת risk:
+‏ה־Order הישנה עדיין potentially executable.
 
 ```text
-potential_exposure = 100 old + 100 new
+potential_exposure = 100 old + 100 proposed
 ```
 
-‏לכן Entry חדשה מלאה נכשלת ב־Potential Exposure Gate.
-
-‏זה נכון גם אם UI כרגע מציגה Position אפס.
+‏לכן Entry חדשה מלאה אינה עוברת Potential Exposure Gate.
 
 ---
 
-## ‏10A.54 דוגמה — Partial Fill משנה את כל ההחלטה
+## ‏10A.48 דוגמה — Partial Fill יוצרת Decision חדשה
 
 ```text
 target = 100
@@ -1211,132 +1010,70 @@ filled = 37
 remainder canceled
 ```
 
-‏הרצה הבאה אינה עוד "Entry של 100".
-
-‏ה־Context הוא:
+‏ה־Context הבא הוא:
 
 ```text
-position = 37
+reconciled_position = 37
 remaining_intent = 63
-protection_state = ?
+protection_state = current evidence
 remaining_signal_life = new value
 current_market = new snapshot
 ```
 
-‏ולכן Gates רצות מחדש לפני retry.
+> ‏`ENGINE RULE` — Partial Fill היא Decision state חדשה, לא המשך אוטומטי של ההחלטה הישנה.
 
 ---
 
-## ‏10A.55 דוגמה — Capability חסרה אבל העסקה עדיין יכולה לשרוד
-
-‏נניח Strategy רצתה Candidate של Post Only, אך:
+## ‏10A.49 דוגמה — Capability חסרה
 
 ```text
-post_only = DISABLED_RUNTIME_CONFLICT
-plain_passive_limit = PRODUCTION_ENABLED
-midprice = PRODUCTION_ENABLED
+PASSIVE_POST_ONLY = RUNTIME_CONFLICT
+PASSIVE_JOIN = PRODUCTION_ENABLED
+MIDPRICE = PRODUCTION_ENABLED
 ```
 
-‏Capability Gate מסירה רק Post Only.
+‏Capability Gate מסירה את `PASSIVE_POST_ONLY` בלבד.
 
-‏היא **לא** בוחרת Plain Limit אוטומטית.
-
-‏חלק 10B ישווה את survivors מחדש לפי intent וה־Market State.
+‏היא אינה בוחרת `PASSIVE_JOIN` או `MIDPRICE` אוטומטית.
 
 ---
 
-## ‏10A.56 `NO_TRADE` היא Output מקצועית, לא כישלון
+## ‏10A.50 `DEFER` אינו Queue של Submit ישן
 
-‏אם לאחר ה־Gates אין behavior שמסוגל לשמור על:
-
-```text
-required edge
-risk limits
-price boundary
-signal lifetime
-exit feasibility
-```
-
-‏ה־Decision הטובה ביותר היא:
+‏אם מחכים ל־fresh quote, reconciliation או capability refresh:
 
 ```text
-NO_TRADE
+disposition = DEFER
 ```
 
-‏במערכת שסורקת אלפי מניות, היכולת לוותר מהר היא Feature מרכזית.
+‏המשמעות היא **להחליט מחדש** כאשר מגיעה evidence חדשה.
+
+‏אין להשאיר stale submit מתוזמן מראש רק משום שב־Decision הקודמת רצינו לבצע.
 
 ---
 
-## ‏10A.57 `DEFER` שונה מ־`NO_TRADE`
+## ‏10A.51 `NO_ACTION` מונע Side Effects מיותרים
 
-‏יש מצב שבו Opportunity עדיין לא פסולה, אבל חסרה עובדה זמנית:
-
-```text
-waiting for fresh quote
-waiting for reconciliation
-waiting for capability refresh
-waiting for transient order state to settle
-```
-
-‏אפשר להחזיר:
+‏דוגמה:
 
 ```text
-DEFER
+existing passive entry is still valid
+application_order_ttl not expired
+no material market change
+no new risk action required
 ```
 
-‏עם `reevaluate_at` או trigger לאירוע חדש.
+‏התוצאה יכולה להיות:
 
-‏אבל `DEFER` אינה הרשאה להשאיר stale submit queued באופן עיוור.
+```text
+disposition = NO_ACTION
+```
+
+‏כלומר להשאיר את ה־Order הקיימת כפי שהיא ולחכות ל־event הבא.
 
 ---
 
-## ‏10A.58 `EXIT_ONLY` הוא Mode מערכת חשוב
-
-‏כאשר:
-
-```text
-new risk forbidden
-but existing position exists
-```
-
-‏נרצה:
-
-```text
-permission = EXIT_ONLY
-```
-
-‏לדוגמה בזמן:
-
-```text
-market data degraded
-capability issue in entry path
-global loss limit reached
-manual freeze
-```
-
-‏המערכת יכולה לחסום Entries חדשות ועדיין לאפשר פעולות שמקטינות Exposure.
-
----
-
-## ‏10A.59 `CANCEL_EXISTING` יכולה להיות תוצאה בפני עצמה
-
-‏Decision Engine יכולה לקבוע:
-
-```text
-signal invalidated
-existing entry order still working
-=> cancel existing entry
-```
-
-‏בלי להציע Order חלופית.
-
-‏זה חשוב כדי לא להפוך כל Cancel ל־prelude ל־replacement.
-
----
-
-## ‏10A.60 Thresholds הם Config, לא קוד קבוע
-
-‏דברים כמו:
+## ‏10A.52 Thresholds הם Versioned Config
 
 ```text
 max_quote_age_ms
@@ -1344,57 +1081,14 @@ minimum_required_net_edge_bps
 max_spread_fraction_of_edge
 minimum_exit_depth_ratio
 minimum_remaining_signal_life_ms
+max_application_order_ttl_ms
 ```
 
-‏צריכים להיות versioned configuration עם experiment context.
-
-‏כך Backtest, Paper ו־Live יודעים איזה policy בדיוק הופעלה.
+‏כל Decision שומרת `policy_version` ו־`config_snapshot_id`.
 
 ---
 
-## ‏10A.61 Config צריכה להיות Immutable בתוך Decision אחת
-
-‏אם config משתנה באמצע evaluation, אפשר לקבל decision שאינה ניתנת לשחזור.
-
-‏לכן כל Decision מקבלת:
-
-```text
-policy_version
-config_snapshot_id
-```
-
-‏ורק Decision הבאה תשתמש בגרסה החדשה.
-
----
-
-## ‏10A.62 Deterministic Replay
-
-‏אם נשמור:
-
-```text
-signal snapshot
-market snapshot
-position/order snapshot
-capability snapshot
-risk snapshot
-system-health snapshot
-policy version
-```
-
-‏נוכל להריץ מחדש את Decision ולצפות לאותה תוצאה.
-
-‏זה קריטי כדי להבין:
-
-```text
-why did we trade?
-why did we not trade?
-why did we reduce size?
-why did we cancel?
-```
-
----
-
-## ‏10A.63 `DecisionContext` מוצע
+## ‏10A.53 `DecisionContext`
 
 ```text
 DecisionContext {
@@ -1415,45 +1109,39 @@ DecisionContext {
 }
 ```
 
-‏המבנה הזה הוא input טהור ככל האפשר; side effects מתבצעים רק לאחר שה־Decision הסתיימה וה־Command Dispatcher קיבל Instruction חוקית.
+‏זהו input טהור ככל האפשר. Side effects מתחילים רק לאחר Decision ולפני Dispatch מתבצעת stale-decision validation נוספת בחלק 10D.
 
 ---
 
-## ‏10A.64 Output של 10A לחלקים הבאים
-
-‏אם כל ה־Gates עברו, 10A לא מחזירה Broker Order.
-
-‏היא מחזירה משהו בסגנון:
+## ‏10A.54 Output ל־10B: ‏`EntryEnvelope`
 
 ```text
 EntryEnvelope {
-  permission = ALLOW_ENTRY
+  disposition = ALLOW_ENTRY
   side = BUY
   max_qty = 120
-  hard_max_price = 50.04
-  max_wait_ms = 700
+  entry_economic_price_bound = 50.04
+  max_application_order_ttl_ms = 700
   remaining_signal_life_ms = 1100
   partial_fill_policy = ACCEPT_ABOVE_MINIMUM
   liquidity_budget = ...
   required_protection = ...
-  allowed_capabilities = [...]
+  allowed_behavior_candidates = [...]
 }
 ```
 
-‏זה ה־contract שחלק 10B יקבל כדי לבחור Entry behavior.
+‏10A אינה מחזירה Broker Order. ‏10B מקבלת את ה־Envelope ובוחרת Behavior Candidate חוקית.
 
 ---
 
-## ‏10A.65 Telemetry של Decision Gates
-
-‏נשמור לפחות:
+## ‏10A.55 Telemetry
 
 ```text
 decision_id
 signal_id
 decision_revision
 policy_version
-permission
+disposition
 first_failed_gate
 all_failed_gates
 all_reducing_gates
@@ -1465,26 +1153,25 @@ expected_gross_edge_bps
 expected_net_edge_bps
 requested_qty
 max_allowed_qty
-visible_qty_within_cap
+visible_qty_within_economic_bound
 exit_feasible_qty
-position_qty
+reconciled_position
 potential_entry_exposure
-system_health_state
+operating_mode
 broker_reconciled
 capability_snapshot_id
 ```
 
-‏כך אפשר לנתח לא רק עסקאות שבוצעו, אלא גם Opportunities שנפסלו.
-
 ---
 
-## ‏10A.66 Metrics של ה־Gating Layer
+## ‏10A.56 Metrics של ה־Gating Layer
 
 ```text
 opportunities_seen
 allow_rate
-deny_rate
+no_trade_rate
 defer_rate
+no_action_rate
 exit_only_rate
 cancel_existing_rate
 rejection_rate_by_gate
@@ -1497,104 +1184,102 @@ broker_state_rejection_rate
 capability_rejection_rate
 ```
 
-‏מדדים אלה יראו אם Gate מסוימת חוסמת כמעט הכול או כמעט כלום — שני מצבים שדורשים בדיקה.
-
 ---
 
-## ‏10A.67 בדיקות יחידה בסיסיות ל־Gates
+## ‏10A.57 בדיקות בסיסיות
 
 ```text
 1. valid signal + healthy system => passes early gates
-2. expired signal => denied
-3. stale quote => denied
-4. unreconciled broker => denied
-5. cancel-pending old entry consumes exposure budget
-6. expected net edge below threshold => denied
-7. insufficient depth => size reduced or denied by policy
-8. exit infeasible => size reduced or denied
+2. expired signal => NO_TRADE
+3. stale quote => deny/defer by policy
+4. unreconciled broker => no new entry
+5. cancel-requested old entry consumes exposure budget
+6. expected net edge below threshold => NO_TRADE
+7. insufficient depth => REDUCE or NO_TRADE
+8. exit infeasible => REDUCE or NO_TRADE
 9. missing required field => UNKNOWN/deny
 10. capability unavailable => candidate removed, not automatic aggression
-11. kill switch => deny new risk
-12. existing unprotected position => EXIT_ONLY
-13. same input snapshot replay => same decision
+11. kill switch => forbid new risk
+12. unprotected position => EXIT_ONLY
+13. same input snapshot + policy version => same Decision
+14. existing valid order + no material change => NO_ACTION
+15. partial fill => fresh DecisionContext
 ```
 
 ---
 
-## ‏10A.68 בדיקות Property / Invariant שכדאי להוסיף
-
-‏מעבר לתרחישים קבועים:
+## ‏10A.58 Property / Invariant Tests
 
 ```text
 increasing potential exposure must never increase allowed new qty
 making quote older must never make stale-data gate pass
-removing a capability must never create a more aggressive fallback automatically
+removing a capability must never create automatic aggressive fallback
 making expected costs larger must not improve economic eligibility
 setting kill switch must always forbid new entry
+partial fill must never preserve the old quantity decision blindly
+non-terminal cancel state must remain in potential exposure
 ```
-
-‏בדיקות כאלה מגנות על הלוגיקה גם כאשר נוסיף features חדשות.
 
 ---
 
-## ‏10A.69 Practitioner Secrets — מה שקל לפספס במנוע החלטה
+## ‏10A.59 Practitioner Principles
 
-### ‏1. Decision טובה מתחילה ב־Elimination
+### ‏1. Eliminate לפני Rank
 
-‏לא כל constraint צריך להיכנס לציון. Safety ו־truth gates הן Boolean/tri-state rules.
+‏Safety ו־truth gates אינן score components.
 
-### ‏2. `NO_TRADE` היא פעולה
+### ‏2. `NO_TRADE` היא Decision מקצועית
 
-‏בסורק גדול, רוב המצבים צריכים כנראה להסתיים בלי Order.
+‏בסורק רחב, ויתור מהיר הוא Feature.
 
-### ‏3. `UNKNOWN` היא State אמיתית
+### ‏3. `NO_ACTION` אינה `NO_TRADE`
 
-‏מערכת שאינה יודעת אם Order חיה אינה רשאית להתנהג כאילו היא מתה.
+‏לפעמים המצב הנכון הוא להשאיר Order תקפה בלי side effect חדש.
 
-### ‏4. Exit מתחילה לפני Entry
+### ‏4. `DEFER` דורשת re-decision
 
-‏Entry שאי אפשר לצאת ממנה בצורה סבירה אינה Opportunity מלאה.
+‏היא אינה הרשאה לשמור Intent ישן בתור ולשלוח אותו מאוחר יותר בעיוורון.
 
-### ‏5. Size היא תוצר של Liquidity ו־Risk, לא רק Capital
+### ‏5. `UNKNOWN` היא State אמיתית
 
-‏יותר Buying Power אינו אומר שמותר להשתמש בו.
+‏לא מתרגמים חוסר ידיעה ל־False.
 
-### ‏6. Stale Data אינה סיבה להיות אגרסיבי יותר
+### ‏6. Exit מתחילה לפני Entry
 
-‏היא סיבה להקטין confidence או לעצור.
+‏Exit feasibility היא חלק מ־entry eligibility.
 
-### ‏7. Capability Failure אינה Signal Failure
+### ‏7. Size נגזרת גם מ־Liquidity ו־Exit
 
-‏היא מסירה implementation candidate; היא לא הופכת אוטומטית את ה־Trade ללא חוקי או ל־Market Order.
+‏Buying Power לבדה אינה sizing policy.
 
-### ‏8. Fallback היא Decision חדשה
+### ‏8. Stale Data אינה סיבה לאגרסיביות
 
-‏הזמן עבר, ה־Signal הזדקן וה־Book השתנה.
+‏היא סיבה לעצור, להקטין confidence או להיכנס ל־DEFER/NO_TRADE לפי Policy.
 
-### ‏9. Gate שיכולה להקטין Size לא חייבת לפסול הכול
+### ‏9. Capability Failure אינה Signal Failure
 
-‏`REDUCE` היא Output חשובה בדיוק כמו PASS/FAIL.
+‏היא מסירה implementation path; היא אינה בוחרת replacement.
 
-### ‏10. Decision Trace היא נכס מחקרי
+### ‏10. Fallback ו־Escalation הן Decisions חדשות
 
-‏בלעדיה נדע מה קרה, אבל לא למה המנוע חשב שזה חוקי.
+‏הזמן, ה־Signal, ה־Book וה־Exposure כבר השתנו.
 
-### ‏11. Thresholds חייבים Versioning
+### ‏11. Partial Fill היא State חדשה
 
-‏אחרת אי אפשר להשוות Backtest/Live או לשחזר החלטה.
+‏Quantity, Protection, economics ו־remaining intent חייבים להיבחן מחדש.
 
-### ‏12. Health היא חלק מה־Execution Alpha Preservation
+### ‏12. Decision Trace היא חלק מהמערכת
 
-‏מערכת לא בריאה יכולה למחוק Edge טוב יותר מכל Order Type גרועה.
+‏בלעדיה אי אפשר להסביר או לשחזר למה פעולה אושרה.
 
 ---
 
 # ‏Checkpoint — סוף חלק 10A
 
-‏בחלק הזה בנינו את מעטפת ההחלטה לפני בחירת Entry Order: שש משפחות State, מודל `DecisionContext`, חישוב signal age ו־remaining life, executable economics, Data Freshness, Spread/Depth/Volatility/Session, Exit Feasibility, Position/Order exposure, Risk, Capability ו־System Health. הגדרנו Pipeline של Elimination Gates, מצבי `ALLOW_ENTRY`, ‏`NO_TRADE`, ‏`DEFER`, ‏`EXIT_ONLY` ו־`CANCEL_EXISTING`, יחד עם reason codes, decision revisions, deterministic replay ו־telemetry.
+‏בחלק הזה בנינו את מעטפת ההחלטה לפני בחירת Entry Behavior: שש משפחות State, ‏`DecisionContext`, ארבעת ה־clocks, ‏`Economic Price Bound`, executable economics, Data Quality/Freshness, Spread/Depth/Volatility/Session, Exit Feasibility, reconciled Position, Potential Exposure, Risk, Capability ו־System Health.
 
-‏העיקרון המרכזי הוא: **המנוע לא מחפש את הפקודה עם הציון הגבוה ביותר. הוא מסלק קודם כל מצבים ו־behaviors שאינם חוקיים, בטוחים או כלכליים; ורק מתוך ה־survivors בוחר Execution Behavior.**
+‏הגדרנו Pipeline של Elimination Gates ואת ה־dispositions `ALLOW_ENTRY`, ‏`NO_TRADE`, ‏`DEFER`, ‏`EXIT_ONLY`, ‏`CANCEL_EXISTING` ו־`NO_ACTION`; קיבענו ש־Capability Resolver מסנן בלבד; וש־Partial Fill, Fallback ו־Escalation תמיד מחזירים ל־fresh Decision.
 
-‏השלב הבא יהיה **חלק 10B — Entry Decision**: נבנה את הבחירה בפועל בין `PASSIVE_LIMIT`, ‏`POST_ONLY`, ‏`RELATIVE`, ‏`MIDPRICE`, ‏`SNAP`, ‏`PEGGED_MIDPOINT`, ‏`ADAPTIVE` ו־`MARKETABLE_LIMIT_IOC`, כולל TTL, escalation, partial fills ומתי לא לרדוף אחרי המחיר.
+‏העיקרון המרכזי נשאר: **המנוע מסלק קודם מצבים ו־behaviors שאינם חוקיים, בטוחים או כלכליים; רק מתוך survivors מותר לבחור Execution Behavior.**
 
----
+‏החלק הבא הוא **10B — Entry Decision**: בחירה בפועל בין Behavior Candidates חוקיות, תוך שמירה על ה־Envelope וה־Economic Price Bound שנקבעו כאן.
