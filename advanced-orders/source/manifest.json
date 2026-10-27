@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R6_IN_PROGRESS",
-  "repairCheckpoint": "R6B_BRACKET_OCA_PROTECTION_DEEP_SAFETY_COMPLETE",
+  "repairCheckpoint": "R6C_RECOVERY_OWNERSHIP_SHUTDOWN_READY_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -152,6 +152,12 @@
       "id": "08C",
       "title": "Bracket OCA and Protection Deep Safety",
       "source": "advanced-orders/source/08C-BRACKET-OCA-AND-PROTECTION-DEEP-SAFETY.md",
+      "status": "ready"
+    },
+    {
+      "id": "08D",
+      "title": "Recovery Ownership Shutdown and Earned READY",
+      "source": "advanced-orders/source/08D-RECOVERY-OWNERSHIP-SHUTDOWN-AND-READY.md",
       "status": "ready"
     },
     {
