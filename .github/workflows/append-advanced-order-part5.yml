@@ -1,0 +1,908 @@
+name: Append Advanced Order Mastery Part 5
+
+on:
+  push:
+    paths:
+      - '.github/workflows/append-advanced-order-part5.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  append:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Append part 5
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('advanced-orders/ADVANCED-ORDER-MASTERY.md')
+          text = path.read_text(encoding='utf-8')
+          old_status = '- ‏שלב נוכחי: `4 — Liquidity control: Post Only, Hidden, Reserve/Iceberg and queue behavior`.'
+          new_status = '- ‏שלב נוכחי: `5 — Pegged, Relative, Midpoint and Snap families`.'
+          if old_status in text:
+              text = text.replace(old_status, new_status, 1)
+
+          marker = '# ‏חלק 5 — Pegged, Relative, Midpoint ו־Snap: פקודות שמזיזות את עצמן'
+          part = r'''
+
+---
+
+# ‏חלק 5 — Pegged, Relative, Midpoint ו־Snap: פקודות שמזיזות את עצמן
+
+## ‏5.1 למה המשפחה הזאת חשובה למנוע אוטומטי
+
+‏ב־Limit רגילה המנוע בוחר מחיר. אם השוק משתנה, כדי להישאר רלוונטי צריך בדרך כלל לבצע `cancel/replace` או לשלוח Order חדשה.
+
+‏בפקודת `Pegged` אנחנו מגדירים **כלל תמחור דינמי**:
+
+```text
+reference price
++ / - offset
+bounded by price cap
+```
+
+‏וה־Broker/Venue מעדכן את המחיר לפי הכלל כאשר ה־reference זז.
+
+‏עבור רובוט של שניות זה יכול להיות משמעותי מאוד: פחות `cancel/replace`, פחות חלונות שבהם אין Order פעילה, ופחות לוגיקה מקומית שרודפת אחרי `Bid/Ask`.
+
+‏אבל אין כאן ארוחת חינם. ברגע שה־repricing מנוהל מחוץ למנוע שלנו, אנחנו חייבים לדעת בדיוק:
+
+```text
+what is the reference?
+who reprices?
+how often?
+which directions are followed?
+what caps apply?
+can it become marketable?
+what happens to queue priority?
+what route is required?
+```
+
+---
+
+## ‏5.2 `Peg` הוא נוסחה, לא מחיר
+
+‏נניח:
+
+```text
+Bid = 50.00
+Ask = 50.04
+```
+
+‏Limit רגילה:
+
+```text
+BUY LMT 50.01
+```
+
+‏המחיר נשאר 50.01 עד שאנחנו משנים אותו.
+
+‏Pegged Order יכולה לומר רעיונית:
+
+```text
+BUY at NBB + 0.01
+cap = 50.03
+```
+
+‏אם ה־NBB עולה ל־50.01, המחיר האפקטיבי עשוי לעלות ל־50.02; אם הוא עולה ל־50.03, ה־cap מונע מהפקודה להפוך ל־50.04 ומעלה.
+
+‏לכן שלושת המרכיבים שחייבים לשמור במנוע הם:
+
+```text
+peg_reference
+offset
+hard_cap
+```
+
+---
+
+## ‏5.3 `Hard Cap` הוא חגורת הבטיחות של Pegged Order
+
+‏פקודה שמזיזה את עצמה בלי גבול כלכלי יכולה לרדוף אחרי שוק שכבר איבד את ה־Edge.
+
+‏לכן מבחינתנו Peg בלי cap מפורש היא בדרך כלל design חשוד.
+
+‏ל־BUY:
+
+```text
+active_peg_price <= max_economic_buy_price
+```
+
+‏ל־SELL:
+
+```text
+active_peg_price >= min_economic_sell_price
+```
+
+‏ה־cap צריך לנבוע מאותה כלכלה שלמדנו בחלק 2:
+
+```text
+expected edge
+- expected exit cost
+- commissions/fees
+- safety margin
+```
+
+‏לא מ־offset אקראי.
+
+---
+
+## ‏5.4 `Relative / Pegged-to-Primary` — להיצמד לצד שלנו ולהיות מעט אגרסיביים יותר
+
+‏`Relative`, שנקראת גם `Pegged-to-Primary`, נועדה להוסיף נזילות אך לנסות להיות אגרסיבית יותר מה־best quote הנוכחי.
+
+‏בקנייה, ה־reference הוא בדרך כלל ה־best bid; במכירה — ה־best ask.
+
+‏רעיון בסיסי:
+
+```text
+BUY  = NBB + offset
+SELL = NBO - offset
+```
+
+‏ה־offset מאפשר לשפר את המחיר ביחס לתור הקיים בלי לקבוע ידנית כל repricing.
+
+‏זה רלוונטי מאוד למנוע שלנו כי הוא דומה לטקטיקה של "להיצמד למוביל", אבל מעביר את המעקב השוטף ל־order semantics במקום לולאת cancel/replace מקומית.
+
+---
+
+## ‏5.5 פרט קריטי ב־IBKR: `SMART Relative` אינה סימטרית לשני הכיוונים
+
+> ‏אימות אחרון: `2026-10-27`.
+
+‏IBKR מתעדת התנהגות שונה בין `SMART` ל־Directed:
+
+```text
+Directed Relative:
+can float both ways with the market
+
+SMART BUY Relative:
+follows NBB upward
+but does not automatically move down when NBB falls
+
+SMART SELL Relative:
+follows NBO downward
+but does not automatically move up when NBO rises
+```
+
+‏זו נקודה עמוקה מאוד.
+
+‏אם מנוע חושב ש־`Relative` תמיד "צמודה לשוק", הוא עלול להשאיר BUY במחיר אגרסיבי מדי אחרי שה־Bid נחלש, מפני שה־SMART behavior לא בהכרח יוריד את המחיר בחזרה.
+
+‏לכן אצלנו צריך לשמור:
+
+```text
+route
+expected_peg_directionality
+```
+
+‏ולהתייחס ל־SMART Relative כ־semantics נפרדות מ־Directed Relative.
+
+---
+
+## ‏5.6 למה `Relative` יכולה להיות טובה יותר מ־Client-Side Chase
+
+‏Client-side chase טיפוסי:
+
+```text
+read bid
+place limit
+bid changes
+cancel
+wait for reconciliation
+submit replacement
+repeat
+```
+
+‏הבעיות:
+
+- ‏latency בין market-data event ל־new order.
+- ‏cancel/fill race.
+- ‏אובדן queue priority.
+- ‏message churn.
+- ‏הבדל בין quote שראינו לבין quote שבו replacement הגיעה.
+
+‏`Relative` יכולה לצמצם חלק מהמורכבות הזאת, כי ה־repricing rule נשמר ב־Broker/Venue path.
+
+‏אבל זה יתרון רק אם semantics של אותו Route מתאימות בדיוק למה שאנחנו רוצים.
+
+---
+
+## ‏5.7 הסיכון של `Relative`: Automation של החלטה שכבר לא נכונה
+
+‏ברגע שהשוק זז, הפקודה יכולה להמשיך להתאים את עצמה גם אם ה־Signal שלנו נחלש.
+
+‏לכן צריך להפריד:
+
+```text
+price automation
+!=
+signal validation
+```
+
+‏ה־Broker יכול לדעת לעדכן price לפי NBBO. הוא לא יודע שה־momentum score שלנו ירד או שה־wave התהפך.
+
+‏לכן כל Pegged Order עדיין דורשת:
+
+```text
+application TTL
+signal-decay cancellation
+market-data freshness guard
+hard cap
+```
+
+---
+
+## ‏5.8 Queue Priority ו־Repricing — לא להניח ש־Peg שומרת מקום בתור
+
+‏כאשר effective price של Pegged Order משתנה, התייחסות ה־Venue ל־priority יכולה להשתנות.
+
+‏אין כלל אוניברסלי שאומר:
+
+```text
+peg reprice = keep original queue age
+```
+
+‏ולכן מבחינת המחקר שלנו צריך למדוד:
+
+```text
+number_of_reprices
+price_level_changes
+time_at_current_level
+fill_after_reprice
+```
+
+‏במקום להניח ש־Pegged תמיד עדיפה על cancel/replace מבחינת queue.
+
+---
+
+## ‏5.9 `Pegged-to-Midpoint` — לעקוב אחרי אמצע ה־NBBO
+
+‏ה־midpoint הוא:
+
+```text
+mid = (NBB + NBO) / 2
+```
+
+‏פקודת `Pegged-to-Midpoint` מנסה לעבוד במחיר האמצע ומתעדכנת כאשר ה־NBBO משתנה.
+
+‏דוגמה:
+
+```text
+Bid = 50.00
+Ask = 50.04
+Mid = 50.02
+```
+
+‏BUY במידפוינט יכולה לקבל price improvement של 2 סנט לעומת לקיחת Ask, אם יש contra liquidity שמוכנה להיפגש שם.
+
+‏עבור Edge קטן זה מאוד מעניין: חיסכון של חצי spread יכול לשנות משמעותית את round-trip economics.
+
+---
+
+## ‏5.10 Midpoint אינו "Bid טוב יותר" — זו סביבת נזילות אחרת
+
+‏כשאנחנו ב־Bid המוצג, אנחנו מצטרפים ל־displayed book.
+
+‏כשאנחנו מחפשים midpoint, לעיתים אנחנו מסתמכים על hidden/non-displayed או midpoint liquidity.
+
+‏לכן צריך למדוד בנפרד:
+
+```text
+midpoint_fill_rate
+midpoint_time_to_fill
+midpoint_price_improvement
+midpoint_markout
+missed_move_when_no_fill
+```
+
+‏לא מספיק לראות שה־fill price היה יפה.
+
+---
+
+## ‏5.11 `Pegged-to-Midpoint` ב־IBKR למניות אמריקאיות דורשת Direct Routing
+
+> ‏אימות אחרון: `2026-10-27`.
+
+‏IBKR מתעדת `Pegged-to-Midpoint` עבור Stocks/ETFs/Options ב־`TWS` וב־`IBKR Desktop`.
+
+‏למניות אמריקאיות, יש לבחור **Direct Routing**; זו אינה פשוט פקודת SMART כללית.
+
+‏אפשר גם להגדיר `Limit Price` כ־cap.
+
+‏רוב ה־venues המתועדים אינם מקבלים offset מה־midpoint, ולכן צריך להפריד בין:
+
+```text
+standard directed Pegged-to-Midpoint
+```
+
+‏לבין הווריאציות המיוחדות של `IBKR ATS`.
+
+---
+
+## ‏5.12 `MidPrice` — לא אותו דבר כמו `Pegged-to-Midpoint`
+
+‏`MidPrice` היא `IBKR Algo` ל־Stocks/ETFs בארה״ב עם `SMART` routing.
+
+‏המטרה שלה:
+
+```text
+fill at current NBBO midpoint or better
+```
+
+‏עם optional price cap.
+
+‏IBKR מתעדת שה־algo יכולה לבחור route שבו תשתמש ב־Pegged-to-Midpoint; ב־IEX היא יכולה להשתמש ב־`D-Peg`; ואם אין destination כזה, היא יכולה להשתמש ב־native או simulated Relative order.
+
+‏כלומר:
+
+```text
+Pegged-to-Midpoint = explicit order behavior / destination constraints
+MidPrice           = broker routing algo pursuing midpoint-or-better
+```
+
+‏זו הבחנה קריטית למנוע.
+
+---
+
+## ‏5.13 למה `MidPrice` מעניינת במיוחד עבורנו
+
+‏היא נותנת לנו abstraction חזק:
+
+```text
+I want midpoint-or-better
+I want SMART to search for a likely fill
+I still want a cap
+```
+
+‏במקום שאנחנו נבחר לבד destination וננהל midpoint behavior.
+
+‏זה יכול להתאים מאוד כאשר:
+
+- ‏Spread מספיק רחב כדי שחצי spread משמעותי.
+- ‏Signal אינו כה קצר עד שכל no-fill הוא אסון.
+- ‏אנחנו רוצים לתת ל־IBKR לנהל routing בין midpoint-capable destinations.
+
+‏מבחינת Research זו Candidate חשובה מאוד — לא פחות מ־Pegged-to-Primary.
+
+---
+
+## ‏5.14 הסיכון ב־`MidPrice`: Broker Algo פחות דטרמיניסטי
+
+‏היתרון של abstraction הוא גם החיסרון.
+
+‏המנוע שלנו לא שולט בכל routing decision הפנימית.
+
+‏לכן צריך למדוד:
+
+```text
+submit_to_fill_latency
+fill venue when available
+price improvement vs NBBO
+no-fill rate
+partial rate
+markout
+```
+
+‏אם Signal חי 300ms וה־algo מוצאת מחיר מצוין אחרי 2 שניות — היא לא מתאימה למרות איכות המחיר.
+
+---
+
+## ‏5.15 `MidPrice` מול `Marketable Limit + IOC`
+
+‏אלה שני philosophies שונים:
+
+```text
+Marketable Limit + IOC:
+urgency first
+execute now within cap
+cancel remainder
+
+MidPrice:
+price improvement first
+seek midpoint-or-better through SMART routing
+```
+
+‏במנוע שלנו לא צריך לבחור אחת לכל המצבים.
+
+‏אפשר לבחון policy:
+
+```text
+moderate urgency + meaningful spread => MidPrice challenger
+high urgency + short signal          => Marketable Limit + IOC challenger
+```
+
+‏ואז למדוד net edge per opportunity.
+
+---
+
+## ‏5.16 `Snap` — לחשב מחיר מהשוק פעם אחת, ואז להפסיק לעקוב
+
+‏זו אחת ההבחנות החשובות בפרק.
+
+‏`Snap` דומה ל־Pegged בזמן יצירת המחיר, אבל לאחר שהמחיר הראשוני חושב:
+
+```text
+Snap = fixed limit afterward
+Peg  = continues to follow reference
+```
+
+‏לכן `Snap` היא כלי מצוין כאשר רוצים להשתמש ב־quote הנוכחי כ־**price calculator**, אבל לא רוצים שה־Order תמשיך לרדוף אחרי השוק.
+
+---
+
+## ‏5.17 `Snap to Market`
+
+‏לפי IBKR:
+
+```text
+SELL = Bid + offset
+BUY  = Ask - offset
+```
+
+‏אחרי חישוב המחיר הראשוני, הוא אינו ממשיך להיצמד לשוק.
+
+‏לדוגמה:
+
+```text
+Bid = 50.00
+Ask = 50.04
+BUY SNAP MKT offset = 0.01
+=> initial limit around 50.03
+```
+
+‏אם אחר כך Ask עולה ל־50.10, Order אינה אמורה להמשיך אוטומטית ל־50.09.
+
+‏זה יכול להיות שימושי כאשר רוצים initial aggressiveness מחושבת אבל hard stop טבעי על chase.
+
+---
+
+## ‏5.18 `Snap to Midpoint`
+
+‏המחיר הראשוני נגזר מה־midpoint:
+
+```text
+SELL = Mid + offset
+BUY  = Mid - offset
+```
+
+‏ואז נשאר קבוע.
+
+‏זה מעניין במיוחד אם רוצים:
+
+```text
+price me around current fair midpoint
+but do not keep following a moving midpoint
+```
+
+‏כלומר הוא משלב reference-based initialization עם deterministic resting price לאחר מכן.
+
+---
+
+## ‏5.19 `Snap to Primary`
+
+‏ב־IBKR:
+
+```text
+SELL = Ask - offset
+BUY  = Bid + offset
+```
+
+‏זה דומה מבחינת initial pricing ל־Relative/Pegged-to-Primary, אבל **ללא ongoing peg**.
+
+‏לכן השוואה טבעית למחקר היא:
+
+```text
+Relative/Pegged-to-Primary
+vs
+Snap to Primary
+```
+
+‏השאלה: האם continual repricing משפר fill מספיק כדי להצדיק את ההתנהגות הדינמית, או שמחיר התחלתי טוב + TTL קצר נותן תוצאה נקייה יותר?
+
+---
+
+## ‏5.20 פרט `IBKR`: משפחת `Snap` היא Broker-Simulated
+
+> ‏אימות אחרון: `2026-10-27`.
+
+‏IBKR מתעדת ש־`Snap to Market`, ‏`Snap to Midpoint` ו־`Snap to Primary` **מדומות על כל הבורסות**.
+
+‏ל־Stocks/ETFs בארה״ב:
+
+```text
+Snap to Market   -> TWS, IBKR Desktop; SMART or Directed
+Snap to Midpoint -> TWS, IBKR Desktop; SMART or Directed
+Snap to Primary  -> TWS, IBKR Desktop; Directed
+```
+
+‏לכן אם נשתמש בהן, צריך לזכור שה־Broker מנהל את חישוב ה־initial price, ולא להניח שזה native exchange primitive.
+
+---
+
+## ‏5.21 למה `Snap` יכולה להתאים מאוד לרובוט שלנו
+
+‏ב־Signal קצר יש לנו לעיתים רצון מדויק:
+
+```text
+use current quote intelligently
+but do not chase if market runs away
+```
+
+‏`Snap` מגלמת את זה יפה.
+
+‏למשל:
+
+```text
+Signal valid now
+current spread meaningful
+choose initial price relative to midpoint
+then let order rest only 200-500ms
+cancel if no fill
+```
+
+‏זו Candidate מעניינת מאוד מול `Passive Limit` שאנחנו מחשבים בעצמנו.
+
+---
+
+## ‏5.22 `Snap` אינה תחליף ל־Signal TTL
+
+‏העובדה שהמחיר מפסיק לזוז אינה אומרת שהפקודה בטוחה להשאיר.
+
+‏אם ה־Signal מת, Limit ישנה יכולה לקבל Fill מאוחר בדיוק כמו כל Limit אחרת.
+
+‏לכן גם כאן:
+
+```text
+snap price initialization
++
+application TTL
++
+signal decay cancel
+```
+
+‏צריכים לעבוד יחד.
+
+---
+
+## ‏5.23 `Pegged-to-Best` ב־IBKR ATS — כלי מתקדם אבל רלוונטי להבנה
+
+‏IBKR מציעה ב־ATS שלה `Pegged-to-Best` עבור Stocks/ETFs אמריקאיים ב־Directed routing.
+
+‏הפקודה מתחרה לא רק מול ה־near-side NBBO אלא גם מול same-side liquidity שכבר נחה בתוך IBKR ATS, עד גבול הקשור ל־midpoint.
+
+‏אפשר גם להגדיר:
+
+```text
+limit price
+minimum competing size
+compete-against-best offset
+```
+
+‏זה מעניין מאוד מבחינה מקצועית כי הוא מראה עד כמה Peg יכולה להפוך ל־**policy engine שלם** ולא רק "Bid + 1 cent".
+
+---
+
+## ‏5.24 האם `IBKR ATS Pegged-to-Best` מתאים לנו?
+
+‏אולי — אבל לא כ־baseline ראשון.
+
+‏הוא יכול להיות רלוונטי אם המחקר יראה שיש ערך ב־liquidity adding בתוך IBKR ATS ושאנחנו רוצים להתחרות מול same-side hidden/internal liquidity.
+
+‏אבל הוא מוסיף:
+
+- ‏destination dependence.
+- ‏ATS-specific behavior.
+- ‏parameters נוספים.
+- ‏צורך למדוד fill quality מול SMART alternatives.
+
+‏לכן הוא `Advanced Challenger`, לא ברירת מחדל.
+
+---
+
+## ‏5.25 `Pegged to Benchmark` — חשוב להכיר, פחות טבעי ל־micro-momentum שלנו
+
+‏IBKR מאפשרת ל־Stock/ETF Order לזוז לפי movement של reference contract אחר באותו מטבע.
+
+‏רעיון:
+
+```text
+primary_order_price
+moves as
+benchmark_price changes
+```
+
+‏זה יכול להיות שימושי ב־relative-value, hedge או pair relationships.
+
+‏למנוע שלנו שסורק מניה לפי המומנטום של עצמה, זה פחות מרכזי כרגע.
+
+‏עם זאת, אם בעתיד נוסיף למשל:
+
+```text
+stock momentum relative to SPY/QQQ/sector ETF
+```
+
+‏ה־concept יכול להפוך רלוונטי. לכן הוא נשאר בקורס, אך בעומק נמוך יותר ממשפחות ה־Primary/Midpoint.
+
+---
+
+## ‏5.26 `Pegged-to-Market` ופקודות Pegged אחרות שאינן Core למניות שלנו
+
+‏IBKR מתעדת גם משפחות Pegged שרלוונטיות בעיקר ל־Options או use cases אחרים, כגון `Pegged-to-Stock` ו־`Relative + Market`.
+
+‏אנחנו צריכים להכיר את העיקרון אבל לא לבנות עליהן את stock engine.
+
+‏זה בדיוק כלל העומק של הקורס:
+
+```text
+relevant to US stock micro-momentum => deep
+relevant only to options/complex legs => understand, but do not over-invest
+```
+
+---
+
+## ‏5.27 `API` — מה המנוע צריך לייצג
+
+‏ב־`TWS API` ה־Order object מכיל `orderType`, ‏`lmtPrice` ושדות ייעודיים למשפחות Pegged שונות; `ContractDetails.orderTypes` מאפשר לנו לקבל את סוגי הפקודות הנתמכים עבור Contract.
+
+‏לכן abstraction פנימית טובה תהיה משהו כמו:
+
+```text
+PegPolicy {
+  family
+  reference
+  offset
+  cap
+  route
+  continuous_reprice
+  application_ttl
+}
+```
+
+‏ולא string יחיד בשם:
+
+```text
+orderType = "PEG"
+```
+
+‏כי שני Pegs עם references ו־routing שונים הם התנהגויות שונות לגמרי.
+
+---
+
+## ‏5.28 הטעות המסוכנת: `Pegged` יכולה להפוך ל־Chase אוטומטי
+
+‏אם ה־reference ממשיך לזוז בכיוון האגרסיבי וה־cap רחב מדי, Pegged Order יכולה לרדוף אחרי המחיר הרבה מעבר לנקודה שבה Signal המקורי היה כדאי.
+
+‏לכן צריך guardrails:
+
+```text
+hard economic cap
+max signal age
+cancel on edge decay
+max effective deviation from decision price
+market-data freshness
+```
+
+‏בלי אלה, העברנו את אותה בעיית chase מהקוד שלנו אל הברוקר.
+
+---
+
+## ‏5.29 `Pegged` מול Client-Side Repricing — מה צריך למדוד
+
+‏ההשוואה הנכונה אינה רק Fill Rate.
+
+‏צריך למדוד:
+
+```text
+fill rate
+first-fill latency
+full-fill latency
+number of reprices
+number of cancel/replace operations
+queue outcomes
+price improvement
+adverse-selection markout
+missed opportunity
+broker rejections
+net edge per signal
+```
+
+‏Client-side repricing נותנת שליטה גבוהה יותר; Pegged יכולה לתת reaction קרוב יותר ל־Broker/Venue ולהפחית message churn.
+
+‏רק telemetry תכריע.
+
+---
+
+## ‏5.30 מטריצת התאמה ראשונית למנוע שלנו
+
+| כלי | התאמה ראשונית | למה מעניין | הסיכון המרכזי |
+|---|---|---|---|
+| `Relative/Pegged-to-Primary` | `High/Challenger` | ‏Passive אך אגרסיבי ומתעדכן | ‏route semantics, adverse selection, auto-chase |
+| `Pegged-to-Midpoint` | `High/Challenger` | ‏חצי spread / price improvement | ‏Direct routing, no-fill, venue dependence |
+| `MidPrice` | `High/Challenger` | ‏SMART midpoint-or-better routing | ‏פחות deterministic, fill latency |
+| `Snap to Market` | `Medium/High` | ‏מחיר התחלתי חכם בלי chase מתמשך | ‏stale resting limit אחרי snap |
+| `Snap to Midpoint` | `High/Challenger` | ‏midpoint-based initial price בלי continual peg | ‏no-fill / signal decay |
+| `Snap to Primary` | `Medium/High` | ‏initial improvement מול near side | ‏Directed routing, stale price |
+| `IBKR ATS Pegged-to-Best` | `Advanced Challenger` | ‏תחרות גם מול ATS same-side liquidity | ‏ATS-specific complexity |
+| `Pegged-to-Benchmark` | `Low now / Future` | ‏relative-value execution | ‏לא תואם כרגע core signal |
+| Options-only pegged families | `Knowledge Only` | ‏הבנת עולם execution | ‏לא stock-engine candidate |
+
+---
+
+## ‏5.31 Recommendation — מה להכניס ל־Execution Research מוקדם
+
+‏אחרי חלק 5, רשימת ה־Challengers המוקדמת שלנו מתרחבת ל־:
+
+```text
+A. Passive displayed Limit + short TTL
+B. Marketable Limit + IOC
+C. Relative/Pegged-to-Primary + hard cap + short TTL
+D. MidPrice + hard cap
+E. Snap to Midpoint + short TTL
+F. Directed Pegged-to-Midpoint + hard cap
+```
+
+‏לא משום שכולן ייכנסו ל־Live, אלא משום שכל אחת בודקת trade-off אחר:
+
+```text
+A = simple passive baseline
+B = urgency
+C = continuous passive aggressiveness
+D = broker-managed midpoint search
+E = midpoint initialization without chase
+F = explicit midpoint peg
+```
+
+‏זו קבוצת ניסוי הרבה יותר מקצועית מאשר לבחור מראש Order Type אחת ולכפות אותה על כל Regime.
+
+---
+
+## ‏5.32 איך לבחור ביניהן בזמן אמת
+
+‏ה־Policy יכולה להסתכל על:
+
+```text
+signal_strength
+signal_age
+spread_ticks
+spread_bps
+visible_depth
+quote_velocity
+expected_edge
+max_wait_ms
+position_state
+route_capability
+```
+
+‏דוגמה רעיונית:
+
+```text
+if urgency is very high:
+    marketable_limit_ioc
+elif spread is wide and signal has time:
+    midpoint_family
+elif passive intent but queue is moving:
+    relative_primary
+elif want quote-derived initial price without chase:
+    snap
+else:
+    simple passive limit
+```
+
+‏זו לא לוגיקת Live סופית; זו מפת ניסוי.
+
+---
+
+## ‏5.33 Telemetry ייעודית ל־Peg/Snap/Midpoint
+
+‏נוסיף לפחות:
+
+```text
+peg_family
+peg_reference
+offset
+hard_cap
+route
+continuous_reprice
+initial_effective_price
+current_effective_price
+reprice_count
+reprice_up_count
+reprice_down_count
+midpoint_at_submit
+midpoint_at_fill
+price_improvement_vs_near_side
+price_improvement_vs_mid
+snap_reference_price
+snap_fixed_price
+broker_algo_name
+```
+
+‏ומדדים נגזרים:
+
+```text
+net_edge_by_peg_family
+fill_rate_by_spread_bucket
+fill_latency_by_family
+reprice_to_fill_ratio
+midpoint_capture_bps
+missed_move_after_midpoint_no_fill
+relative_vs_client_chase_delta
+snap_vs_peg_delta
+```
+
+---
+
+## ‏5.34 Practitioner Secrets — הדברים שקל לפספס
+
+### ‏1. Pegged אינה "Limit שמתעדכנת" באופן כללי
+
+‏צריך לדעת reference, offset, cap, route וכיוון repricing.
+
+### ‏2. SMART Relative ו־Directed Relative אינן אותו דבר
+
+‏ב־IBKR יש directionality שונה; זו semantics שיכולה לשנות P&L.
+
+### ‏3. MidPrice ו־Pegged-to-Midpoint אינן מילים נרדפות
+
+‏אחת Broker Algo עם SMART; השנייה explicit pegged behavior שדורשת Directed routing למניות אמריקאיות.
+
+### ‏4. Snap היא לא Peg איטית
+
+‏היא מחשבת initial price מהשוק ואז מפסיקה לעקוב.
+
+### ‏5. Price improvement בלי Fill אינו Edge
+
+‏Midpoint יפה על הנייר לא שווה דבר אם Signal בורח לפני Fill.
+
+### ‏6. Pegged יכולה לייצר chase בלי cancel/replace
+
+‏לכן cap ו־signal TTL עדיין חובה.
+
+### ‏7. Broker-managed repricing אינו Strategy-managed repricing
+
+‏הברוקר רואה market reference; הוא לא רואה את כל state של המודל שלנו.
+
+### ‏8. Route הוא חלק מה־Order Type
+
+‏בפקודות האלה route אינו פרט תשתיתי. הוא יכול לשנות את semantics עצמה.
+
+---
+
+# ‏מקורות רשמיים לחלק 5
+
+- ‏IBKR — Order Types and Algos: <https://www.interactivebrokers.com/en/trading/ordertypes.php>
+- ‏IBKR — `Relative/Pegged-to-Primary`: בתוך Order Types and Algos, כולל SMART/Directed directionality.
+- ‏IBKR — `Pegged-to-Midpoint`: בתוך Order Types and Algos, כולל Direct Routing למניות אמריקאיות.
+- ‏IBKR — `MidPrice`: בתוך Order Types and Algos, SMART routing ו־midpoint-or-better behavior.
+- ‏IBKR — `Snap to Market`, `Snap to Midpoint`, `Snap to Primary`: בתוך Order Types and Algos; כולן broker-simulated.
+- ‏IBKR — `IBKR ATS Pegged-to-Best`: בתוך Order Types and Algos.
+- ‏IBKR TWS API — `Order` reference: <https://www.interactivebrokers.com/docs/tws-api/ref/order>
+- ‏IBKR TWS API — `ContractDetails` reference: <https://www.interactivebrokers.com/docs/tws-api/ref/contract-details>
+
+---
+
+# ‏Checkpoint — סוף חלק 5
+
+‏בחלק הזה הפכנו את משפחת Pegged/Snap ממונחים מרשימים לכלי Execution מוגדרים. למדנו שהשאלה אינה "האם להשתמש ב־Peg", אלא איזה reference, איזה offset, איזה cap, איזה route, מי מנהל את ה־repricing והאם אנחנו רוצים continual tracking או רק price initialization.
+
+‏למנוע שלנו, `Relative/Pegged-to-Primary`, ‏`MidPrice`, ‏`Snap to Midpoint` ו־`Pegged-to-Midpoint` הן כולן Challengers רציניות — כל אחת מסיבה אחרת. אף אחת אינה Default אוטומטי. כולן צריכות להתחרות מול `Passive Limit` ו־`Marketable Limit + IOC` על `net executable edge` בפועל.
+
+‏החלק הבא יהיה **Stops, Trailing, Bracket, OCA/OCO ו־Conditional Orders** — כולל parent/child mechanics, activation timing, partial-fill sizing, transmit sequencing, stop trigger semantics, double-exit races והדרך הנכונה לחשוב על Bracket במנוע אוטומטי.
+'''
+          if marker not in text:
+              text += part
+          path.write_text(text, encoding='utf-8')
+          PY
+          rm -f .github/workflows/append-advanced-order-part5.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add advanced-orders/ADVANCED-ORDER-MASTERY.md .github/workflows/append-advanced-order-part5.yml
+          git commit -m 'docs: add advanced order mastery part 5 [skip ci]'
+          git push origin main
