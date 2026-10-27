@@ -93,8 +93,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     81 — MVP Design
                     82 — Production v1 Design
                     83 — Know by Heart vs Reference
+                    84 — Glossary
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 84 — Glossary
+Next Segment: 85 — Readiness Checklist
 Source of Truth: GitHub main
 ```
 
@@ -188,7 +189,7 @@ Baseline
 | `08-SHORT-TERM-MOMENTUM.md` | `08-SHORT-TERM-MOMENTUM.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `09-VELOCITY-ACCELERATION-MOMENTUM-SHAPE.md` | `09-VELOCITY-ACCELERATION-MOMENTUM-SHAPE.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `10-TRADE-ACTIVITY-VOLUME-AND-FLOW.md` | `10-TRADE-ACTIVITY-VOLUME-FLOW.md` | `P0/P1/P2/P3` | `COMPLETED` |
-| `11-LIQUIDITY-AND-EXECUTABILITY.md` | `11-LIQUIDITY-EXECUTABILITY.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `11-LIQUIDITY-AND-EXECUTABILITY.md` | `11-LIQUIDITY-EXECUTABILITY.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `12-FILTERS-BEFORE-RANKING.md` | `12-FILTERS-BEFORE-RANKING.md` | `P0/P1/P2` | `COMPLETED` |
 | `13-FEATURE-ENGINEERING-FOR-MARKET-SCANNER.md` | `13-FEATURE-ENGINEERING.md` | `P0/P1/P2/P3` | `COMPLETED` |
 | `14-SCORE-AND-MARKET-RANKING.md` | `14-SCORE-MARKET-RANKING.md` | `P0/P1/P2/P3` | `COMPLETED` |
@@ -262,9 +263,10 @@ Baseline
 | `81-MVP-DESIGN.md` | `81-MVP-DESIGN.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `82-PRODUCTION-V1-DESIGN.md` | `82-PRODUCTION-V1-DESIGN.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `83-KNOW-BY-HEART-VS-REFERENCE.md` | `83-KNOW-BY-HEART-VS-REFERENCE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `84-GLOSSARY.md` | `84-GLOSSARY.md` | TBD | `NOT STARTED` |
+| `84-GLOSSARY.md` | `84-GLOSSARY.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `85-READINESS-CHECKLIST.md` | `85-READINESS-CHECKLIST.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי `85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
