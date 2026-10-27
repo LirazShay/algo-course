@@ -71,8 +71,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     60 — Scanner and Ranking Subtleties
                     60A — Negative Evidence, Veto and Disqualification Engine
                     61 — Backtest Subtleties
+                    62 — Live Trading Subtleties
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 62 — Live Trading Subtleties
+Next Segment: 63 — How Professionals Think About Edge
 Source of Truth: GitHub main
 ```
 
@@ -218,9 +219,10 @@ Baseline
 | `60-SCANNER-AND-RANKING-SUBTLETIES.md` | `60-SCANNER-AND-RANKING-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `60A-NEGATIVE-EVIDENCE-VETO-AND-DISQUALIFICATION-ENGINE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `61-BACKTEST-SUBTLETIES.md` | `61-BACKTEST-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `62-LIVE-TRADING-SUBTLETIES.md` | `62-LIVE-TRADING-SUBTLETIES.md` | TBD | `NOT STARTED` |
+| `62-LIVE-TRADING-SUBTLETIES.md` | `62-LIVE-TRADING-SUBTLETIES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `63-HOW-PROFESSIONALS-THINK-ABOUT-EDGE.md` | `63-HOW-PROFESSIONALS-THINK-ABOUT-EDGE.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 63–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 64–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
