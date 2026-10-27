@@ -1,16 +1,17 @@
 {
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
-  "migrationState": "R1_IN_PROGRESS",
+  "migrationState": "R1_COMPLETE",
+  "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "blobSha": "ab823e9b14c798016942619c496013cf523fb7bc",
-    "policy": "read-only migration source until R1 is complete"
+    "policy": "frozen migration reference; canonical editing moved to source files"
   },
   "generatedMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
-    "reason": "Do not rebuild the master until every manifest entry is ready and verified."
+    "reason": "R1 source migration is complete, but rebuilding the master is intentionally deferred until the deterministic assembler is implemented after the repair waves."
   },
   "buildPolicy": {
     "requireAllEntriesReady": true,
@@ -82,28 +83,26 @@
     {
       "id": "10A",
       "title": "Decision Inputs and Elimination Gates",
-      "source": null,
-      "legacyHeading": "10A",
-      "status": "pending_split"
+      "source": "advanced-orders/source/10A-DECISION-INPUTS-AND-GATES.md",
+      "status": "ready"
     },
     {
       "id": "10B",
       "title": "Entry Decision and Execution Behavior Selection",
-      "source": null,
-      "legacyHeading": "10B",
-      "status": "pending_split"
+      "source": "advanced-orders/source/10B-ENTRY-DECISION.md",
+      "status": "ready"
     },
     {
       "id": "10C",
       "title": "Exit Decision Protection and Ownership",
-      "source": "advanced-orders/parts/10C-EXIT-DECISION.md",
-      "status": "ready_existing"
+      "source": "advanced-orders/source/10C-EXIT-DECISION.md",
+      "status": "ready"
     },
     {
       "id": "10D",
       "title": "Full Decision Engine",
-      "source": "advanced-orders/parts/10D-FULL-DECISION-ENGINE.md",
-      "status": "ready_existing"
+      "source": "advanced-orders/source/10D-FULL-DECISION-ENGINE.md",
+      "status": "ready"
     }
   ]
 }
