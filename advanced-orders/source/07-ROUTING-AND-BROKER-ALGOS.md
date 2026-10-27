@@ -1,6 +1,8 @@
-# ‏חלק 7 — Routing ו־Broker Algos: מי מחליט לאן ואיך הפקודה תבוצע
+# ‏חלק 7 — Routing Policy ו־Broker Algos: מי מחליט לאן ואיך הפקודה תבוצע
 
-## ‏7.1 Routing הוא חלק מה־Execution Policy
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, ‏`SMART` ו־Direct הם `Routing Policy`; ‏`Adaptive` ו־`MidPrice` הם Broker-managed execution mechanisms/algos; ו־`ADAPTIVE_LIMIT_URGENT`, ‏`MIDPRICE` או `PEGGED_MIDPOINT_DIRECT` הם Behavior Candidates של המנוע. אלה שכבות שונות, גם כאשר UI או API מציגים אותן זו ליד זו.
+
+## ‏7.1 `Routing Policy` היא שכבה נפרדת בתוך ה־Execution Plan
 
 ‏כאשר המנוע החליט:
 
@@ -19,12 +21,13 @@ Where should this order go?
 ‏צריך להפריד:
 
 ```text
-what we want to pay
-from
-where and how we try to get filled
+what behavior we want
+what broker primitive/attributes express it
+where the order may be routed
+whether broker execution intelligence is delegated
 ```
 
-‏זו בדיוק שכבת Routing.
+‏זו הסיבה ש־Routing אינה `Application Execution Mode` ואינה Broker Algo. היא dimension נפרד ב־Concrete Order Plan.
 
 ---
 
@@ -54,9 +57,9 @@ complete executable liquidity map
 
 ---
 
-## ‏7.3 `SMART` — אנחנו מאצילים את בחירת ה־Venue ל־IBKR
+## ‏7.3 `SMART` — Routing Policy שמאצילה את בחירת ה־Venue ל־IBKR
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתארת `SmartRouting` כמנגנון שסורק bids/offers בין Venues מתחרים ומנתב Orders ליעדי execution מתאימים, תוך הערכה מתמשכת של תנאי השוק.
 
@@ -69,10 +72,12 @@ route to ARCA
 ‏הוא אומר בקירוב:
 
 ```text
-exchange = SMART
+routing_policy = SMART
 ```
 
 ‏ומוסר ל־IBKR את בחירת היעד בתוך ה־universe שהיא תומכת בו.
+
+> ‏`ENGINE RULE` — `SMART` אינה Exchange ואינה `Application Execution Mode`; היא Routing Policy.
 
 ---
 
@@ -143,9 +148,9 @@ queue rules
 
 ---
 
-## ‏7.7 `Direct Routing` — אנחנו בוחרים את ה־Venue בעצמנו
+## ‏7.7 `Direct Routing` — Routing Policy שבה אנחנו בוחרים Destination
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת Direct Routing למניות, ETF ומוצרים נוספים, וב־`TWS`, ‏`IBKR Desktop`, ‏`IBKR Mobile` ו־`Client Portal`.
 
@@ -168,21 +173,21 @@ venue is slower or degraded
 
 ‏אז שליטה גבוהה יותר יכולה לייצר execution גרועה יותר.
 
-‏המונח `Direct` מתאר בחירת יעד, לא guarantee של latency או fill quality.
+> ‏`ENGINE RULE` — `Direct` מתארת **מי בוחר Destination**. היא אינה הגדרה של latency, fill quality או aggressiveness; את אלה מודדים.
 
 ---
 
 ## ‏7.9 למה בכל זאת Direct חשובה מאוד
 
-‏יש מקרים שבהם Order Type עצמה דורשת Destination מסוים.
+‏יש מקרים שבהם Broker Order Primitive/variant או execution feature דורשים Destination מסוים.
 
 ‏כבר ראינו למשל שב־IBKR `Pegged-to-Midpoint` למניות אמריקאיות דורשת Direct Routing.
 
 ‏כלומר לפעמים:
 
 ```text
-execution feature choice
-=> forces routing choice
+behavior / broker feature choice
+=> constrains routing policy
 ```
 
 ‏ולא להפך.
@@ -222,7 +227,7 @@ reject rates
 
 ## ‏7.11 `exchange` מול `primaryExchange` ב־TWS API
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏ב־Contract של מניה, `exchange` מגדיר את נתיב ה־routing — למשל `SMART` או Venue ישיר.
 
@@ -240,7 +245,7 @@ execution destination
 
 ## ‏7.12 `SMART Depth` מול Direct Depth
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏`TWS API` מאפשר `reqMktDepth` עם `isSmartDepth=true` כאשר Contract משתמש ב־`SMART`, ומבדיל זאת מ־Direct-routed depth.
 
@@ -297,7 +302,7 @@ latency before fallback
 
 ## ‏7.15 IBKR SmartRouting כוללת גם Dark Pools
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מציינת ש־SmartRouting שלה מחפשת execution גם across exchanges וגם dark pools, ובדף Best Execution הנוכחי היא מתארת שילוב של מספר dark pools בתוך ה־routing logic שלה.
 
@@ -305,9 +310,9 @@ latency before fallback
 
 ---
 
-## ‏7.16 `SMART DarkOnly`
+## ‏7.16 `SMART DarkOnly` — Routing Variant, לא Execution Mode
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏תיעוד `TWS API` של Smart Routing מציג בין אפשרויות ה־API גם:
 
@@ -316,7 +321,7 @@ SMART
 SMART DarkOnly
 ```
 
-‏זו דוגמה לכך שגם `SMART` אינו mode יחיד; יש routing preferences שיכולות לשנות את universe של היעדים.
+‏זו דוגמה לכך שגם תחת SMART יכולות להיות routing preferences שמשנות את universe של היעדים.
 
 ‏עבורנו `DarkOnly` אינה baseline טבעי לסיגנל קצר, משום ש־no-fill/missed-move risk עלול להיות גבוה, אבל היא Candidate מחקרית כש־spread רחב ויש מספיק signal life.
 
@@ -342,7 +347,7 @@ SMART only
 
 ## ‏7.18 `IBKR ATS Reroute to SMART` — רעיון טוב, timeframe לא בהכרח שלנו
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת אפשרות לתת ל־liquidity-providing Order לנוח ב־IBKR ATS ואז לעבור ל־SMART לאחר מספר דקות שהמשתמש מגדיר.
 
@@ -463,9 +468,9 @@ submit_to_full_fill
 ‏ונפלח לפי:
 
 ```text
-route
+routing_policy
 venue
-order type
+broker primitive / behavior candidate
 symbol regime
 session
 ```
@@ -478,7 +483,7 @@ session
 
 ```text
 broker maintains venue logic
-router can react without our cancel/replace loop
+router can react without our venue-selection loop
 access to multiple venues/dark pools
 ```
 
@@ -489,7 +494,7 @@ same order intent
 may execute differently across market states
 ```
 
-‏למחקר זה אומר שה־route חייב להיות feature בטבלה, לא hidden implementation detail.
+‏למחקר זה אומר שה־routing policy חייבת להיות feature בטבלה, לא hidden implementation detail.
 
 ---
 
@@ -513,7 +518,7 @@ routing rule changed
 
 ---
 
-## ‏7.26 Fallback הוא חלק מ־Routing Policy
+## ‏7.26 Fallback הוא Re-decision, לא Routing Alias
 
 ‏אם Direct Order נדחית או לא מתמלאת, אסור שהתגובה תהיה אוטומטית תמיד:
 
@@ -525,26 +530,37 @@ send SMART immediately
 
 ```text
 is signal still alive?
-is price cap still valid?
+is Economic Price Bound still valid?
 how much qty already filled?
 what changed in the book?
+is the fallback capability enabled?
 ```
 
-‏Routing fallback הוא Trade Decision חדש.
+> ‏`ENGINE RULE` — `Fallback` פירושו שה־path שנבחר נכשל/אינו זמין ולכן מחשבים חלופות מחדש. ‏`Escalation` פירושה שה־urgency/risk השתנו ולכן מחשבים מחדש תחת constraints חדשים. אף אחד מהם אינו synonym ל־"יותר אגרסיבי".
 
 ---
 
-# ‏7.27 `Adaptive` — Broker Algo שבאמת רלוונטי למנוע שלנו
+# ‏7.27 `Adaptive` — Broker Algo, לא Routing Policy
 
-‏`Adaptive` הוא לא Venue.
+‏`Adaptive` הוא לא Venue ולא ערך מקביל ל־`SMART`/Direct ב־taxonomy שלנו.
 
 ‏זו שכבת Algo של IBKR שמשלבת SmartRouting עם user-defined priority במטרה לחפש execution טוב יותר תוך שליטה יחסית במהירות.
 
-‏IBKR מתעדת אותו ל־Stocks, ETFs, Options ו־Futures, ב־`TWS`, ‏`IBKR Desktop` ו־`IBKR Mobile`, תחת `IB Algo` routing.
+‏IBKR מתעדת אותו ל־Stocks, ETFs, Options ו־Futures, ב־`TWS`, ‏`IBKR Desktop` ו־`IBKR Mobile`, תחת `IB Algo` routing בממשקי המוצר שלה.
+
+‏מבחינת המודל שלנו:
+
+```text
+Routing Policy = broker-required routing path
+Broker Algo    = Adaptive
+Behavior       = e.g. ADAPTIVE_LIMIT_URGENT
+```
+
+‏אין לאחד את שלושת השדות ל־enum אחד.
 
 ---
 
-## ‏7.28 `Adaptive` יכולה להיות Market או Limit
+## ‏7.28 `Adaptive` יכולה לעטוף Market או Limit
 
 ‏IBKR מציינת שניתן להשתמש ב־Adaptive עם Market או Limit.
 
@@ -555,10 +571,10 @@ Adaptive Market
 => no explicit client limit boundary
 
 Adaptive Limit
-=> broker algo operates within our price cap
+=> broker algo operates within a client limit
 ```
 
-‏ל־Edge קטן וקצר, `Adaptive Limit` מעניינת במיוחד משום שהיא משאירה לנו hard economic boundary.
+‏ל־Edge קטן וקצר, `Adaptive Limit` מעניינת במיוחד משום שהיא מאפשרת ל־Concrete Order לשמר `Economic Price Bound` מפורש.
 
 ---
 
@@ -578,7 +594,7 @@ wait longer and risk missing momentum
 
 ## ‏7.30 שלוש רמות Priority: `Urgent`, ‏`Normal`, ‏`Patient`
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏ב־API IBKR מתעדת:
 
@@ -618,21 +634,24 @@ Adaptive Patient
 
 ---
 
-## ‏7.32 `Urgent` אינה מילה נרדפת ל־Marketable Limit + IOC
+## ‏7.32 `Urgent` אינה מילה נרדפת ל־`MARKETABLE_LIMIT_IOC`
 
 ‏גם Adaptive Urgent עדיין נותנת ל־Broker Algo לנהל execution בתוך framework של Adaptive.
 
-‏לעומת זאת:
+‏לעומת זאת Behavior Candidate של:
 
 ```text
-Marketable Limit + IOC
+MARKETABLE_LIMIT_IOC
 ```
 
-‏אומרת בצורה יותר deterministic:
+‏ממומשת באופן ישיר יותר כ־:
 
 ```text
-execute immediately within cap
-cancel remainder
+Limit that is marketable at decision/materialization
++
+IOC
++
+Economic Price Bound
 ```
 
 ‏לכן אלו Challengers שונים, לא שתי דרכים לכתוב אותו דבר.
@@ -644,7 +663,7 @@ cancel remainder
 ‏Passive Limit:
 
 ```text
-we choose exact price and waiting policy
+client chooses exact price and waiting policy
 ```
 
 ‏Adaptive:
@@ -659,15 +678,15 @@ broker manages part of aggressiveness/search path
 
 ## ‏7.34 `Adaptive` מול `Relative/Pegged-to-Primary`
 
-‏`Relative` פועלת לפי reference/offset/cap semantics מוגדרות יחסית.
+‏`Relative` פועלת לפי reference/offset/bound semantics מוגדרות יחסית.
 
 ‏`Adaptive` היא Broker Algo רחבה יותר שמחפשת execution לפי priority ו־SmartRouting.
 
 ‏לכן:
 
 ```text
-Relative = explicit pricing rule
-Adaptive = delegated execution policy
+Relative = explicit dynamic pricing behavior
+Adaptive = delegated broker execution intelligence
 ```
 
 ‏למחקר שלנו שניהם חשובים משום שהם בודקים שתי פילוסופיות שונות של אוטומציה.
@@ -691,7 +710,7 @@ Adaptive objective = configurable speed/price trade-off
 
 ---
 
-## ‏7.36 `Adaptive Limit` צריכה Hard Cap אמיתי
+## ‏7.36 `Adaptive Limit` צריכה `Economic Price Bound` אמיתי
 
 ‏אסור להשתמש ב־Adaptive כדי להתחמק מהשאלה:
 
@@ -705,7 +724,7 @@ what is the maximum economically acceptable buy price?
 
 ## ‏7.37 API של Adaptive
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏ב־TWS API התבנית המתועדת היא רעיונית:
 
@@ -745,15 +764,31 @@ our expected edge fell below threshold
 ‏לכן כל Broker Algo חייבת להישאר כפופה ל־:
 
 ```text
-application TTL
+signal_ttl
+application_order_ttl
 signal validity
-hard cap
+Economic Price Bound
 cancel policy
+position/risk constraints
 ```
+
+> ‏`ENGINE RULE` — הברוקר יכול לנהל חלק מ־`HOW`; המנוע שלנו נשאר בעל הסמכות על `WHETHER THE INTENT IS STILL VALID`.
 
 ---
 
-## ‏7.39 מה קורה אם Signal מת בזמן שה־Algo עובדת?
+## ‏7.39 איפה ה־Intelligence חיה?
+
+| שכבה | מה היא יכולה לדעת/לנהל | מה אסור להניח שהיא יודעת |
+|---|---|---|
+| Client Engine | ‏Signal, private features, economic bounds, portfolio/risk intent | ‏Venue internals שאינם חשופים |
+| Broker / IBKR Algo | ‏routing universe, broker market data, execution opportunities, algo state | ‏שה־private signal שלנו עדיין חי |
+| Venue | ‏matching/priority/native order semantics באותו Venue | ‏portfolio intent או cross-venue private policy שלנו |
+
+‏הטבלה הזו אינה אומרת שכל feature באמת resident במקום מסוים; residency ו־implementation צריכים להיבדק לפי capability. היא רק מונעת מאיתנו לייחס intelligence לשכבה שאינה מחזיקה אותה.
+
+---
+
+## ‏7.40 מה קורה אם Signal מת בזמן שה־Algo עובדת?
 
 ‏המנוע צריך לשלוח Cancel ולהתייחס אליו בדיוק כמו לכל Order:
 
@@ -769,7 +804,7 @@ cancel confirmed
 
 ---
 
-## ‏7.40 `MidPrice` מזווית Routing
+## ‏7.41 `MidPrice` מזווית Routing
 
 ‏בחלק 5 למדנו את ה־pricing semantics.
 
@@ -778,13 +813,16 @@ cancel confirmed
 ‏כלומר MidPrice היא דוגמה מצוינת ל־:
 
 ```text
-one client intent
-=> multiple possible broker execution paths
+one client behavior candidate
+=> broker-managed execution intelligence
+=> multiple possible routing/execution paths
 ```
+
+‏ולכן אין לקרוא לה פשוט `SMART midpoint order` כאילו SMART ו־MidPrice הם אותו dimension.
 
 ---
 
-## ‏7.41 מה עם `VWAP`, ‏`TWAP`, ‏`Arrival Price`, ‏`POV` ו־`Minimize Impact`?
+## ‏7.42 מה עם `VWAP`, ‏`TWAP`, ‏`Arrival Price`, ‏`POV` ו־`Minimize Impact`?
 
 ‏אלה Algos מקצועיות מאוד, אבל פותרות בדרך כלל בעיה אחרת משלנו:
 
@@ -802,17 +840,17 @@ participation scheduling
 
 ---
 
-## ‏7.42 `Arrival Price`
+## ‏7.43 `Arrival Price`
 
 ‏הרעיון הוא לנהל execution ביחס ל־arrival-price benchmark תוך איזון בין urgency ל־market impact.
 
 ‏זה חשוב Institutional Execution, אבל אצלנו arrival horizon קצר כל כך שהשאלה המרכזית אינה כיצד לפרוס Order לאורך עשרות דקות — אלא אם בכלל ניתן לבצע את Edge לפני שהוא מת.
 
-‏לכן `Arrival Price` היא כרגע `Low relevance / conceptual value`.
+‏לכן `Arrival Price` היא כרגע `REFERENCE ONLY / conceptual value` למנוע הזה.
 
 ---
 
-## ‏7.43 `TWAP` ו־`VWAP`
+## ‏7.44 `TWAP` ו־`VWAP`
 
 ‏`TWAP` מפזרת execution לפי זמן; `VWAP` מכוונת לדפוסי volume/benchmark.
 
@@ -826,7 +864,7 @@ participation scheduling
 
 ---
 
-## ‏7.44 `Percent of Volume`
+## ‏7.45 `Percent of Volume`
 
 ‏POV מכוונת participation יחסית ל־market volume.
 
@@ -842,7 +880,7 @@ our size is materially large relative to short-horizon volume
 
 ---
 
-## ‏7.45 `Minimize Impact`
+## ‏7.46 `Minimize Impact`
 
 ‏המטרה היא לעבוד Order בדרך שמנסה לצמצם market impact.
 
@@ -852,7 +890,7 @@ our size is materially large relative to short-horizon volume
 
 ---
 
-## ‏7.46 `Dark Ice`
+## ‏7.47 `Dark Ice`
 
 ‏Dark/Iceberg-oriented Algo רלוונטית כאשר Size ו־signaling הם בעיה.
 
@@ -868,7 +906,7 @@ our displayed size changes book behavior
 
 ---
 
-## ‏7.47 `Accumulate / Distribute`
+## ‏7.48 `Accumulate / Distribute`
 
 ‏IBKR מתעדת אותה כ־Algo שמחלקת Order גדולה ל־increments בגודל ובזמנים שיכולים להיות randomized, במטרה לעבוד volume בלי לחשוף את מלוא הכוונה; היא אף מציינת שאפשר להגדיר אותה ל־high-frequency trading.
 
@@ -878,7 +916,7 @@ our displayed size changes book behavior
 
 ---
 
-## ‏7.48 Third-Party Algos — למה לא נרוץ אליהן מוקדם
+## ‏7.49 Third-Party Algos — למה לא נרוץ אליהן מוקדם
 
 ‏IBKR מציגה גם Algos של צדדים שלישיים עם dark seeking, participation ו־venue logic מתקדמים.
 
@@ -895,9 +933,9 @@ harder reproducibility
 
 ---
 
-## ‏7.49 `SMART` היא Baseline — לא אמת מוחלטת
+## ‏7.50 `SMART` כ־Routing Baseline — `POLICY DEFAULT`, לא Fact אוניברסלי
 
-‏במנוע הראשון סביר להשתמש ב־SMART כ־baseline רחב מפני שהוא מפחית צורך במודל Venues עצמאי.
+> ‏`POLICY DEFAULT` — ב־Research V1 סביר להשתמש ב־SMART כ־routing baseline רחב מפני שהוא מפחית צורך במודל Venues עצמאי.
 
 ‏אבל אסור לקבוע:
 
@@ -911,12 +949,12 @@ SMART is always best
 
 ---
 
-## ‏7.50 מתי Direct הופכת Candidate רצינית
+## ‏7.51 מתי Direct הופכת Candidate רצינית
 
 ‏למשל כאשר:
 
 ```text
-specific order type requires it
+specific broker primitive/variant requires it
 specific venue repeatedly shows better fill quality
 we need deterministic midpoint semantics
 we need ATS-specific behavior
@@ -927,12 +965,12 @@ we can model venue fees/latency/rejections reliably
 
 ---
 
-## ‏7.51 מתי Broker Algo הופכת Candidate רצינית
+## ‏7.52 מתי Broker Algo הופכת Candidate רצינית
 
 ‏כאשר:
 
 ```text
-we want broker-side reaction faster than client loop
+we want broker-side reaction instead of client-side repricing/search
 spread is meaningful
 price improvement matters
 signal lifetime leaves room for search
@@ -950,36 +988,50 @@ we cannot measure actual path
 
 ---
 
-## ‏7.52 Routing Policy Object במנוע
+## ‏7.53 `RoutingPlan` ו־`BrokerAlgoPlan` הם אובייקטים נפרדים
 
-‏במקום מחרוזת:
+‏מודל ישן שמערבב הכול כך:
 
 ```text
-route = SMART
+mode = SMART | DIRECT | IB_ALGO
 ```
 
-‏נרצה מודל עשיר יותר:
+‏שגוי מבחינת ה־taxonomy, משום ש־`IB_ALGO` אינו Routing Policy מקביל ל־SMART/Direct.
+
+‏נעדיף מבנה כגון:
 
 ```text
-RoutingPolicy {
-  mode                 // SMART | DIRECT | IB_ALGO
+RoutingPlan {
+  policy               // SMART | DIRECT
   destination
   smart_variant
-  broker_algo
-  broker_algo_params
   dark_liquidity_policy
   cost_consideration
   max_route_latency_ms
-  application_ttl_ms
-  fallback_policy
+}
+
+BrokerAlgoPlan {
+  enabled
+  algo_name            // ADAPTIVE | MIDPRICE | ...
+  algo_params
+}
+
+ConcreteOrderPlan {
+  broker_primitive
+  tif
+  attributes
+  economic_price_bound
+  routing_plan
+  broker_algo_plan
+  application_order_ttl
 }
 ```
 
-‏כך Strategy אינה צריכה לדעת פרטים של Broker.
+‏כך Broker-specific requirements יכולות להגביל routing/materialization בלי לזהם את `Application Execution Mode`.
 
 ---
 
-## ‏7.53 `Execution Intent` נשאר מעל Routing
+## ‏7.54 `Trade Intent` נשאר מעל Routing ו־Broker Algo
 
 ‏ה־Strategy אומרת למשל:
 
@@ -987,55 +1039,67 @@ RoutingPolicy {
 BUY
 urgency = HIGH
 signal_ttl = 900ms
-max_price = 50.04
+entry_max_price = 50.04
 partial_fill_ok = true
 ```
 
-‏Execution Policy יכולה לבחור:
+‏Execution layer יכולה לבחור:
 
 ```text
-SMART MARKETABLE_LIMIT IOC
+ApplicationExecutionMode = AGGRESSIVE_CAPPED
+BehaviorCandidate = MARKETABLE_LIMIT_IOC
+RoutingPolicy = SMART
 ```
 
 ‏או:
 
 ```text
-ADAPTIVE LIMIT URGENT
+ApplicationExecutionMode = BROKER_MANAGED
+BehaviorCandidate = ADAPTIVE_LIMIT_URGENT
+BrokerAlgo = Adaptive(Urgent)
+EconomicPriceBound = 50.04
 ```
 
 ‏או:
 
 ```text
-DIRECT PEGGED_MIDPOINT
+ApplicationExecutionMode = MIDPOINT_SEEKING
+BehaviorCandidate = PEGGED_MIDPOINT_DIRECT
+RoutingPolicy = DIRECT
+Destination = validated venue
 ```
 
 ‏בלי לשנות את ה־Signal עצמו.
 
 ---
 
-## ‏7.54 Routing Capability Model
+## ‏7.55 Routing / Algo Capability Model
 
-‏לכל Contract/Route נשמור רעיונית:
+‏לכל Contract/path נשמור רעיונית dimensions נפרדים:
 
 ```text
 valid_exchanges
-supported_order_types
+supported_order_primitives
+supported_attributes
+supported_tifs
 supported_algos
 smart_available
-direct_available
+direct_destinations
 session_constraints
 outside_rth_support
 ```
 
 ‏ולא נניח שכל Capability גלובלית של IBKR זמינה לחשבון/Contract/Route שלנו.
 
+‏Capability מסננת מה ניתן לשקול; היא אינה בוחרת את ה־Behavior המנצחת.
+
 ---
 
-## ‏7.55 `IBKR Israel` — למה לא כותבים YES/NO גורף
+## ‏7.56 Account / Legal Entity — למה לא כותבים YES/NO גורף
 
-‏התיעוד הרשמי שבדקנו הוא תיעוד מוצר/API גלובלי של IBKR ואינו נותן בכל Order Type תשובת `IBKR Israel = yes/no` פשוטה.
+‏התיעוד הרשמי שבדקנו הוא תיעוד מוצר/API גלובלי של IBKR ואינו נותן בכל feature תשובת account/legal-entity `yes/no` פשוטה.
 
-‏לכן לפני Live נבדוק בפועל:
+‏לכן לפני Production נבדוק בפועל:
 
 ```text
 account legal entity
@@ -1048,11 +1112,21 @@ paper/live behavior
 
 ‏וגם נשתמש ב־runtime capability endpoints / ContractDetails כאשר הם רלוונטיים.
 
+‏התוצאה תיכנס ל־enablement progression הקנוני:
+
+```text
+DOC_ONLY
+RUNTIME_CONFIRMED
+PAPER_ACCEPTED
+LIVE_SMALL_ACCEPTED
+PRODUCTION_ENABLED
+```
+
 ---
 
-## ‏7.56 `TWS API` ו־Smart Routing
+## ‏7.57 `TWS API` ו־Smart Routing
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏תיעוד TWS API מציג Smart Routing options גם ב־API, כולל `SMART` ו־`SMART DarkOnly`, ובשווקים מסוימים options נוספים כגון preferences ל־rebate/fill.
 
@@ -1060,7 +1134,7 @@ paper/live behavior
 
 ---
 
-## ‏7.57 API אינו Router בפני עצמו
+## ‏7.58 API אינו Router בפני עצמו
 
 ‏IBKR מתעדת של־TWS API אין "לוגיקה עסקית" משל עצמה מעבר להעברת messages; validation והחלטות מתבצעות ב־TWS/servers.
 
@@ -1078,18 +1152,18 @@ our API client
 our Python library itself performs SmartRouting
 ```
 
-‏ההבחנה הזו חשובה ל־latency diagnostics.
+‏ההבחנה הזו חשובה ל־latency diagnostics ול־ownership.
 
 ---
 
-## ‏7.58 Venue Outage ו־Rejection
+## ‏7.59 Venue Outage ו־Rejection
 
 ‏גם Routing טובה צריכה Failure Policy.
 
 ‏נשמור reason codes ונבדיל בין:
 
 ```text
-unsupported order type
+unsupported order primitive/combination
 invalid route
 venue unavailable
 broker validation reject
@@ -1099,9 +1173,11 @@ algo unavailable
 
 ‏תגובה אוטומטית לכולן ב־"שלח Market" תהיה מסוכנת.
 
+> ‏`ENGINE RULE` — Capability failure אינו market escalation. מסווגים את הכשל ומריצים Decision חדשה על המצב העדכני.
+
 ---
 
-## ‏7.59 Stale Market Data + Live Broker Algo
+## ‏7.60 Stale Market Data + Live Broker Algo
 
 ‏תרחיש מסוכן:
 
@@ -1116,40 +1192,40 @@ broker algo remains alive
 
 ---
 
-## ‏7.60 Split-Brain בין Router ל־Signal Engine
+## ‏7.61 Split-Brain בין Broker Execution Intelligence ל־Signal Engine
 
 ‏כאשר Broker Algo מנהלת execution וה־Signal Engine מנהל validity, יש שתי מערכות החלטה.
 
 ‏צריך חוזה ברור:
 
 ```text
-broker may optimize HOW
-engine owns WHETHER the intent is still valid
+broker may optimize HOW within delegated bounds
+engine owns WHETHER intent remains valid
 ```
 
-‏ברגע שה־intent מת — המנוע מבקש Cancel ומתחיל reconciliation.
+‏ברגע שה־intent מת — המנוע מבקש Cancel ומתחיל reconciliation. ה־Broker אינו מקבל בעלות על `signal_ttl` רק משום שקיבל Algo Order.
 
 ---
 
-## ‏7.61 Research Matrix לחלק 7
+## ‏7.62 Research Matrix לחלק 7 — Behavior בנפרד מ־Routing/Algo
 
-‏ל־core entry הייתי משווה לפחות:
+‏ל־core entry נשווה לפחות:
 
-| Candidate | Routing/Algo | מטרה |
-|---|---|---|
-| `MARKETABLE_LIMIT_IOC_SMART` | SMART | ‏baseline אגרסיבי ותחום |
-| `PASSIVE_LIMIT_SMART` | SMART | ‏baseline פסיבי |
-| `ADAPTIVE_LIMIT_URGENT` | IB Algo | ‏price improvement קצר עם urgency גבוהה |
-| `ADAPTIVE_LIMIT_NORMAL` | IB Algo | ‏יותר search מול latency |
-| `MIDPRICE_SMART` | SMART | ‏midpoint search |
-| `PEGGED_MID_DIRECT` | Direct | ‏midpoint deterministic יותר לפי Venue |
-| `RELATIVE_SMART` | SMART | ‏broker-managed repricing |
+| Behavior Candidate | Routing Policy | Broker Algo | מטרה |
+|---|---|---|---|
+| `MARKETABLE_LIMIT_IOC` | SMART | none | ‏baseline אגרסיבי ותחום |
+| `PASSIVE_JOIN` | SMART | none | ‏baseline פסיבי |
+| `ADAPTIVE_LIMIT_URGENT` | broker-required path | Adaptive/Urgent | ‏price improvement קצר עם urgency גבוהה |
+| `ADAPTIVE_LIMIT_NORMAL` | broker-required path | Adaptive/Normal | ‏יותר search מול latency |
+| `MIDPRICE` | SMART | MidPrice | ‏midpoint-oriented broker search |
+| `PEGGED_MIDPOINT_DIRECT` | DIRECT | none | ‏midpoint behavior ב־Destination מאומת |
+| `RELATIVE_PRIMARY` | SMART או DIRECT לפי capability | none / broker-managed primitive semantics | ‏dynamic repricing לפי reference |
 
-‏Direct Venue-specific plain limits יתווספו רק כאשר יש Hypothesis מוגדרת.
+‏Direct Venue-specific plain limits יתווספו רק כאשר יש `RESEARCH HYPOTHESIS` מוגדרת.
 
 ---
 
-## ‏7.62 הניסוי חייב להשוות Opportunities, לא רק Fills
+## ‏7.63 הניסוי חייב להשוות Opportunities, לא רק Fills
 
 ‏אותו כלל מחלקים קודמים:
 
@@ -1159,7 +1235,7 @@ filled orders only
 
 ‏ייצר bias.
 
-‏לכל Signal opportunity נרשום מה היה קורה לכל routing candidate, כולל:
+‏לכל Signal opportunity נרשום מה היה קורה לכל candidate, כולל:
 
 ```text
 filled
@@ -1174,10 +1250,11 @@ exit cost
 
 ---
 
-## ‏7.63 Telemetry שחייבים להוסיף ל־Routing
+## ‏7.64 Telemetry שחייבים להוסיף ל־Routing ו־Broker Algo
 
 ```text
-routing_mode
+behavior_candidate
+routing_policy
 requested_destination
 actual_execution_venue
 smart_variant
@@ -1209,13 +1286,14 @@ fee_component
 
 ---
 
-## ‏7.64 Metrics מרכזיים
+## ‏7.65 Metrics מרכזיים
 
 ```text
-fill_rate_by_route
-partial_fill_rate_by_route
-time_to_first_fill_by_route
-time_to_full_fill_by_route
+fill_rate_by_behavior_and_route
+partial_fill_rate_by_behavior_and_route
+time_to_first_fill
+time_to_useful_fill
+time_to_full_fill
 price_improvement_vs_arrival
 implementation_shortfall
 all_in_fee_bps
@@ -1225,20 +1303,21 @@ markout_1s
 markout_5s
 missed_move_after_no_fill
 cancel_latency
+stale_fill_rate
 reject_rate
-net_edge_per_signal_by_route
+net_edge_per_signal
 ```
 
-‏זו הדרך להחליט אם Smart/Direct/Adaptive באמת עוזרים.
+‏זו הדרך להחליט אם Smart/Direct/Adaptive באמת עוזרים, בלי לייחס בטעות שיפור של Algo ל־Routing או להפך.
 
 ---
 
-## ‏7.65 Failure Modes שחייבים לבדוק
+## ‏7.66 Failure Modes שחייבים לבדוק
 
 ```text
 SMART order fills across multiple venues
 Direct venue has no liquidity
-Direct order type rejected by venue
+Direct broker primitive rejected by venue
 venue goes unavailable
 market moves during reroute
 partial fill then route behavior changes
@@ -1254,7 +1333,7 @@ algo unavailable for contract
 
 ---
 
-## ‏7.66 Acceptance Tests לפני Live
+## ‏7.67 Acceptance Tests לפני Production Enablement
 
 ```text
 1. SMART marketable limit full fill
@@ -1262,14 +1341,14 @@ algo unavailable for contract
 3. SMART IOC partial then cancel remainder
 4. Direct venue full fill
 5. Direct venue no-fill
-6. Direct unsupported order type reject
+6. Direct unsupported primitive/combination reject
 7. Adaptive Limit Urgent full fill
 8. Adaptive Limit Urgent partial fill
 9. Adaptive cancel before fill
 10. Adaptive cancel racing with fill
 11. MidPrice fill at midpoint/better
-12. MidPrice no-fill then TTL cancel
-13. Directed midpoint rejection/fallback policy
+12. MidPrice no-fill then application_order_ttl cancel
+13. Directed midpoint rejection/fallback re-decision
 14. Market-data stale while broker algo live
 15. Reconnect with algo order still active
 16. Verify actual venue/fees from executions
@@ -1279,48 +1358,49 @@ algo unavailable for contract
 
 ---
 
-## ‏7.67 מטריצת התאמה ראשונית למנוע שלנו
+## ‏7.68 מטריצת התאמה ראשונית למנוע שלנו
 
-| כלי | התאמה ראשונית | יתרון מרכזי | סיכון מרכזי |
-|---|---|---|---|
-| `SMART` | `High/Baseline` | ‏multi-venue search בלי Router מקומי | ‏פחות determinism |
-| Direct plain Limit | `Medium/Advanced` | ‏Venue control | ‏missed liquidity/model risk |
-| `Adaptive Limit Urgent` | `High/Challenger` | ‏price/speed trade-off עם cap | ‏behavior פחות deterministic מ־IOC |
-| `Adaptive Limit Normal` | `High/Challenger` | ‏יותר price improvement potential | ‏signal decay בזמן search |
-| `Adaptive Patient` | `Low/Research` | ‏מחיר אולי טוב יותר | ‏זמן המתנה כנראה ארוך מדי ל־core signal |
-| `MidPrice` | `High/Challenger` | ‏SMART midpoint search | ‏no-fill / broker path opacity |
-| `SMART DarkOnly` | `Low/Advanced` | ‏non-displayed liquidity focus | ‏missed move / unknown liquidity |
-| `IBKR ATS Direct` | `Advanced Challenger` | ‏ATS-specific behavior | ‏destination dependence |
-| `VWAP/TWAP/POV` | `Low now` | ‏scheduling/impact control | ‏horizon mismatch |
-| `Accumulate/Distribute` | `Low now` | ‏large-order slicing | ‏signal half-life mismatch |
+| כלי | שכבה קנונית | התאמה ראשונית | יתרון מרכזי | סיכון מרכזי |
+|---|---|---|---|---|
+| `SMART` | Routing Policy | `CORE BASELINE` | ‏multi-venue search בלי Router מקומי | ‏פחות determinism |
+| Direct plain Limit | Routing + primitive | `RESEARCH CHALLENGER` | ‏Venue control | ‏missed liquidity/model risk |
+| `Adaptive Limit Urgent` | Broker Algo + Behavior | `RESEARCH CHALLENGER` | ‏price/speed trade-off עם bound | ‏behavior פחות deterministic מ־IOC |
+| `Adaptive Limit Normal` | Broker Algo + Behavior | `RESEARCH CHALLENGER` | ‏יותר price-improvement potential | ‏signal decay בזמן search |
+| `Adaptive Patient` | Broker Algo | `REFERENCE / RESEARCH` | ‏מחיר אולי טוב יותר | ‏זמן המתנה כנראה ארוך מדי ל־core signal |
+| `MidPrice` | Broker Algo + Behavior | `RESEARCH CHALLENGER` | ‏SMART midpoint search | ‏no-fill / broker path opacity |
+| `SMART DarkOnly` | Routing Variant | `SPECIALIST / CONDITIONAL` | ‏non-displayed liquidity focus | ‏missed move / unknown liquidity |
+| `IBKR ATS Direct` | Destination-specific routing | `SPECIALIST / CONDITIONAL` | ‏ATS-specific behavior | ‏destination dependence |
+| `VWAP/TWAP/POV` | Broker Algos | `REFERENCE ONLY` | ‏scheduling/impact control | ‏horizon mismatch |
+| `Accumulate/Distribute` | Broker Algo | `REFERENCE ONLY` | ‏large-order slicing | ‏signal half-life mismatch |
+
+‏הסיווגים כאן הם course/research priority, לא הוראת Live.
 
 ---
 
-## ‏7.68 Recommendation ארכיטקטונית בשלב הזה
+## ‏7.69 Recommendation ארכיטקטונית בשלב הזה
 
-‏בגרסת Research ראשונה לא הייתי בונה Smart Order Router משלנו.
+> ‏`POLICY DEFAULT` — בגרסת Research ראשונה לא נבנה Smart Order Router עצמאי בלי evidence שהוא נחוץ.
 
-‏הייתי נותן ל־IBKR `SMART` להיות routing baseline, ובונה Router Adapter שמסוגל לבחור במפורש בין:
+‏Routing layer צריכה להיות מסוגלת לייצג:
 
 ```text
 SMART
-DIRECT
-IB_ALGO
+DIRECT(destination)
 ```
 
-‏ובתוך `IB_ALGO` מתחיל ב־:
+‏ובנפרד Broker Algo layer צריכה להיות מסוגלת לייצג למשל:
 
 ```text
-Adaptive Limit Urgent
-Adaptive Limit Normal
-MidPrice
+NONE
+ADAPTIVE(priority)
+MIDPRICE
 ```
 
-‏לצד ה־baselines שכבר בנינו.
+‏Behavior Candidates מחברות את השכבות רק כאשר semantics וה־capability דורשות זאת.
 
 ---
 
-## ‏7.69 למה לא לבנות Router עצמאי מוקדם מדי
+## ‏7.70 למה לא לבנות Router עצמאי מוקדם מדי
 
 ‏Router עצמאי דורש:
 
@@ -1340,7 +1420,7 @@ continuous maintenance
 
 ---
 
-## ‏7.70 מתי כן לשקול Router עצמאי
+## ‏7.71 מתי כן לשקול Router עצמאי
 
 ‏רק אם הנתונים מראים patterns חוזרים כגון:
 
@@ -1348,15 +1428,15 @@ continuous maintenance
 specific venue consistently fills faster/better
 specific order family requires direct access
 SMART adds measurable delay in our regime
-venue-specific queue behavior creates durable advantage
+venue-specific queue behavior creates durable execution advantage
 fees materially alter net edge
 ```
 
-‏אז יש Hypothesis הנדסית שאפשר לבדוק.
+‏אז יש `RESEARCH HYPOTHESIS` הנדסית שאפשר לבדוק.
 
 ---
 
-## ‏7.71 Routing אינו Alpha
+## ‏7.72 Routing אינו Alpha
 
 ‏Router טוב יכול:
 
@@ -1369,13 +1449,13 @@ find hidden liquidity
 
 ‏אבל אינו הופך Signal חסר Edge לרווחי.
 
-‏הוא מכפיל או שוחק Edge קיים.
+‏הוא יכול לשמר או לשחוק Edge קיים; אין להסיק משיפור execution ש־Strategy עצמה קיבלה Alpha חדש.
 
 ---
 
-## ‏7.72 Practitioner Secrets — הדברים שקל לפספס
+## ‏7.73 Practitioner Secrets — הדברים שקל לפספס
 
-### ‏1. `SMART` היא מערכת החלטה, לא Exchange
+### ‏1. `SMART` היא Routing Policy, לא Exchange
 
 ‏`SMART` יכולה להפנות Order למספר destinations לפי מצב השוק.
 
@@ -1393,15 +1473,15 @@ find hidden liquidity
 
 ### ‏5. Broker Algo לא יודעת שה־Signal מת
 
-‏TTL ו־cancel-on-decay נשארים באחריות שלנו.
+‏`signal_ttl`, ‏`application_order_ttl` ו־cancel-on-decay נשארים באחריות שלנו.
 
 ### ‏6. `Adaptive Urgent` אינה `IOC`
 
-‏האחת Broker execution policy; השנייה time-in-force semantics מיידית.
+‏האחת Broker Algo behavior; השנייה Time / Fill semantics מיידית.
 
-### ‏7. `MidPrice` היא גם Routing Decision
+### ‏7. `MidPrice` אינה שם אחר ל־SMART
 
-‏לא רק דרך לחשב מחיר.
+‏SMART היא Routing Policy; ‏MidPrice מוסיפה Broker execution intelligence עם objective משלה.
 
 ### ‏8. Direct Routing יוצרת Technical Debt
 
@@ -1423,13 +1503,17 @@ find hidden liquidity
 
 ‏Broker Algo יכולה לחסוך cancel/replace churn ועדיין להפסיד ב־missed opportunity או adverse selection.
 
-### ‏13. Route Fallback היא החלטה חדשה
+### ‏13. Route Fallback היא Decision חדשה
 
 ‏Order שנכשלה ב־Venue מסוים אינה אישור אוטומטי לשלוח אותה במקום אחר אם ה־Signal כבר השתנה.
 
-### ‏14. Account Availability חייבת להיבדק בפועל
+### ‏14. Availability אינה Production Eligibility
 
-‏Global documentation אינה substitute לבדיקת Product/Legal Entity/Permissions/API path שלנו.
+‏Global documentation או runtime acceptance אינן `PRODUCTION_ENABLED` בלי evidence, recovery ו־risk validation.
+
+### ‏15. יותר Broker Intelligence פירושו גם יותר Delegation
+
+‏היתרון יכול להיות פחות churn ותגובה קרובה יותר ל־routing infrastructure; המחיר הוא פחות control ודטרמיניזם. לכן תמיד שואלים איזה `HOW` אנחנו מעבירים החוצה ואיזה `WHETHER` נשאר אצלנו.
 
 ---
 
@@ -1450,8 +1534,10 @@ find hidden liquidity
 
 # ‏Checkpoint — סוף חלק 7
 
-‏בחלק הזה הפרדנו בין שלוש רמות של delegation: ‏`SMART` נותנת ל־IBKR לבחור Venue; ‏Direct Routing מחזירה אלינו את בחירת ה־Venue; ו־Broker Algos כגון `Adaptive` ו־`MidPrice` מוסיפות גם החלטות execution מעבר לבחירת היעד. ירדנו לעומק של fragmentation, NBBO מול liquidity אמיתית, dark/hidden liquidity, fees/rebates, split fills, venue model, routing latency, fallback, capability discovery ו־telemetry.
+‏בחלק הזה הפרדנו בין שכבות delegation שאסור לערבב: ‏`SMART` ו־Direct הן Routing Policies שקובעות מי בוחר Destination; ‏Broker Algos כגון `Adaptive` ו־`MidPrice` מוסיפות execution intelligence; ו־Behavior Candidates של המנוע מחברות את השכבות רק כאשר צריך. ירדנו לעומק של fragmentation, NBBO מול liquidity אמיתית, dark/hidden liquidity, fees/rebates, split fills, venue model, routing latency, fallback, capability discovery ו־telemetry.
 
-‏המסקנה הראשונית למנוע שלנו היא ש־`SMART` צריכה להיות baseline רחבה ולא הנחה עיוורת; ‏Direct תקודם כאשר יש hypothesis מוכחת או Order Type שדורשת אותה; ו־`Adaptive Limit Urgent/Normal` יחד עם `MidPrice` צריכות להיכנס מוקדם ל־Research Harness מול `Marketable Limit + IOC`, ‏Passive Limit ו־Pegged families.
+‏המסקנה למנוע שלנו היא ש־`SMART` יכולה לשמש `POLICY DEFAULT` מחקרי ולא אמת אוניברסלית; ‏Direct תקודם כאשר יש hypothesis מוכחת או capability שדורשת אותה; ו־`Adaptive Limit Urgent/Normal` יחד עם `MidPrice` נשארות Research Challengers מול `MARKETABLE_LIMIT_IOC`, ‏`PASSIVE_JOIN` ו־Pegged families — תחת `Economic Price Bound`, ‏TTL, capability gating ו־fresh re-decision.
 
-‏החלק הבא יהיה **חלק 8 — Cancel/Replace ו־Execution State Machine**: נרד לרמת lifecycle מלאה של modify/cancel, אובדן queue priority, duplicate/out-of-order events, idempotency, reconnect, late fills, broker truth, reconciliation ו־recovery כך שכל ה־Order Types שלמדנו עד עכשיו יוכלו לחיות בתוך מנוע Production אחד.
+‏החלק הבא יהיה **חלק 8 — Cancel/Replace ו־Execution State Machine**: נרד לרמת lifecycle מלאה של modify/cancel, אובדן queue priority, duplicate/out-of-order events, idempotency, reconnect, late fills, broker truth, reconciliation ו־recovery כך שכל ה־Advanced Orders שלמדנו עד עכשיו יוכלו לחיות בתוך מנוע Production אחד.
+
+---
