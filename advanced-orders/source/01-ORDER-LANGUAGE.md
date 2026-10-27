@@ -1,5 +1,7 @@
 # ‏חלק 1 — השפה המקצועית של פקודה
 
+> ‏הגדרות ה־taxonomy וה־vocabulary הקנוניות של הקורס נמצאות ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`. חלק זה מלמד את המודל; כאשר מונח נראה רחב מדי, `00A` קובע את שכבת ה־abstraction המדויקת שלו.
+
 ## ‏1.1 פקודה אינה `BUY` או `SELL`
 
 ‏פקודת מסחר מקצועית היא חוזה ביצוע קטן. כאשר המנוע שולח Order הוא אינו אומר רק "קנה"; הוא מגדיר סט של אילוצים והעדפות לגבי מחיר, זמן, כמות, Routing והתנהגות במקרה שהשוק אינו נותן בדיוק את מה שרצינו.
@@ -114,6 +116,17 @@ SMART
 
 ‏ההפרדה הזאת קריטית אצלנו משום שאותו Signal יכול להצדיק Order שונה לפי Spread, ‏Depth, ‏volatility, ‏time-to-expiry והאם אנחנו נכנסים לפוזיציה או כבר מנסים לצאת ממנה.
 
+‏ב־taxonomy הקנונית יש עוד שכבה באמצע שכדאי לזכור:
+
+```text
+Trade Intent
+→ Application Execution Mode
+→ Behavior Candidate
+→ Concrete Broker Order
+```
+
+‏כך `PASSIVE` או `FAST_EXIT` אינן מתחרות בשם עם `Limit`, ‏`IOC`, ‏`SMART` או `Adaptive`; הן נמצאות בשכבות שונות.
+
 ---
 
 ## ‏1.3 `Order Type` אינו מספר לנו את כל הסיפור
@@ -130,6 +143,8 @@ SMART
 - ‏כמה זמן המנוע עצמו מוכן להשאיר אותה בחיים.
 
 ‏לכן במנוע שלנו אסור להשתמש ב־`order_type` בתור תיאור מלא של execution behavior.
+
+> ‏`ENGINE RULE` — בקורס הזה `Marketable Limit` אינה Broker primitive נפרדת. היא `Limit` שמחירה marketable מול snapshot השוק הנוכחי. ‏`MARKETABLE_LIMIT_IOC` הוא Behavior Candidate קונקרטי יותר שמשלב Limit marketable עם `IOC`.
 
 ‏עדיף לחשוב על אובייקט עשיר יותר:
 
@@ -154,23 +169,31 @@ ExecutionInstruction {
 }
 ```
 
-‏השמות המדויקים בקוד יכולים להיות שונים; העיקר הוא שהמשמעות תהיה מפורשת.
+‏השמות המדויקים בקוד יכולים להיות שונים; העיקר הוא שהמשמעות תהיה מפורשת ושלא נכניס Primitive, Attribute, Routing ו־Application Mode לאותו enum.
 
 ---
 
-# ‏1.4 `Native`, ‏`Broker-Simulated`, ‏`Client-Managed`
+# ‏1.4 איפה ה־state חי, מי מנהל אותו, ומה Native
 
-‏זה אחד ההבדלים החשובים ביותר בעולם הפקודות המתקדמות.
+‏ה־taxonomy הקנונית מפרידה שלושה צירים שקל לערבב ביניהם:
 
-## ‏`Native`
+```text
+WHERE STATE LIVES
+WHO EVALUATES / REPRICES / TRIGGERS
+WHERE THE FINAL INSTRUCTION IS NATIVE
+```
 
-‏ה־Venue עצמו מכיר את סוג הפקודה או את התכונה שלה ומנהל אותה.
+‏לכן המונחים הבאים אינם synonyms.
 
-‏לדוגמה עקרונית, אם Venue תומך בפקודה מסוימת Native, הברוקר שולח אליו הוראה שה־matching engine של אותו Venue יודע לנהל.
+## ‏`Venue-Native`
+
+‏ה־Venue עצמו מכיר את סוג הפקודה או את התכונה שלה ומנהל אותה בתוך ה־matching infrastructure שלו.
+
+‏לדוגמה עקרונית, אם Venue תומך בפקודה מסוימת Native, הברוקר שולח אליו הוראה שה־Venue יודע לנהל.
 
 ### ‏למה זה טוב?
 
-- ‏פחות תלות בלוגיקה מקומית של ה־Broker.
+- ‏פחות תלות בלוגיקה מקומית של ה־Broker עבור אותה semantics.
 - ‏לעיתים reaction מהיר יותר לשינויי Market State.
 - ‏הסמנטיקה יכולה להיות מוגדרת היטב על ידי ה־Venue.
 
@@ -180,24 +203,41 @@ ExecutionInstruction {
 - ‏אותו שם מסחרי יכול להתנהג אחרת בין Venues.
 - ‏Direct Routing עשוי להיות דרוש.
 
-## ‏`Broker-Simulated`
+## ‏`Broker-Managed / Broker-Simulated`
 
-‏הברוקר מציג לך Order Type מסוים, אבל בפועל שומר לוגיקה אצלו ומשגר/משנה Orders בסיסיות יותר לפי הצורך.
+‏הברוקר מחזיק או מפעיל חלק מהלוגיקה ומגיש/משנה Orders או triggers לפי semantics שהוא מספק.
 
-‏זה לא אומר שהפקודה "לא אמיתית". זה אומר שמי שמחזיק את ה־state machine שלה הוא הברוקר ולא בהכרח ה־Exchange.
+‏`Broker-Simulated` מתאר **איך ההתנהגות מיושמת**; הוא אינו אומר בהכרח אם instruction היא או אינה resident אצל הברוקר לאורך זמן.
+
+‏זה לא אומר שהפקודה "לא אמיתית". זה אומר שמי שמחזיק חלק מן ה־state machine או evaluation logic הוא הברוקר ולא בהכרח ה־Exchange.
 
 ### ‏למה זה חשוב לנו?
 
 ‏כאשר Signal חי רק שניות, צריך להבין:
 
 ```text
-Where is the logic running?
+Where is the state?
+Who evaluates or reprices it?
 What market data drives it?
-When does it reprice?
+When does it reprice or trigger?
 What happens during disconnects?
 What happens outside supported sessions?
 Can the behavior differ by destination?
 ```
+
+## ‏`Broker-Resident`
+
+‏זהו dimension נפרד: האם instruction יכולה להישאר חיה אצל הברוקר גם אם ה־process המקומי שלנו נעלם.
+
+‏לכן ייתכן concept שהוא:
+
+```text
+broker-resident
++
+broker-simulated
+```
+
+‏ואין להסיק מ־`resident` שהוא Venue-native.
 
 ## ‏`Client-Managed`
 
@@ -220,7 +260,7 @@ if not filled and signal still valid:
 
 ### ‏כלל עבודה
 
-> ‏לפני שמכניסים Order Type מתקדם למנוע, צריך לדעת **מי מנהל את ההתנהגות: Venue, Broker או אנחנו**.
+> ‏לפני שמכניסים Advanced Order למנוע, צריך לדעת לפחות: **איפה ה־state חי, מי מנהל את ההתנהגות, ומה ממשיך לחיות אם ה־client נעלם**.
 
 ---
 
@@ -262,11 +302,9 @@ WORKING → CANCEL_REQUESTED      │
 
 ‏במציאות יש עוד מצבים: Validation, ‏Held, ‏PendingSubmit, ‏Inactive, ‏Rejected, ‏PendingCancel ועוד, והשם המדויק תלוי API/Broker.
 
-‏העיקרון החשוב:
+> ‏`ENGINE RULE` — `CANCEL_REQUESTED != CANCEL_CONFIRMED != TERMINAL_NON_EXECUTABLE`.
 
-> ‏`cancel requested` אינו שווה ל־`cancel confirmed`.
-
-‏ובוודאי שאינו שווה ל־"אי אפשר יותר לקבל Fill".
+‏כלומר `cancel requested` אינו שווה ל־`cancel confirmed`, וגם `cancel confirmed` צריך להיות מפורש לפי ה־evidence וה־state model של ה־adapter; אסור להסיק רק מה־intent המקומי שאי אפשר יותר לקבל Fill.
 
 ---
 
@@ -290,7 +328,7 @@ WORKING → CANCEL_REQUESTED      │
 ```text
 local cancel intent
 broker cancel acknowledgement
-terminal order state
+terminal order evidence
 executed quantity
 remaining quantity
 position quantity
@@ -298,9 +336,19 @@ position quantity
 
 ‏זה אינו edge case תיאורטי. במנוע מהיר זו אחת מנקודות הכשל המרכזיות שצריך לתכנן לפני Live.
 
+‏מכאן ואילך פרקים מאוחרים משתמשים ב־Cancel invariant הזה כהגדרה קנונית ואינם אמורים להגדיר מחדש מהו Cancel בכל פעם.
+
 ---
 
 # ‏1.7 Partial Fill הוא מצב רגיל, לא תקלה
+
+‏הגדרה קנונית:
+
+```text
+0 < cumulative_filled_qty < requested_qty
+```
+
+‏Partial Fill אינה Error ואינה "Order שלא הצליחה". היא Execution fact שמשנה את ה־Position, את ה־remaining intent ואת ה־risk.
 
 ‏נניח שרצינו 100 מניות וקיבלנו:
 
@@ -330,6 +378,16 @@ Can the remaining quantity still enter without destroying net edge?
 ```
 
 ‏לכן `minimum useful fill` צריך להיות חלק מה־Execution Policy ולא תגובת חירום מאוחרת.
+
+‏הפרקים המאוחרים מרחיבים את אותה הגדרה לפי context במקום להגדיר תופעה חדשה:
+
+```text
+Part 2  -> economic meaning
+Part 3  -> IOC/FOK fill semantics
+Part 6  -> parent/child and protection consequences
+Part 8  -> execution-state truth
+Part 10 -> fresh decision after each partial fill
+```
 
 ---
 
@@ -398,30 +456,47 @@ signal freshness
 
 ---
 
-# ‏1.10 `Time in Force` אינו רק שדה טכני
+# ‏1.10 ארבעה שעונים שאסור לערבב
 
-‏`TIF` מגדיר כמה זמן Broker/Venue רשאים להשאיר את הפקודה חיה, אבל אצל מנוע קצר־טווח צריך בדרך כלל גם Lifetime אפליקטיבי משלנו.
+‏`TIF` הוא רק אחד מכמה clocks שונים.
+
+‏ה־vocabulary הקנוני הוא:
+
+```text
+broker_tif
+signal_ttl
+application_order_ttl
+working_order_age
+```
+
+### ‏`broker_tif`
+
+‏כמה זמן Broker/Venue רשאים להשאיר את הפקודה חיה לפי הוראת הזמן שלה, למשל `DAY`, ‏`GTC` או `IOC`.
+
+### ‏`signal_ttl`
+
+‏כמה זמן ה־Trade Intent או Signal עדיין נחשבים תקפים מבחינת Strategy.
+
+### ‏`application_order_ttl`
+
+‏כמה זמן האפליקציה שלנו מוכנה להשאיר את ה־Order/attempt המסוים בחיים לפני cancel/re-decision.
+
+### ‏`working_order_age`
+
+‏כמה זמן ה־Order הקונקרטית כבר חיה ועובדת בפועל.
 
 ‏לדוגמה:
 
 ```text
-tif = DAY
-application_ttl = 750 ms
+broker_tif = DAY
+signal_ttl = 1800 ms
+application_order_ttl = 750 ms
+working_order_age = 420 ms
 ```
 
-‏אין סתירה.
+‏אין סתירה: כל clock עונה על שאלה אחרת.
 
-‏`DAY` אומר שהברוקר יכול להחזיק אותה עד סוף היום אם לא נבטל; `application_ttl` אומר שהאסטרטגיה שלנו כבר אינה רוצה אותה אחרי 750 מילישניות.
-
-‏במנוע שלנו חשוב לא לבלבל:
-
-```text
-broker order lifetime
-with
-signal lifetime
-```
-
-‏אלה שני שעונים שונים.
+> ‏`ENGINE RULE` — כאשר הקורס אומר `TTL`, יש לציין איזה TTL. ‏`TTL` ללא qualifier אינה vocabulary קנונית.
 
 ---
 
@@ -445,7 +520,19 @@ Native or simulated?
 
 ‏לדוגמה, IBKR מתעדת Order Types שבהם מצוין במפורש `TWS Only`, אחרים זמינים גם ב־`IBKR Desktop`, ‏`Mobile` או `Client Portal`, וחלקם דורשים Direct Routing במקום `SMART`.
 
-‏לכן בסוף המסמך לא תהיה עמודה אחת בשם `IBKR = YES/NO`. תהיה Capability Matrix מפורטת.
+‏אבל גם תשובה מלאה לשאלות האלה אומרת רק מה **מתועד או זמין**, לא בהכרח מה מותר למנוע שלנו ב־Production.
+
+‏לכן הקורס משתמש ב־Capability/Enablement progression הקנונית:
+
+```text
+DOC_ONLY
+RUNTIME_CONFIRMED
+PAPER_ACCEPTED
+LIVE_SMALL_ACCEPTED
+PRODUCTION_ENABLED
+```
+
+‏רק `PRODUCTION_ENABLED` היא הרשאה של המערכת להשתמש ב־capability ב־Production.
 
 ---
 
@@ -466,8 +553,9 @@ validExchanges
 ‏לכן עיקרון הנדסי טוב הוא:
 
 ```text
-static capability knowledge
+documented capability knowledge
 + runtime contract capability discovery
++ acceptance evidence
 + broker rejection handling
 ```
 
@@ -479,44 +567,46 @@ hard-code once and assume forever
 
 ‏זה חשוב במיוחד כאשר אנחנו סורקים אלפי מניות ורוצים שה־Execution Engine יהיה robust לשינויים במוצר, Venue או Broker configuration.
 
+> ‏`ENGINE RULE` — Capability discovery מסננת מה אפשר לשקול; היא אינה בוחרת את Execution Behavior המנצחת ואינה הופכת feature אוטומטית ל־`PRODUCTION_ENABLED`.
+
 ---
 
 # ‏1.13 עובדות `IBKR` שאומתו למסגרת הקורס
 
 > ‏אימות אחרון: `2026-10-27`. אלה עובדות תיעוד כלליות של IBKR; לפני Live נבדוק גם את החשבון, המוצר וה־routing בפועל.
 
-### ‏עובדה: `TWS API` חושף Order Object עשיר
+### ‏`FACT` — `TWS API` חושף Order Object עשיר
 
 ‏ה־API כולל בין היתר `orderType`, ‏`lmtPrice`, ‏`auxPrice`, ‏`tif`, ‏`displaySize`, ‏`allOrNone`, ‏parent relationships ושדות מתקדמים נוספים. כלומר ה־API אינו מוגבל ל־Market/Limit בסיסיות.
 
-### ‏עובדה: IBKR מפרידה בין פקודות דומות לפי Routing
+### ‏`FACT` — IBKR מפרידה בין פקודות דומות לפי Routing
 
 ‏לדוגמה, התיעוד הנוכחי של `Pegged-to-Midpoint` מציין שלפקודות מניות אמריקאיות נדרש Direct Routing, בעוד `MidPrice` מתועד כ־IBKR Algo עם `SMART` routing. לכן שני שמות שנשמעים דומים יכולים לעבור execution path שונה לגמרי.
 
-### ‏עובדה: לא כל Order Type מופיע בכל UI
+### ‏`FACT` — לא כל Order Type מופיע בכל UI
 
 ‏לדוגמה, `Iceberg / Reserve` מתועד כיום כ־`TWS Only`, בעוד `MidPrice` מתועד ב־`TWS`, ‏`IBKR Desktop`, ‏`IBKR Mobile` ו־`Client Portal`.
 
-### ‏עובדה: OCA אינה מבטיחה ביטול אטומי בבורסה
+### ‏`FACT` — OCA אינה מבטיחה ביטול אטומי בבורסה
 
 ‏IBKR מציינת במפורש שאין הבטחה שבקשת Cancel/Modify של OCA תגיע ל־Exchange לפני Order שכבר מתבצעת. זה בדיוק סוג ה־race שמנוע מקומי חייב לדעת להתמודד איתו.
 
 ---
 
-# ‏1.14 המשמעות הישירה לרובוט שלנו
+# ‏1.14 המשמעות הישירה למנוע שלנו
 
 ‏לפני שנדון בשמות המתקדמים, כבר אפשר לקבוע כמה עקרונות הנדסיים:
 
-1. ‏ה־Strategy לא תשלח Order ישירות; היא תיצור `Trade Intent`.
-2. ‏שכבת Execution נפרדת תבחר את ההתנהגות לפי Market State ו־Signal Lifetime.
-3. ‏כל Order תחזיק Price Bound מפורש כאשר הדבר מתאים, ולא נניח ש־Market תמיד בטוחה מספיק.
-4. ‏Partial Fill יהיה first-class state.
-5. ‏Cancel יהיה תהליך אסינכרוני, לא Boolean.
+1. ‏ה־Strategy לא תשלח Broker Order ישירות; היא תיצור `Trade Intent`.
+2. ‏שכבת Execution נפרדת תבחר `Application Execution Mode`, אחר כך Behavior Candidate, ורק לבסוף Concrete Broker Order.
+3. ‏כל Order תחזיק `Economic Price Bound` מפורש כאשר הדבר מתאים; ה־broker limit price הוא materialization של הגבול, לא המושג עצמו.
+4. ‏Partial Fill יהיה first-class execution state.
+5. ‏Cancel יהיה תהליך אסינכרוני הנשען על evidence, לא Boolean.
 6. ‏ה־Position יחושב מ־Fills בפועל, לא מ־requested quantity.
-7. ‏Support של Order Type ייבדק גם לפי Contract/Route ולא רק לפי תיעוד סטטי.
+7. ‏Capability תיבדק לפי Contract/Route/Adapter/Session וגם לפי enablement state, לא רק לפי תיעוד סטטי.
 8. ‏פקודה שלא מתאימה יותר ל־Signal תבוטל גם אם יש לה Queue Position טוב.
-9. ‏לא נבחר Order Type לפי השם המרשים ביותר; נבחר לפי הבעיה שהוא פותר.
-10. ‏כל Order Type מתקדם שייכנס למנוע יצטרך להראות שיפור ב־`net executable edge`, לא רק Fill Price יפה יותר.
+9. ‏לא נבחר Primitive, Attribute או Algo לפי השם המרשים ביותר; נבחר Behavior לפי הבעיה שהוא פותר ואז נממש אותו בשכבות הנכונות.
+10. ‏כל Advanced Order שתיכנס למנוע תצטרך להראות שיפור ב־`net executable edge` או ב־safety/reliability הרלוונטיים, לא רק Fill Price יפה יותר.
 
 ---
 
@@ -524,7 +614,7 @@ hard-code once and assume forever
 
 ‏בסיום המיני־קורס נוכל לענות באופן מדויק על כל אחת מהשאלות הבאות:
 
-- ‏מתי `Marketable Limit` עדיפה על `Market`?
+- ‏מתי Limit שהיא marketable עדיפה על `Market`, ומתי לבחור Behavior של `MARKETABLE_LIMIT_IOC`?
 - ‏מתי `IOC` עדיפה על Limit קצרה שאנחנו מבטלים בעצמנו?
 - ‏מה ההבדל המעשי בין `IOC`, ‏`FOK`, ‏`AON` ו־Minimum Quantity?
 - ‏מתי `Post Only` עוזרת ומתי היא גורמת לנו לפספס מומנטום?
@@ -532,13 +622,13 @@ hard-code once and assume forever
 - ‏מה ההבדל בין `MidPrice`, ‏`Pegged-to-Midpoint` ו־`Snap to Midpoint` ב־IBKR?
 - ‏מתי כדאי להשתמש ב־`Reserve/Iceberg` גם אם הכמות שלנו אינה מוסדית?
 - ‏מה `Hidden` עושה ל־queue ול־fill probability?
-- ‏איזו פקודה שומרת מחיר אבל לא משאירה stale remainder?
-- ‏מתי כדאי לנהל chase בעצמנו ומתי לתת ל־Broker Algo לעשות זאת?
+- ‏איזו התנהגות שומרת מחיר אבל לא משאירה stale remainder?
+- ‏מתי כדאי לנהל repricing/chase בעצמנו ומתי לתת ל־Broker Algo לעשות זאת?
 - ‏איך מתכננים Exit כאשר Entry התמלאה חלקית?
 - ‏איך מונעים parent/child race ב־Bracket Orders?
-- ‏מה קורה בזמן reconnect כאשר Order עדיין חיה ב־Broker?
-- ‏איך המנוע יודע מה באמת נתמך במניה וב־Venue מסוימים?
-- ‏איזו התנהגות מתאימה ל־entry רגיל, aggressive entry, passive probe, fast exit ו־emergency exit?
+- ‏מה קורה בזמן reconnect כאשר Order עדיין חיה אצל Broker?
+- ‏איך המנוע יודע מה מתועד, מה זמין runtime ומה באמת `PRODUCTION_ENABLED` במניה/Route מסוימים?
+- ‏איזה `Application Execution Mode` מתאים ל־Entry פסיבית, Entry אגרסיבית תחומה, `FAST_EXIT` או `EMERGENCY_REDUCE`, ואיזה Broker Order מממש אותו בפועל?
 
 ---
 
@@ -556,8 +646,8 @@ hard-code once and assume forever
 
 # ‏Checkpoint — סוף חלק 1
 
-‏בשלב הזה בנינו את המודל שעליו כל שאר הפקודות יישבו: Order כ־Execution Contract וכ־State Machine, ההפרדה בין Strategy ל־Execution, ההבדל בין Native/Broker-Simulated/Client-Managed, והמשמעות של Fill/Cancel/Partial Fill/Queue/Support.
+‏בשלב הזה בנינו את המודל שעליו כל שאר הפקודות יישבו: Order כ־Execution Contract וכ־State Machine, ההפרדה בין Trade Intent, ‏Application Execution Mode, ‏Behavior Candidate ו־Concrete Broker Order, ההבחנה בין Venue-native / broker-managed / broker-resident / client-managed, והמשמעות הקנונית של Fill, Cancel, Partial Fill, clocks ו־Capability Enablement.
 
-‏החלק הבא ירד לעומק של **`Market`, ‏`Limit`, ‏`Marketable Limit`, ‏Passive Limit ו־price caps** — לא כהגדרות בסיסיות שכבר למדנו, אלא ברמת execution mechanics: מה קורה מול ה־Book, אילו failure modes יש, איך מודדים slippage ו־fill quality, ומה צריך להיות ה־baseline למנוע מומנטום שמנסה להיכנס ולצאת בתוך שניות.
+‏החלק הבא ירד לעומק של **`Market`, ‏`Limit`, ‏marketable Limit, ‏Passive Limit ו־price bounds** — לא כהגדרות בסיסיות שכבר למדנו, אלא ברמת execution mechanics: מה קורה מול ה־Book, אילו failure modes יש, איך מודדים slippage ו־fill quality, ומה צריך להיות ה־baseline למנוע מומנטום שמנסה להיכנס ולצאת בתוך שניות.
 
 ---
