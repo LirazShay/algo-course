@@ -64,8 +64,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     53 — Testing Best Practices
                     54 — Performance Best Practices
                     55 — Security and Operations Best Practices
+                    56 — 100 Common Mistakes in Short Algo Trading
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 56 — 100 Common Mistakes in Short Algo Trading
+Next Segment: 57 — 100 Practical Tips for a Personal Algo Builder
 Source of Truth: GitHub main
 ```
 
@@ -204,9 +205,10 @@ Baseline
 | `53-TESTING-BEST-PRACTICES.md` | `53-TESTING-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `54-PERFORMANCE-BEST-PRACTICES.md` | `54-PERFORMANCE-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `55-SECURITY-AND-OPERATIONS-BEST-PRACTICES.md` | `55-SECURITY-AND-OPERATIONS-BEST-PRACTICES.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `56-100-COMMON-MISTAKES-IN-SHORT-ALGO-TRADING.md` | `56-100-COMMON-MISTAKES-IN-SHORT-ALGO-TRADING.md` | TBD | `NOT STARTED` |
+| `56-100-COMMON-MISTAKES-IN-SHORT-ALGO-TRADING.md` | `56-100-COMMON-MISTAKES-IN-SHORT-ALGO-TRADING.md` | `P0/P1/P2/P3` | `COMPLETED` |
+| `57-100-PRACTICAL-TIPS-FOR-A-PERSONAL-ALGO-BUILDER.md` | `57-100-PRACTICAL-TIPS-FOR-A-PERSONAL-ALGO-BUILDER.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 57–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 58–85, ‏`60A`, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
