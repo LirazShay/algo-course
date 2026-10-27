@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R4_IN_PROGRESS",
-  "repairCheckpoint": "R4A_AGGRESSIVE_EXECUTION_COMPLETE",
+  "repairCheckpoint": "R4B_DYNAMIC_PRICING_COMPARISON_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -80,6 +80,12 @@
       "id": "05",
       "title": "Pegged Relative Midpoint and Snap",
       "source": "advanced-orders/source/05-PEGGED-MIDPOINT-SNAP.md",
+      "status": "ready"
+    },
+    {
+      "id": "05A",
+      "title": "Dynamic Pricing Decision Guide",
+      "source": "advanced-orders/source/05A-DYNAMIC-PRICING-DECISION-GUIDE.md",
       "status": "ready"
     },
     {
