@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R4_IN_PROGRESS",
-  "repairCheckpoint": "R4G_MODIFY_REPLACE_REPRICING_COMPLETE",
+  "repairCheckpoint": "R4H_ENTRY_EXIT_ASYMMETRY_COMPLETE",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -176,6 +176,12 @@
       "id": "10D",
       "title": "Full Decision Engine",
       "source": "advanced-orders/source/10D-FULL-DECISION-ENGINE.md",
+      "status": "ready"
+    },
+    {
+      "id": "10E",
+      "title": "Entry vs Exit Asymmetry Decision Guide",
+      "source": "advanced-orders/source/10E-ENTRY-VS-EXIT-ASYMMETRY-DECISION-GUIDE.md",
       "status": "ready"
     }
   ]
