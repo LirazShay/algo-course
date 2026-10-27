@@ -1,0 +1,121 @@
+name: Advanced Orders deterministic generation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/advanced-orders-generate.yml'
+      - 'advanced-orders/source/**'
+      - 'advanced-orders/build/assemble.mjs'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: advanced-orders-deterministic-generation-main
+  cancel-in-progress: false
+
+jobs:
+  generate-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate deterministic master
+        id: generate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node advanced-orders/build/assemble.mjs --write | tee /tmp/advanced-orders-write.log
+          grep -qx 'WRITE_OK' /tmp/advanced-orders-write.log
+          sha="$(sed -n 's/^sha256=//p' /tmp/advanced-orders-write.log | tail -n 1)"
+          test -n "$sha"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Verify deterministic equality
+        shell: bash
+        run: |
+          set -euo pipefail
+          node advanced-orders/build/assemble.mjs --check | tee /tmp/advanced-orders-check.log
+          grep -qx 'CHECK_OK' /tmp/advanced-orders-check.log
+          expected="${{ steps.generate.outputs.sha256 }}"
+          actual="$(sed -n 's/^sha256=//p' /tmp/advanced-orders-check.log | tail -n 1)"
+          test "$expected" = "$actual"
+
+      - name: Record successful CI generation in manifest
+        env:
+          GENERATED_SHA256: ${{ steps.generate.outputs.sha256 }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+          SOURCE_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFile, writeFile } from 'node:fs/promises';
+
+          const path = 'advanced-orders/source/manifest.json';
+          const manifest = JSON.parse(await readFile(path, 'utf8'));
+
+          manifest.repairState = 'R9_IN_PROGRESS';
+          manifest.repairCheckpoint = 'R9F_CI_GENERATION_COMPLETE';
+          manifest.generatedMaster = {
+            ...manifest.generatedMaster,
+            generatedSha256: process.env.GENERATED_SHA256,
+            generatedFromCommit: process.env.SOURCE_COMMIT,
+            reason: 'R1-R8 course-source work is complete. The deterministic R9 assembler has now run in GitHub Actions with --write followed immediately by --check, producing and verifying the generated master without any local-runtime dependency. Print verification and final repository cleanup remain.'
+          };
+          manifest.generationRunner = {
+            state: 'R9F_GITHUB_ACTIONS_COMPLETE',
+            path: '.github/workflows/advanced-orders-generate.yml',
+            platform: 'GitHub Actions / ubuntu-latest',
+            executionState: 'CI_WRITE_CHECK_OK',
+            workflowRunId: process.env.WORKFLOW_RUN_ID,
+            generatedSha256: process.env.GENERATED_SHA256,
+            contract: [
+              'checkout the canonical main branch in GitHub Actions',
+              'run the canonical assembler with --write',
+              'immediately run the same assembler with --check',
+              'require identical SHA-256 from write and check',
+              'commit only the generated master and generation metadata',
+              'do not start final cleanup until generation verification succeeds'
+            ],
+            reason: 'GitHub Actions is the canonical external generation runner. No local checkout or local command execution is required to produce or verify the master.'
+          };
+
+          await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+          NODE
+
+      - name: Guard generated changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git status --porcelain | sed -E 's/^.. //')
+          for path in "${changed[@]}"; do
+            case "$path" in
+              advanced-orders/ADVANCED-ORDER-MASTERY.md|advanced-orders/source/manifest.json) ;;
+              *) echo "Unexpected generated change: $path" >&2; exit 1 ;;
+            esac
+          done
+          test -n "$(git status --porcelain)"
+
+      - name: Commit generated master and verified state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add advanced-orders/ADVANCED-ORDER-MASTERY.md advanced-orders/source/manifest.json
+          git commit -m 'R9F generate and verify advanced orders master in CI'
+          git push origin HEAD:main
