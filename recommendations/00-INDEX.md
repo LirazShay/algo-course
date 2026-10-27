@@ -90,8 +90,9 @@ Completed Segments: 01 — Foundations / Personal Algo System
                     78 — Champion / Challenger
                     79 — Personal Trading Playbook
                     80 — Complete Robot Architecture
+                    81 — MVP Design
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: 81 — MVP Design
+Next Segment: 82 — Production v1 Design
 Source of Truth: GitHub main
 ```
 
@@ -256,9 +257,10 @@ Baseline
 | `78-CHAMPION-CHALLENGER.md` | `78-CHAMPION-CHALLENGER.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `79-PERSONAL-TRADING-PLAYBOOK.md` | `79-PERSONAL-TRADING-PLAYBOOK.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
 | `80-COMPLETE-ROBOT-ARCHITECTURE.md` | `80-COMPLETE-ROBOT-ARCHITECTURE.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
-| `81-MVP-DESIGN.md` | `81-MVP-DESIGN.md` | TBD | `NOT STARTED` |
+| `81-MVP-DESIGN.md` | `81-MVP-DESIGN.md` | `P0/P1/P2/P3/P4` | `COMPLETED` |
+| `82-PRODUCTION-V1-DESIGN.md` | `82-PRODUCTION-V1-DESIGN.md` | TBD | `NOT STARTED` |
 
-‏שאר שיעורי 82–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
+‏שאר שיעורי 83–85, ‏`85A` וה־Cross-Cutting packs יתווספו לאינדקס בהתקדמות מבוקרת; אין להסיק מחוסר שורה שהם מחוץ ל־scope.
 
 ---
 
