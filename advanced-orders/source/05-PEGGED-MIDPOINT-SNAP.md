@@ -1,15 +1,17 @@
-# ‏חלק 5 — Pegged, Relative, Midpoint ו־Snap: פקודות שמזיזות את עצמן
+# ‏חלק 5 — Pegged, Relative, Midpoint ו־Snap: Dynamic Pricing Behaviors
+
+> ‏לפי ה־taxonomy הקנונית ב־`00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md`, חלק מהשמות בפרק הזה הם Broker Order Primitives/variants, חלקם Broker Algos וחלקם Behavior Candidates של המנוע. לכן בכל section נפריד בין **מה הברוקר מקבל**, **מי מנהל את repricing/routing**, ו־**איזה Behavior המנוע שלנו בחר**.
 
 ## ‏5.1 למה המשפחה הזאת חשובה במיוחד לרובוט
 
 ‏ב־Limit רגילה המנוע בוחר מחיר. אם השוק זז, המנוע צריך לבחור האם להישאר, לבטל, להגיש מחדש, לשנות מחיר או לוותר על העסקה.
 
-‏במשפחת `Pegged` אנחנו מוסרים חלק מהחלטת המחיר ל־Broker/Venue באמצעות כלל דינמי:
+‏במשפחות dynamic pricing אנחנו יכולים למסור חלק מהחלטת המחיר ל־Broker/Venue באמצעות כלל כגון:
 
 ```text
 reference price
 +/- offset
-bounded by hard cap
+bounded by Economic Price Bound
 ```
 
 ‏זה יכול להיות חזק במיוחד למנוע של שניות, כי הוא מצמצם `cancel/replace` מקומי ומאפשר לפקודה להתאים את עצמה לשוק מהר יותר מהלולאה שלנו.
@@ -19,14 +21,14 @@ bounded by hard cap
 ```text
 What is the reference?
 Does price move once or continuously?
-Who performs the repricing?
-What is the hard economic boundary?
+Who performs the repricing/routing?
+What is the Economic Price Bound?
 What happens when the signal dies before the order does?
 ```
 
 ---
 
-## ‏5.2 ארבע משפחות שנשמעות דומות אך פותרות בעיות שונות
+## ‏5.2 ארבע משפחות שנשמעות דומות אך שייכות לשכבות שונות
 
 ‏צריך להפריד בין:
 
@@ -39,12 +41,12 @@ Snap family
 
 ‏באופן רעיוני:
 
-| משפחה | Reference | Repricing מתמשך? | מי מנהל | מטרה מרכזית |
-|---|---|---:|---|---|
-| `Relative/Pegged-to-Primary` | ‏הצד שלנו ב־NBBO | ‏כן | Broker/Venue | ‏להישאר liquidity provider אגרסיבי |
-| `Pegged-to-Midpoint` | ‏אמצע ה־NBBO | ‏כן | Venue/Broker path | ‏לבקש midpoint price improvement |
-| `MidPrice` | ‏midpoint-or-better | ‏כן, כחלק מ־IBKR algo/routing | IBKR | ‏SMART search ל־midpoint execution |
-| `Snap` | ‏Bid/Ask/Midpoint ברגע ההגשה | ‏לא | IBKR computes once | ‏מחיר התחלתי חכם בלי continual chase |
+| משפחה | שכבה קנונית | Reference | Repricing מתמשך? | מי מנהל |
+|---|---|---|---:|---|
+| `Relative/Pegged-to-Primary` | Broker primitive/variant + Behavior Candidate `RELATIVE_PRIMARY` | ‏הצד שלנו ב־NBBO | ‏כן | Broker/Venue path |
+| `Pegged-to-Midpoint` | Broker primitive/variant + `PEGGED_MIDPOINT_DIRECT` | ‏אמצע ה־NBBO | ‏כן | Venue/Broker path |
+| `MidPrice` | Broker Algo + Behavior Candidate `MIDPRICE` | ‏midpoint-or-better | ‏כן, כחלק מה־algo/routing | IBKR |
+| `Snap` | Broker primitive/variant + Behavior Candidate כגון `SNAP_MIDPOINT` | ‏Bid/Ask/Midpoint ברגע ההגשה | ‏לא | IBKR computes once |
 
 ‏אותו יעד כללי — מחיר חכם יותר — יכול להוביל ל־state machine שונה לחלוטין.
 
@@ -71,30 +73,30 @@ BUY LMT 50.01
 
 ```text
 BUY = NBB + 0.01
-cap = 50.03
+bound = 50.03
 ```
 
-‏אם ה־NBB עולה ל־50.01, effective price יכולה לעלות ל־50.02. אם ה־NBB ממשיך לעלות, ה־cap אמור לעצור את האגרסיביות בנקודה שקבענו.
+‏אם ה־NBB עולה ל־50.01, effective price יכולה לעלות ל־50.02. אם ה־NBB ממשיך לעלות, ה־Economic Price Bound אמור לעצור את האגרסיביות בנקודה שקבענו.
 
 ‏לכן ברמת המודל צריך לשמור בנפרד:
 
 ```text
 reference
 offset
-hard_cap
+economic_price_bound
 current_effective_price
 ```
 
 ---
 
-## ‏5.4 `Hard Cap` הוא לא תוספת — הוא תנאי בטיחות
+## ‏5.4 `Economic Price Bound` הוא לא תוספת — הוא תנאי בטיחות
 
-‏Pegged Order ללא גבול כלכלי יכולה להפוך ל־automatic chase.
+‏Pegged behavior ללא גבול כלכלי יכולה להפוך ל־automatic chase.
 
-‏אצלנו ה־cap צריך להגיע מאותו מודל כלכלי של חלק 2:
+‏אצלנו ה־bound צריך להגיע מאותו מודל כלכלי של חלק 2:
 
 ```text
-max_buy_price =
+entry_max_price =
 expected_exit
 - required_net_edge
 - expected_exit_cost
@@ -108,11 +110,11 @@ expected_exit
 keep following bid + 1 cent forever
 ```
 
-‏ברובוט קצר־טווח, `offset` קובע **איך לנוע**; `cap` קובע **מתי אסור להמשיך לנוע**.
+‏ברובוט קצר־טווח, `offset` קובע **איך לנוע**; `Economic Price Bound` קובע **מתי אסור להמשיך לנוע**.
 
 ---
 
-## ‏5.5 `Relative / Pegged-to-Primary` — Passive, אבל לא עצלנית
+## ‏5.5 `Relative / Pegged-to-Primary` — Broker-managed dynamic pricing
 
 ‏IBKR מתארת `Relative`, הידועה גם כ־`Pegged-to-Primary`, כפקודה שמנסה להיות אגרסיבית יותר מה־NBBO תוך כדי הוספת נזילות.
 
@@ -130,11 +132,19 @@ NBO - offset
 
 ‏ה־offset מאפשר לנו לשפר את המחיר מול התור הקיים בלי לנהל כל שינוי Quote ידנית.
 
-‏זה הופך אותה לרלוונטית מאוד לרובוט שלנו, משום שהיא קרובה לטקטיקה של "להיצמד למוביל" — אבל ה־repricing rule חי אצל Broker/Venue ולא רק אצלנו.
+‏ברמת המנוע שלנו:
+
+```text
+ApplicationExecutionMode = BROKER_MANAGED or PRICE_IMPROVING
+BehaviorCandidate = RELATIVE_PRIMARY
+Concrete Broker Plan = Relative/Pegged-to-Primary + route + bound
+```
+
+‏ה־repricing rule חי אצל Broker/Venue path; ה־Signal validity נשארת אצלנו.
 
 ---
 
-## ‏5.6 `Relative` מול Join רגיל
+## ‏5.6 `Relative` מול `PASSIVE_JOIN`
 
 ‏נניח:
 
@@ -162,15 +172,15 @@ BUY near NBB + 0.01
 - ‏מוותרים על חלק מה־spread.
 - ‏עלולים לחשוף urgency.
 - ‏עלולים להעלות את ה־NBBO.
-- ‏ה־order יכולה להמשיך לזוז גם כאשר ה־Signal שלנו כבר נחלש.
+- ‏ה־Order יכולה להמשיך לזוז גם כאשר ה־Signal שלנו כבר נחלש.
 
-‏לכן `Relative` היא Execution Policy אקטיבית, לא פשוט "Limit יותר חכמה".
+‏לכן `Relative` אינה "Execution Policy" שלמה ואינה פשוט "Limit יותר חכמה". היא Broker-side pricing mechanism שהמנוע יכול לבחור כחלק מ־Behavior Candidate.
 
 ---
 
 ## ‏5.7 פרט קריטי ב־IBKR: `SMART Relative` אינה סימטרית
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת:
 
@@ -217,7 +227,7 @@ if current_reference_deteriorates materially:
 
 ## ‏5.9 Zero Offset אינו אומר "Order רגילה"
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת ש־Relative עם `0` offset יכולה להיות מוצבת ב־best bid/ask ולהמשיך לנוע עם ה־inside quote בהתאם ל־route semantics.
 
@@ -274,9 +284,9 @@ fill_after_reprice
 
 ---
 
-## ‏5.12 `Relative` מול Client-Side Chase
+## ‏5.12 `Relative` מול Client-Managed Repricing
 
-‏Client-side chase נראה כך:
+‏Client-managed repricing נראה כך:
 
 ```text
 read quote
@@ -305,16 +315,16 @@ broker semantics
 +
 route behavior
 +
-cap
+Economic Price Bound
 +
-TTL
+application_order_ttl
 ```
 
 ‏תואמים בדיוק את ה־Execution Intent שלנו.
 
 ---
 
-## ‏5.13 Pegged Automation אינה Signal Automation
+## ‏5.13 Broker-managed pricing אינה Signal Automation
 
 ‏זו אחת הנקודות החשובות ביותר בחלק הזה:
 
@@ -325,13 +335,14 @@ Broker does not know our alpha died.
 
 ‏ה־Order יכולה לבצע repricing מושלם מול NBBO ובכל זאת להיות עסקה גרועה מפני שה־Signal שלנו התהפך.
 
-‏לכן כל Pegged mode דורש:
+‏לכן כל broker-managed/dynamic pricing Behavior דורש:
 
 ```text
-application_ttl
+application_order_ttl
+signal_ttl
 signal_decay_cancel
 market_data_freshness_guard
-hard_cap
+economic_price_bound
 position_guard
 ```
 
@@ -385,11 +396,18 @@ but low fill probability
 
 ## ‏5.16 `Pegged-to-Midpoint` ב־IBKR — Routing משנה הכול
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת את `Pegged-to-Midpoint` עבור Stocks, ETFs ו־Options ב־`TWS` וב־`IBKR Desktop`.
 
 ‏לפקודות מניה אמריקאיות, IBKR דורשת **Direct Routing** כדי להשתמש בפקודה הזו.
+
+‏לכן ברמת המנוע:
+
+```text
+BehaviorCandidate = PEGGED_MIDPOINT_DIRECT
+RoutingPolicy = DIRECT
+```
 
 ‏היא אינה שקולה ל־:
 
@@ -417,15 +435,15 @@ midpoint + arbitrary offset
 
 ---
 
-## ‏5.18 Price Cap ב־Pegged-to-Midpoint
+## ‏5.18 Economic Price Bound ב־Pegged-to-Midpoint
 
-‏גם כאן ניתן להגדיר Limit Price כ־cap.
+‏גם כאן ניתן להגדיר Limit Price כ־broker-level cap.
 
 ‏זה מאפשר שילוב מקצועי:
 
 ```text
 follow midpoint
-but never exceed economic boundary
+but never exceed Economic Price Bound
 ```
 
 ‏עבור BUY:
@@ -433,7 +451,7 @@ but never exceed economic boundary
 ```text
 midpoint may rise
 order may follow
-but cap stops further aggressiveness
+but bound stops further aggressiveness
 ```
 
 ‏כך ה־Peg מנהלת micro-pricing וה־engine שומר את economics.
@@ -460,15 +478,24 @@ markout_after_fill
 
 ---
 
-## ‏5.20 `MidPrice` — דומה בשם, שונה בארכיטקטורה
+## ‏5.20 `MidPrice` — Broker Algo, לא synonym של `Pegged-to-Midpoint`
 
-‏`MidPrice` היא IBKR Smart-routed execution mechanism שנועד לנסות לקבל את midpoint של ה־NBBO או מחיר טוב יותר, עם Price Cap אופציונלי.
+‏`MidPrice` היא IBKR Smart-routed Broker Algo שנועד לנסות לקבל את midpoint של ה־NBBO או מחיר טוב יותר, עם Price Cap אופציונלי.
 
 ‏כלומר:
 
 ```text
-Pegged-to-Midpoint = directed order behavior
-MidPrice            = IBKR SMART routing/algo behavior
+Pegged-to-Midpoint = directed broker order behavior/variant
+MidPrice            = IBKR broker algo + SMART routing behavior
+```
+
+‏וברמת המנוע:
+
+```text
+ApplicationExecutionMode = MIDPOINT_SEEKING or BROKER_MANAGED
+BehaviorCandidate = MIDPRICE
+BrokerAlgo = MidPrice
+RoutingPolicy = SMART
 ```
 
 ‏זה הבדל גדול מאוד עבור המנוע.
@@ -477,7 +504,7 @@ MidPrice            = IBKR SMART routing/algo behavior
 
 ## ‏5.21 מה IBKR עושה בתוך `MidPrice`
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת ש־MidPrice מנסה לנתב ל־exchange בעל הסתברות גבוהה למלא כ־`Pegged-to-Midpoint`; ב־IEX היא יכולה להשתמש ב־`D-Peg`. אם אין exchange מתאים, היא יכולה לנתב כ־native או simulated `Relative` order.
 
@@ -504,11 +531,11 @@ when to use relative fallback?
 ‏המחיר הוא פחות determinism:
 
 ```text
-same logical order
+same logical behavior candidate
 may take different execution paths
 ```
 
-‏ולכן Telemetry חייבת לשמור venue/fill behavior ולא רק `order_type = MidPrice`.
+‏ולכן Telemetry חייבת לשמור venue/fill behavior ולא רק `behavior_candidate = MIDPRICE`.
 
 ---
 
@@ -516,6 +543,7 @@ may take different execution paths
 
 | מאפיין | `MidPrice` | `Pegged-to-Midpoint` |
 |---|---|---|
+| שכבה | Broker Algo | Broker order variant / directed behavior |
 | Routing | `SMART` | ‏Directed למניות US |
 | מי בוחר destination | IBKR | ‏אנחנו/route שנבחר |
 | מטרה | ‏midpoint-or-better | ‏peg ל־midpoint ביעד |
@@ -528,7 +556,7 @@ may take different execution paths
 
 ---
 
-## ‏5.24 מתי `MidPrice` יכולה להיות Candidate מצוינת
+## ‏5.24 מתי `MIDPRICE` יכולה להיות Candidate מצוינת
 
 ‏תרחיש טבעי:
 
@@ -539,7 +567,15 @@ we prefer midpoint improvement
 but do not want to direct-route manually
 ```
 
-‏במקרה כזה `MidPrice + hard cap + short application TTL` היא Challenger רצינית.
+‏במקרה כזה:
+
+```text
+BehaviorCandidate = MIDPRICE
+Economic Price Bound = explicit
+application_order_ttl = short
+```
+
+‏היא Challenger רצינית.
 
 ‏היא פחות מתאימה כאשר:
 
@@ -572,14 +608,14 @@ static manually-calculated limit
 ‏לבין:
 
 ```text
-continual broker-managed chase
+continual broker-managed reprice
 ```
 
 ---
 
 ## ‏5.26 `Snap to Market`
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מתעדת:
 
@@ -596,7 +632,7 @@ BUY price  = Ask - offset
 
 ## ‏5.27 `Snap to Midpoint`
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏המחיר הראשוני:
 
@@ -606,6 +642,13 @@ BUY  = midpoint - offset
 ```
 
 ‏והוא נשאר Limit לאחר החישוב הראשוני.
+
+‏ברמת המנוע:
+
+```text
+ApplicationExecutionMode = MIDPOINT_SEEKING
+BehaviorCandidate = SNAP_MIDPOINT
+```
 
 ‏זה מעניין במיוחד אצלנו כ־Candidate ל־:
 
@@ -618,7 +661,7 @@ without continual repricing
 
 ## ‏5.28 `Snap to Primary`
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏המחיר הראשוני:
 
@@ -635,11 +678,13 @@ BUY  = Bid + offset
 
 ## ‏5.29 כל משפחת `Snap` היא Broker-Simulated ב־IBKR
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏IBKR מציינת ש־`Snap to Market`, ‏`Snap to Midpoint` ו־`Snap to Primary` מדומות על כל ה־exchanges.
 
 ‏זה אומר שה־Broker מחשב ומנהל את ה־initial transformation.
+
+‏לפי ה־taxonomy הקנונית, `broker-simulated` מתאר **איך** ההתנהגות מיושמת; אין להסיק ממנו לבדו מהו ה־residency או מה ישרוד disconnect.
 
 ‏לכן צריך למדוד:
 
@@ -688,7 +733,7 @@ order still rests at old price
 ‏לכן Snap צריכה בדרך כלל:
 
 ```text
-short application TTL
+short application_order_ttl
 signal-aware cancel
 fill/cancel reconciliation
 ```
@@ -697,7 +742,7 @@ fill/cancel reconciliation
 
 ## ‏5.32 `IBKR ATS Pegged-to-Best`
 
-> ‏אימות אחרון: `2026-10-27`.
+> ‏`FACT` — אימות אחרון: `2026-10-27`.
 
 ‏`Pegged-to-Best` היא פקודה ייחודית ל־IBKR ATS עבור Stocks/ETFs אמריקאיים ב־Directed routing.
 
@@ -769,7 +814,7 @@ stock momentum relative to sector ETF
 
 ## ‏5.36 `Retail Price Improvement` כקרובת משפחה רעיונית
 
-‏`RPI` אינה Peg רגילה, אבל ב־IBKR היא מתנהגת רעיונית כמו liquidity-adding order עם offset מול best bid/offer ו־limit cap, במסגרת תוכנית Retail Price Improvement של NASDAQ.
+‏`RPI` אינה Peg רגילה, אבל ב־IBKR היא מתנהגת רעיונית כמו liquidity-adding order עם offset מול best bid/offer ו־limit bound, במסגרת תוכנית Retail Price Improvement של NASDAQ.
 
 ‏IBKR מתעדת אותה ל־US stocks/ETFs בתנאים הרלוונטיים, עם `SMART` routing, ול־NASDAQ-listed stocks בהקשר המתואר.
 
@@ -807,15 +852,17 @@ adjacent but not actionable for our engine -> know it, do not overbuild around i
 ‏מבחינת הארכיטקטורה, עדיף מודל כגון:
 
 ```text
-PegPolicy {
-  family
+DynamicPricingPlan {
+  behavior_candidate
+  broker_primitive_or_algo
   reference
   offset
-  cap
-  route
+  economic_price_bound
+  routing_policy
+  destination
   continuous_reprice
-  application_ttl
-  signal_expiry
+  application_order_ttl
+  signal_ttl
 }
 ```
 
@@ -825,7 +872,7 @@ PegPolicy {
 orderType = PEG
 ```
 
-‏כי `Relative SMART`, ‏`Relative Directed`, ‏`Pegged-to-Midpoint`, ‏`MidPrice` ו־`Snap` הן policies שונות לחלוטין.
+‏כי `Relative SMART`, ‏`Relative Directed`, ‏`Pegged-to-Midpoint`, ‏`MidPrice` ו־`Snap` הן combinations שונות של primitives, algos, routing ו־ownership.
 
 ---
 
@@ -839,21 +886,24 @@ venue
 route
 region
 platform
+adapter
 ```
 
 ‏לכן נשתמש בשילוב:
 
 ```text
-static verified matrix
+documented capability knowledge
 +
 ContractDetails.orderTypes
 +
 validExchanges
 +
-rejection handling
+broker acceptance
++
+acceptance evidence
 ```
 
-‏לא נניח שהעובדה ש־TWS מציגה Order Type מסוימת אומרת שכל מניה וכל destination יקבלו אותה דרך ה־API.
+‏לא נניח שהעובדה ש־TWS מציגה Order Type מסוימת אומרת שכל מניה וכל destination יקבלו אותה דרך ה־API, ובוודאי לא שהיא כבר `PRODUCTION_ENABLED`.
 
 ---
 
@@ -870,13 +920,13 @@ reference rises again
 peg follows again
 ```
 
-‏וה־cap רחב, יצרנו chase בלי לולאת chase מקומית.
+‏וה־bound רחב, יצרנו chase בלי לולאת chase מקומית.
 
 ‏לכן כל Pegged execution אצלנו תצטרך:
 
 ```text
-hard_economic_cap
-max_signal_age
+economic_price_bound
+signal_ttl
 max_effective_price_deviation
 cancel_on_edge_decay
 cancel_on_market_data_stale
@@ -901,7 +951,7 @@ Peg risk  = moving too far
 Snap risk = staying too long at stale price
 ```
 
-‏שניהם דורשים TTL; הסיבה שונה.
+‏שניהם דורשים `application_order_ttl`; הסיבה שונה.
 
 ---
 
@@ -925,13 +975,13 @@ post-fill markout
 
 ---
 
-## ‏5.43 Pegged Exit — האם זה בכלל מתאים?
+## ‏5.43 Dynamic Pricing ב־Exit — לא אותו intent כמו Entry
 
 ‏ב־Entry אנחנו יכולים לקבל no-fill ולבחור `NO TRADE`.
 
 ‏ב־Exit יש Position קיימת.
 
-‏לכן Pegged/Midpoint יכולה להתאים ל־normal exit כאשר:
+‏לכן Pegged/Midpoint יכולה להתאים ל־`NORMAL_EXIT` כאשר:
 
 ```text
 we still have time
@@ -939,16 +989,21 @@ position risk is controlled
 spread savings matter
 ```
 
-‏אבל ב־fast/emergency exit היא יכולה להיות איטית מדי.
+‏אבל ב־`FAST_EXIT` או `EMERGENCY_REDUCE` היא יכולה להיות איטית מדי.
 
-‏מכאן ש־Execution Policy צריכה להפריד:
+‏מכאן שה־taxonomy נשארת:
 
 ```text
-ENTRY_PEGGED
-NORMAL_EXIT_PEGGED
+ApplicationExecutionMode:
+NORMAL_EXIT
 FAST_EXIT
-EMERGENCY_EXIT
+EMERGENCY_REDUCE
+
+Behavior Candidate:
+may be midpoint/pegged/aggressive depending on the mode
 ```
+
+‏לא ניצור Modes כגון `ENTRY_PEGGED` רק משום שה־materialization משתמשת ב־Peg.
 
 ---
 
@@ -963,11 +1018,11 @@ EMERGENCY_EXIT
 ‏אסור לייצר combinations על סמך שמות שדות בלבד. כל שילוב:
 
 ```text
-order type
+broker primitive / algo
 +
-tif
+time/fill policy
 +
-route
+routing policy
 +
 attributes
 ```
@@ -996,23 +1051,23 @@ net_edge_per_signal
 
 ‏יכול להיות ש־Pegged מפחיתה latency ומעלה Fill Rate אבל מגדילה adverse selection.
 
-‏יכול להיות ש־Client-side policy איטית יותר אבל מגיבה טוב יותר ל־Signal-specific information.
+‏יכול להיות ש־Client-managed policy איטית יותר אבל מגיבה טוב יותר ל־Signal-specific information.
 
 ‏אין תשובה תיאורטית שתכריע בלי נתונים.
 
 ---
 
-## ‏5.46 קבוצת ה־Challengers שהייתי מכניס למחקר מוקדם
+## ‏5.46 קבוצת ה־Behavior Challengers למחקר מוקדם
 
 ‏אחרי חמשת החלקים הראשונים, יש לנו קבוצת ניסוי מעניינת:
 
 ```text
-A. Passive displayed Limit + short TTL
-B. Marketable Limit + IOC
-C. Relative/Pegged-to-Primary + hard cap + short TTL
-D. MidPrice + hard cap + short TTL
-E. Snap to Midpoint + short TTL
-F. Directed Pegged-to-Midpoint + hard cap + short TTL
+A. PASSIVE_JOIN
+B. MARKETABLE_LIMIT_IOC
+C. RELATIVE_PRIMARY
+D. MIDPRICE
+E. SNAP_MIDPOINT
+F. PEGGED_MIDPOINT_DIRECT
 ```
 
 ‏לכל אחת יש תפקיד אחר:
@@ -1020,7 +1075,7 @@ F. Directed Pegged-to-Midpoint + hard cap + short TTL
 ```text
 A = simple passive baseline
 B = immediate capped aggression
-C = continuously adaptive passive aggression
+C = continuously adaptive passive/price-improving behavior
 D = broker-managed midpoint search
 E = midpoint-derived one-shot price
 F = explicit directed midpoint peg
@@ -1030,7 +1085,7 @@ F = explicit directed midpoint peg
 
 ---
 
-## ‏5.47 מה הייתי משאיר כ־Advanced Challengers
+## ‏5.47 מה נשאר `Advanced Challenger / Reference`
 
 ```text
 IBKR ATS Pegged-to-Best
@@ -1065,15 +1120,17 @@ route_capability
 
 ```text
 if urgency is extreme:
-    marketable_limit_ioc
+    candidate = MARKETABLE_LIMIT_IOC
 elif spread is wide and signal still has life:
-    midpoint_family
+    mode = MIDPOINT_SEEKING
+    candidate = MIDPRICE or SNAP_MIDPOINT
 elif passive intent and quote is moving:
-    relative_primary
+    mode = BROKER_MANAGED
+    candidate = RELATIVE_PRIMARY
 elif want market-derived initial price without chase:
-    snap_family
+    candidate = SNAP_MIDPOINT
 else:
-    simple_passive_limit
+    candidate = PASSIVE_JOIN
 ```
 
 ‏זו לא לוגיקת Production סופית; זו taxonomy נקייה לניסויים.
@@ -1085,12 +1142,15 @@ else:
 ‏נוסיף:
 
 ```text
+application_execution_mode
+behavior_candidate
+broker_primitive_or_algo
 peg_family
 peg_reference
 offset_type
 offset_value
-hard_cap
-route
+economic_price_bound
+routing_policy
 destination
 continuous_reprice
 initial_effective_price
@@ -1111,8 +1171,8 @@ broker_algo_name
 ‏ומדדים נגזרים:
 
 ```text
-fill_rate_by_family
-time_to_fill_by_family
+fill_rate_by_behavior
+time_to_fill_by_behavior
 reprice_to_fill_ratio
 price_improvement_bps
 missed_move_after_no_fill
@@ -1120,7 +1180,7 @@ markout_100ms
 markout_500ms
 markout_1s
 markout_5s
-net_edge_by_family
+net_edge_by_behavior
 ```
 
 ---
@@ -1132,7 +1192,7 @@ unsupported route
 order rejected because destination does not support type
 offset invalid for venue
 price rounded unexpectedly
-cap reached and order stops following
+bound reached and order stops following
 SMART Relative remains high after bid falls
 midpoint moves beyond economic value
 Snap price becomes stale
@@ -1148,18 +1208,18 @@ market data stale while order still reprices externally
 
 ## ‏5.51 מטריצת התאמה ראשונית למנוע שלנו
 
-| כלי | התאמה ראשונית | יתרון מרכזי | סיכון מרכזי |
+| כלי | שכבה קנונית | התאמה ראשונית | סיכון מרכזי |
 |---|---|---|---|
-| `Relative/Pegged-to-Primary` | `High/Challenger` | ‏repricing פסיבי אוטומטי | ‏SMART asymmetry / auto-chase |
-| `Pegged-to-Midpoint` | `High/Challenger` | ‏midpoint price improvement | ‏Direct routing / no-fill |
-| `MidPrice` | `High/Challenger` | ‏SMART midpoint search | ‏execution path פחות deterministic |
-| `Snap to Market` | `Medium/High` | ‏initial price מבוסס opposite side | ‏stale fixed limit |
-| `Snap to Midpoint` | `High/Challenger` | ‏midpoint initial price בלי continual chase | ‏no-fill / stale order |
-| `Snap to Primary` | `Medium/High` | ‏near-side improvement חד־פעמי | ‏Directed routing / stale price |
-| `IBKR ATS Pegged-to-Best` | `Advanced Challenger` | ‏מתחרה גם מול ATS same-side liquidity | ‏ATS-specific complexity |
-| `IBKR ATS Pegged-to-Midpoint` | `Advanced Challenger` | ‏midpoint בתוך IBKR ATS | ‏destination dependence |
-| `Pegged-to-Benchmark` | `Low now / Future` | ‏relative-value execution | ‏לא תואם core signal כיום |
-| `RPI` | `Advanced/Future` | ‏program-specific price improvement | ‏eligibility/program dependence |
+| `RELATIVE_PRIMARY` | Behavior + Relative primitive/variant | `High/Challenger` | ‏SMART asymmetry / auto-chase |
+| `PEGGED_MIDPOINT_DIRECT` | Behavior + directed pegged primitive | `High/Challenger` | ‏Direct routing / no-fill |
+| `MIDPRICE` | Behavior + Broker Algo | `High/Challenger` | ‏execution path פחות deterministic |
+| `Snap to Market` | Broker primitive/variant | `Medium/High` | ‏stale fixed limit |
+| `SNAP_MIDPOINT` | Behavior + Snap primitive/variant | `High/Challenger` | ‏no-fill / stale order |
+| `Snap to Primary` | Broker primitive/variant | `Medium/High` | ‏Directed routing / stale price |
+| `IBKR ATS Pegged-to-Best` | destination-specific advanced behavior | `Advanced Challenger` | ‏ATS-specific complexity |
+| `IBKR ATS Pegged-to-Midpoint` | destination-specific advanced behavior | `Advanced Challenger` | ‏destination dependence |
+| `Pegged-to-Benchmark` | Broker primitive/variant | `Low now / Future` | ‏לא תואם core signal כיום |
+| `RPI` | program-specific behavior | `Advanced/Future` | ‏eligibility/program dependence |
 
 ---
 
@@ -1167,27 +1227,27 @@ market data stale while order still reprices externally
 
 ‏המשפחה הזו מספיק רלוונטית כדי שלא נסתפק ב־Marketable Limit ו־Passive Limit בלבד.
 
-‏הייתי בונה ב־Research Harness תמיכה מפורשת לפחות ב־:
+‏ב־Research Harness נשמור תמיכה מפורשת לפחות ב־:
 
 ```text
 RELATIVE_PRIMARY
 MIDPRICE
-SNAP_MID
-PEGGED_MID_DIRECT
+SNAP_MIDPOINT
+PEGGED_MIDPOINT_DIRECT
 ```
 
 ‏ומשווה אותם ל־:
 
 ```text
-PASSIVE_LIMIT
+PASSIVE_JOIN
 MARKETABLE_LIMIT_IOC
 ```
 
-‏אבל שום Peg לא מקבלת פטור מ־:
+‏אבל שום dynamic pricing Behavior לא מקבלת פטור מ־:
 
 ```text
-hard cap
-TTL
+Economic Price Bound
+application_order_ttl
 signal validity
 fill reconciliation
 runtime capability checks
@@ -1217,13 +1277,13 @@ runtime capability checks
 
 ‏חצי Spread שנחסך יכול להימחק ב־adverse markout רגע לאחר הביצוע.
 
-### ‏6. `Cap` אינו optional מבחינה כלכלית
+### ‏6. `Economic Price Bound` אינו optional מבחינה כלכלית
 
 ‏גם אם ה־UI מאפשר להשאיר התנהגות רחבה יותר, המנוע צריך לדעת את worst acceptable economics שלו.
 
-### ‏7. Routing הוא חלק מה־Order Type
+### ‏7. Routing הוא dimension נפרד שיכול לשנות semantics
 
-‏במשפחה הזו במיוחד, `SMART` מול Directed יכול לשנות את ההתנהגות עצמה — לא רק את היעד.
+‏במשפחה הזו במיוחד, `SMART` מול Directed יכול לשנות את ההתנהגות עצמה — אבל `Routing Policy` עדיין אינה Broker Order Primitive.
 
 ### ‏8. Fewer cancels אינם אוטומטית better execution
 
@@ -1235,7 +1295,7 @@ runtime capability checks
 
 ### ‏10. ה־Order הכי "אוטומטית" אינה בהכרח הטובה ביותר לרובוט
 
-‏לפעמים דווקא `Snap + TTL` נותנת state machine פשוטה וצפויה יותר מ־continual peg.
+‏לפעמים דווקא `SNAP_MIDPOINT + application_order_ttl` נותנת state machine פשוטה וצפויה יותר מ־continual peg.
 
 ---
 
@@ -1254,11 +1314,11 @@ runtime capability checks
 
 # ‏Checkpoint — סוף חלק 5
 
-‏בחלק הזה הפרדנו בין ארבעה כלים שנראים במבט ראשון דומים אבל מעבירים אחריות שונה בין המנוע, IBKR וה־Venue: `Relative/Pegged-to-Primary`, ‏`Pegged-to-Midpoint`, ‏`MidPrice` ו־`Snap`.
+‏בחלק הזה הפרדנו בין ארבע משפחות שנראות במבט ראשון דומות אבל שייכות לשכבות שונות ומעבירות אחריות שונה בין המנוע, IBKR וה־Venue: `Relative/Pegged-to-Primary`, ‏`Pegged-to-Midpoint`, ‏`MidPrice` ו־`Snap`.
 
-‏למדנו שהשאלה המקצועית אינה רק "באיזה מחיר Order נמצאת עכשיו", אלא **מי רשאי לשנות אותו, לפי איזה reference, באיזה כיוון, עד איזה cap, ובאיזה route**. עבור מנוע של שניות זה משנה את latency, queue behavior, missed-fill risk, adverse selection ואת כמות ה־cancel/replace logic שאנחנו צריכים לכתוב בעצמנו.
+‏למדנו שהשאלה המקצועית אינה רק "באיזה מחיר Order נמצאת עכשיו", אלא **מי רשאי לשנות אותו, לפי איזה reference, באיזה כיוון, עד איזה Economic Price Bound, תחת איזה Routing Policy ובאיזה ownership model**.
 
-‏ה־Challengers המרכזיים שנכנסים כעת למחקר הם `Relative/Pegged-to-Primary`, ‏`MidPrice`, ‏`Snap to Midpoint` ו־Directed `Pegged-to-Midpoint`, לצד baselines של Passive Limit ו־Marketable Limit + IOC.
+‏ה־Behavior Challengers המרכזיים למחקר הם `RELATIVE_PRIMARY`, ‏`MIDPRICE`, ‏`SNAP_MIDPOINT` ו־`PEGGED_MIDPOINT_DIRECT`, לצד `PASSIVE_JOIN` ו־`MARKETABLE_LIMIT_IOC` — בלי לבלבל ביניהם לבין Broker primitives, Broker Algos או Routing Policies.
 
 ‏החלק הבא יהיה **חלק 6 — Stops, Trailing, Bracket, OCA/OCO ו־Conditional Orders**. שם `Bracket` תקבל טיפול עמוק במיוחד ברמת Production: parent/child lifecycle, partial fills, transmit sequencing, OCA races, orphan children, double exits, reconnect/recovery, broker-resident protection מול client-managed exits ו־Failure Matrix מלא — בלי לגרוע מהעומק של Stop, Stop-Limit, Trailing, Adjustable ו־Conditional Orders הרלוונטיות למנוע.
 
