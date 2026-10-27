@@ -3,7 +3,7 @@
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
   "repairState": "R9_IN_PROGRESS",
-  "repairCheckpoint": "R9A_DETERMINISTIC_ASSEMBLER_CREATED",
+  "repairCheckpoint": "R9B_ASSEMBLER_CONTRACT_VALIDATED",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -14,7 +14,17 @@
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
     "buildAllowed": false,
     "assembler": "advanced-orders/build/assemble.mjs",
-    "reason": "R1-R8 course-source work is complete and the deterministic R9 assembler now exists. The legacy master remains frozen until the assembler is validated and used to regenerate it in a later R9 segment; print viewer, print verification, and final repository cleanup also remain."
+    "reason": "R1-R8 course-source work is complete. R9A created the deterministic assembler and R9B validated its runtime contract on an isolated fixture: deterministic write/check, stale-master rejection, duplicate-id rejection, non-ready-entry rejection, and explicit write blocking while buildAllowed=false. The legacy master remains frozen until a later R9 segment explicitly enables generation and replaces it from the canonical sources; print viewer, print verification, and final repository cleanup also remain."
+  },
+  "assemblerValidation": {
+    "state": "R9B_COMPLETE",
+    "checks": [
+      "deterministic write followed by check produces the same SHA-256",
+      "stale generated master is rejected",
+      "duplicate manifest id is rejected",
+      "non-ready manifest entry is rejected",
+      "write is rejected while generatedMaster.buildAllowed is false"
+    ]
   },
   "finalizationPolicy": {
     "goal": "The final advanced-orders area is a clean printable Advanced Orders course, not a workspace dump.",
