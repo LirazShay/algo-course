@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "courseId": "advanced-order-mastery",
   "migrationState": "R1_COMPLETE",
+  "repairState": "R2_IN_PROGRESS",
   "canonicalSourceRoot": "advanced-orders/source",
   "legacyMaster": {
     "path": "advanced-orders/ADVANCED-ORDER-MASTERY.md",
@@ -24,6 +25,12 @@
       "id": "00",
       "title": "Front Matter and Course Map",
       "source": "advanced-orders/source/00-FRONT-MATTER.md",
+      "status": "ready"
+    },
+    {
+      "id": "00A",
+      "title": "Canonical Taxonomy and Vocabulary",
+      "source": "advanced-orders/source/00A-CANONICAL-TAXONOMY-AND-VOCABULARY.md",
       "status": "ready"
     },
     {
