@@ -114,8 +114,9 @@ Completed Cross-Cutting: 01 — Recommended MVP
                          16 — Recommended Performance Priorities
                          17 — Recommended Learning Loop
                          18 — Recommended Path from Research to Live
+Recommendation Gap Review: COMPLETED
 Current Corrections: 02A — Reg NMS time-sensitive status correction
-Next Segment: Recommendation Gap Review
+Next Segment: FINAL-RECOMMENDED-BASELINE.md
 Source of Truth: GitHub main
 ```
 
@@ -336,6 +337,8 @@ Baseline
 - ‏Recommended Performance Priorities.
 - ‏Recommended Learning Loop.
 - ‏Recommended Path from Research to Live.
+
+‏`Recommendation Gap Review` הושלם ב־`00-RECOMMENDATION-GAP-REVIEW.md`; לא נמצא Gap חוסם חדש לפני ה־Final synthesis.
 
 ---
 
